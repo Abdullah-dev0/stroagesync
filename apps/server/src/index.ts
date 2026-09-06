@@ -1,11 +1,16 @@
 import express, { type Express, type Request, type Response } from "express"
 import cors from "cors"
+import helmet from "helmet"
+import morgan from "morgan"
 import { toNodeHandler } from "better-auth/node"
 import { auth } from "./lib/auth"
 
 const app: Express = express()
 const port = Number(process.env.PORT) || 4000
 const clientOrigin = process.env.CLIENT_ORIGIN || "http://localhost:3000"
+
+app.use(helmet())
+app.use(morgan(":method :url :status :response-time ms - :response-size"))
 
 app.use(
   cors({
@@ -21,7 +26,8 @@ app.get("/", (_request: Request, response: Response) => {
   response.json({ message: "StorageSync API is running" })
 })
 
-app.get("/health", (_request: Request, response: Response) => {
+app.get("/health", async (_request: Request, response: Response) => {
+  await new Promise((resolve) => setTimeout(resolve, 1000)) // Simulate a delay
   response.json({ status: "ok" })
 })
 
