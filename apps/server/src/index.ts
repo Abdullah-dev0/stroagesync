@@ -1,36 +1,6 @@
-import express, { type Express, type Request, type Response } from "express"
-import cors from "cors"
-import helmet from "helmet"
-import morgan from "morgan"
-import { toNodeHandler } from "better-auth/node"
-import { auth } from "./lib/auth"
+import { app } from "./app"
+import { env } from "./config/env"
 
-const app: Express = express()
-const port = Number(process.env.PORT) || 4000
-const clientOrigin = process.env.CLIENT_ORIGIN || "http://localhost:3000"
-
-app.use(helmet())
-app.use(morgan(":method :url :status :response-time ms - :response-size"))
-
-app.use(
-  cors({
-    origin: clientOrigin,
-    credentials: true,
-  })
-)
-
-app.all("/api/auth/*splat", toNodeHandler(auth))
-app.use(express.json())
-
-app.get("/", (_request: Request, response: Response) => {
-  response.json({ message: "StorageSync API is running" })
-})
-
-app.get("/health", async (_request: Request, response: Response) => {
-  await new Promise((resolve) => setTimeout(resolve, 1000)) // Simulate a delay
-  response.json({ status: "ok" })
-})
-
-app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`)
+app.listen(env.port, () => {
+  console.log(`Server is running on http://localhost:${env.port}`)
 })

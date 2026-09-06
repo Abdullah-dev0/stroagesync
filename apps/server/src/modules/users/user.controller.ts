@@ -1,5 +1,5 @@
 import { fromNodeHeaders } from "better-auth/node"
-import { auth } from "../lib/auth"
+import { auth } from "../auth/auth"
 import type { Request, Response } from "express"
 
 export const getUserSession = async (req: Request, res: Response) => {
