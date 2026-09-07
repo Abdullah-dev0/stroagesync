@@ -1,96 +1,144 @@
 "use client"
 
 import { useState } from "react"
+import { zodResolver } from "@hookform/resolvers/zod"
 import Link from "next/link"
 import { Eye, EyeOff } from "lucide-react"
+import { Controller, type SubmitHandler, useForm } from "react-hook-form"
 
 import { Button } from "@workspace/ui/components/button"
-import { signupSchema } from "@workspace/validation/auth"
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@workspace/ui/components/field"
+import { Input } from "@workspace/ui/components/input"
+import { Label } from "@workspace/ui/components/label"
+import { signupSchema, type SignupInput } from "@workspace/validation/auth"
+import { authClient } from "@/lib/authClient"
+import { useRouter } from "next/navigation"
 
 const inputClassName =
-  "h-11 w-full rounded-xl border border-border bg-background px-3.5 text-sm text-foreground shadow-sm transition-colors placeholder:text-muted-foreground/70 hover:border-input focus-visible:border-primary focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/20"
+  "h-11 rounded-xl px-3.5 shadow-sm hover:border-input focus-visible:border-primary focus-visible:ring-ring/20"
 
 export function SignupForm() {
   const [showPassword, setShowPassword] = useState(false)
+  const router = useRouter()
 
-  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    
+  const form = useForm<SignupInput>({
+    resolver: zodResolver(signupSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+    },
+  })
+
+  const onSubmit: SubmitHandler<SignupInput> = async (
+    formData: SignupInput
+  ) => {
+    const { name, email, password } = formData
+    const { error } = await authClient.signUp.email({
+      name,
+      email,
+      password,
+    })
+    if (error) {
+      console.error("Signup failed:", error)
+      alert(error.message || "There is an error please try again later")
+      return
+    }
+
+    router.push("/login?signup=success")
   }
 
   return (
-    <form className="space-y-5" onSubmit={handleSubmit}>
-      <div className="space-y-2">
-        <label
-          htmlFor="full-name"
-          className="text-sm font-medium text-foreground"
-        >
-          Full name
-        </label>
-        <input
-          id="full-name"
+    <form className="space-y-5" onSubmit={form.handleSubmit(onSubmit)}>
+      <FieldGroup>
+        <Controller
           name="name"
-          type="text"
-          autoComplete="name"
-          placeholder="Jordan Lee"
-          className={inputClassName}
+          control={form.control}
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor="full-name">Full name</FieldLabel>
+              <Input
+                {...field}
+                id="full-name"
+                type="text"
+                autoComplete="name"
+                placeholder="Jordan Lee"
+                aria-invalid={fieldState.invalid}
+                className={inputClassName}
+              />
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </Field>
+          )}
         />
-      </div>
-
-      <div className="space-y-2">
-        <label htmlFor="email" className="text-sm font-medium text-foreground">
-          Email address
-        </label>
-        <input
-          id="email"
+        <Controller
           name="email"
-          type="email"
-          autoComplete="email"
-          inputMode="email"
-          placeholder="you@company.com"
-          className={inputClassName}
+          control={form.control}
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor={field.name}>Email address</FieldLabel>
+              <Input
+                {...field}
+                id={field.name}
+                type="email"
+                autoComplete="email"
+                inputMode="email"
+                placeholder="you@company.com"
+                aria-invalid={fieldState.invalid}
+                className={inputClassName}
+              />
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </Field>
+          )}
         />
-      </div>
+        <Controller
+          name="password"
+          control={form.control}
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor={field.name}>Password</FieldLabel>
+              <div className="relative">
+                <Input
+                  {...field}
+                  id={field.name}
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="new-password"
+                  placeholder="At least 8 characters"
+                  aria-invalid={fieldState.invalid}
+                  className={`${inputClassName} pr-11`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((visible) => !visible)}
+                  className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-xl text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-inset"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  aria-pressed={showPassword}
+                >
+                  {showPassword ? (
+                    <EyeOff className="size-4.5" />
+                  ) : (
+                    <Eye className="size-4.5" />
+                  )}
+                </button>
+              </div>
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </Field>
+          )}
+        />
+      </FieldGroup>
 
-      <div className="space-y-2">
-        <label
-          htmlFor="password"
-          className="text-sm font-medium text-foreground"
-        >
-          Password
-        </label>
-        <div className="relative">
-          <input
-            id="password"
-            name="password"
-            type={showPassword ? "text" : "password"}
-            autoComplete="new-password"
-            placeholder="At least 8 characters"
-            className={`${inputClassName} pr-11`}
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword((visible) => !visible)}
-            className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-xl text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-inset"
-            aria-label={showPassword ? "Hide password" : "Show password"}
-            aria-pressed={showPassword}
-          >
-            {showPassword ? (
-              <EyeOff className="size-4.5" />
-            ) : (
-              <Eye className="size-4.5" />
-            )}
-          </button>
-        </div>
-      </div>
-
-      <label className="flex cursor-pointer items-start gap-3 text-sm leading-5 text-muted-foreground">
+      <Label className="cursor-pointer items-start gap-3 text-muted-foreground">
         <input
           type="checkbox"
           name="terms"
+          required
           className="mt-0.5 size-4 shrink-0 rounded border-border accent-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
         />
-        <span>
+        <span className="leading-5">
           I agree to the{" "}
           <Link
             href="/terms"
@@ -107,7 +155,7 @@ export function SignupForm() {
           </Link>
           .
         </span>
-      </label>
+      </Label>
 
       <Button
         type="submit"
