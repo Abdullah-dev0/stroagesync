@@ -12,10 +12,13 @@ import {
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
 import { Input } from "@workspace/ui/components/input"
+import { SidebarTrigger } from "@workspace/ui/components/sidebar"
 
 export function DashboardHeader() {
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-background/90 px-4 backdrop-blur-sm sm:px-6">
+      <SidebarTrigger />
+
       <div className="hidden items-center gap-2 font-semibold sm:flex md:hidden">
         <FolderClosed className="size-5 text-primary" />
         StorageSync
