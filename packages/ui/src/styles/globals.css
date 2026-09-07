@@ -135,6 +135,33 @@
   --shadow-2xl: -50px 2px 0px -50px hsl(222.7751 100% 59.0196% / 0);
 }
 
+/* Dashboard surfaces and file accents match the drive design. */
+.dashboard-theme {
+  --background: #f7f8fa;
+  --card: #ffffff;
+  --foreground: #172033;
+  --muted: #eef0f3;
+  --muted-foreground: #7d8798;
+  --border: #e6e8ed;
+  --primary: #5d61ff;
+  --chart-1: #9964e8;
+  --chart-2: #4cb6c6;
+  --chart-3: #eba72e;
+  --chart-4: #40b582;
+  --chart-5: #e968a4;
+  --destructive: #ed5867;
+}
+
+.dark .dashboard-theme {
+  --background: #15171d;
+  --card: #1c1f27;
+  --foreground: #edf0f7;
+  --muted: #252934;
+  --muted-foreground: #9ba4b7;
+  --border: #303541;
+  --primary: #8588ff;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

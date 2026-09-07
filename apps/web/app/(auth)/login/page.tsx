@@ -2,7 +2,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { CircleCheck, FolderClosed } from "lucide-react"
 
-import { LoginForm } from "@/components/login-form"
+import { LoginForm } from "@/components/auth/login-form"
 
 function Brand() {
   return (
