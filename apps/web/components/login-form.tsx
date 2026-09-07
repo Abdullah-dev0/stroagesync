@@ -14,8 +14,7 @@ import {
   FieldLabel,
 } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
-import { signupSchema, type SignupInput } from "@workspace/validation/auth"
+import { loginSchema, type LoginInput } from "@workspace/validation/auth"
 import { authClient } from "@/lib/authClient"
 import { useRouter } from "next/navigation"
 import { toast } from "@workspace/ui/components/toast"
@@ -23,62 +22,38 @@ import { toast } from "@workspace/ui/components/toast"
 const inputClassName =
   "h-11 rounded-xl px-3.5 shadow-sm hover:border-input focus-visible:border-primary focus-visible:ring-ring/20"
 
-export function SignupForm() {
+export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)
   const router = useRouter()
-
-  const form = useForm<SignupInput>({
-    resolver: zodResolver(signupSchema),
+  const form = useForm<LoginInput>({
+    resolver: zodResolver(loginSchema),
     defaultValues: {
-      name: "",
       email: "",
       password: "",
     },
   })
 
-  const onSubmit: SubmitHandler<SignupInput> = async (
-    formData: SignupInput
-  ) => {
-    const { name, email, password } = formData
-    const { error } = await authClient.signUp.email({
-      name,
+  const onSubmit: SubmitHandler<LoginInput> = async (formData: LoginInput) => {
+    const { email, password } = formData
+    const { error } = await authClient.signIn.email({
       email,
       password,
     })
     if (error) {
-      console.error("Signup failed:", error)
+      console.error("Login failed:", error)
       toast.add({
         type: "error",
-        description: "Signup failed. Please try again.",
+        description: "Login failed. Please try again.",
       })
       return
     }
 
-    router.push("/login?signup=success")
+    router.push("/dashboard")
   }
 
   return (
     <form className="space-y-5" onSubmit={form.handleSubmit(onSubmit)}>
       <FieldGroup>
-        <Controller
-          name="name"
-          control={form.control}
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="full-name">Full name</FieldLabel>
-              <Input
-                {...field}
-                id="full-name"
-                type="text"
-                autoComplete="name"
-                placeholder="Jordan Lee"
-                aria-invalid={fieldState.invalid}
-                className={inputClassName}
-              />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </Field>
-          )}
-        />
         <Controller
           name="email"
           control={form.control}
@@ -99,19 +74,28 @@ export function SignupForm() {
             </Field>
           )}
         />
+
         <Controller
           name="password"
           control={form.control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Password</FieldLabel>
+              <div className="flex items-center justify-between gap-4">
+                <FieldLabel htmlFor={field.name}>Password</FieldLabel>
+                <Link
+                  href="/forgot-password"
+                  className="rounded-md text-sm font-medium text-primary underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                >
+                  Forgot password?
+                </Link>
+              </div>
               <div className="relative">
                 <Input
                   {...field}
                   id={field.name}
                   type={showPassword ? "text" : "password"}
-                  autoComplete="new-password"
-                  placeholder="At least 8 characters"
+                  autoComplete="current-password"
+                  placeholder="Enter your password"
                   aria-invalid={fieldState.invalid}
                   className={`${inputClassName} pr-11`}
                 />
@@ -135,47 +119,21 @@ export function SignupForm() {
         />
       </FieldGroup>
 
-      <Label className="cursor-pointer items-start gap-3 text-muted-foreground">
-        <input
-          type="checkbox"
-          name="terms"
-          required
-          className="mt-0.5 size-4 shrink-0 rounded border-border accent-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
-        />
-        <span className="leading-5">
-          I agree to the{" "}
-          <Link
-            href="/terms"
-            className="font-medium text-foreground underline-offset-4 hover:text-primary hover:underline"
-          >
-            Terms of Service
-          </Link>{" "}
-          and{" "}
-          <Link
-            href="/privacy"
-            className="font-medium text-foreground underline-offset-4 hover:text-primary hover:underline"
-          >
-            Privacy Policy
-          </Link>
-          .
-        </span>
-      </Label>
-
       <Button
         type="submit"
         size="lg"
         className="h-11 w-full rounded-xl font-semibold shadow-sm shadow-primary/20"
       >
-        Create account
+        Sign in
       </Button>
 
       <p className="text-center text-sm text-muted-foreground">
-        Already have an account?{" "}
+        New to StorageSync?{" "}
         <Link
-          href="/login"
+          href="/signup"
           className="font-semibold text-primary underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
         >
-          Sign in
+          Create an account
         </Link>
       </p>
     </form>
