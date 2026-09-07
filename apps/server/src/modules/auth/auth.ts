@@ -9,7 +9,7 @@ export const auth = betterAuth({
     provider: "pg",
     schema,
   }),
-
+  autoSignIn: false,
   emailAndPassword: {
     enabled: true,
   },

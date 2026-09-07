@@ -56,6 +56,10 @@ requires them.
 - Reuse types generated or exported by libraries, schemas, and database models
   instead of maintaining duplicate shapes by hand.
 - Use type-only imports when a value import is not required.
+- Do not use deprecated APIs or types. Check the installed library's declarations
+  or current official documentation and use its recommended replacement; for
+  example, use React's `SubmitEvent` instead of the deprecated `FormEvent` for
+  form submission handlers.
 - Handle nullable and optional values explicitly. Do not use non-null assertions
   unless the invariant is guaranteed and obvious.
 - Keep functions and components small and single-purpose, but do not create an

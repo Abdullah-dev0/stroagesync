@@ -29,6 +29,9 @@ importers:
 
   apps/server:
     dependencies:
+      '@workspace/validation':
+        specifier: workspace:*
+        version: link:../../packages/validation
       better-auth:
         specifier: ^1.7.3
         version: 1.7.3(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@types/pg@8.23.1)(kysely@0.29.5)(pg@8.23.0))(next@16.2.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(pg@8.23.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -96,6 +99,9 @@ importers:
       '@workspace/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@workspace/validation':
+        specifier: workspace:*
+        version: link:../../packages/validation
       better-auth:
         specifier: ^1.7.3
         version: 1.7.3(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@types/pg@8.23.1)(kysely@0.29.5)(pg@8.23.0))(next@16.2.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(pg@8.23.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -244,6 +250,19 @@ importers:
       tailwindcss:
         specifier: ^4
         version: 4.3.3
+      typescript:
+        specifier: ^5
+        version: 5.9.3
+
+  packages/validation:
+    dependencies:
+      zod:
+        specifier: ^4.4.3
+        version: 4.5.4
+    devDependencies:
+      '@workspace/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
       typescript:
         specifier: ^5
         version: 5.9.3

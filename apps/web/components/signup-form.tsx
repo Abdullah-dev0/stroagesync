@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Eye, EyeOff } from "lucide-react"
 
 import { Button } from "@workspace/ui/components/button"
+import { signupSchema } from "@workspace/validation/auth"
 
 const inputClassName =
   "h-11 w-full rounded-xl border border-border bg-background px-3.5 text-sm text-foreground shadow-sm transition-colors placeholder:text-muted-foreground/70 hover:border-input focus-visible:border-primary focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/20"
@@ -12,10 +13,18 @@ const inputClassName =
 export function SignupForm() {
   const [showPassword, setShowPassword] = useState(false)
 
+  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    
+  }
+
   return (
-    <form className="space-y-5">
+    <form className="space-y-5" onSubmit={handleSubmit}>
       <div className="space-y-2">
-        <label htmlFor="full-name" className="text-sm font-medium text-foreground">
+        <label
+          htmlFor="full-name"
+          className="text-sm font-medium text-foreground"
+        >
           Full name
         </label>
         <input
@@ -44,7 +53,10 @@ export function SignupForm() {
       </div>
 
       <div className="space-y-2">
-        <label htmlFor="password" className="text-sm font-medium text-foreground">
+        <label
+          htmlFor="password"
+          className="text-sm font-medium text-foreground"
+        >
           Password
         </label>
         <div className="relative">
@@ -59,7 +71,7 @@ export function SignupForm() {
           <button
             type="button"
             onClick={() => setShowPassword((visible) => !visible)}
-            className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-xl text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+            className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-xl text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-inset"
             aria-label={showPassword ? "Hide password" : "Show password"}
             aria-pressed={showPassword}
           >
@@ -76,7 +88,7 @@ export function SignupForm() {
         <input
           type="checkbox"
           name="terms"
-          className="mt-0.5 size-4 shrink-0 rounded border-border accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          className="mt-0.5 size-4 shrink-0 rounded border-border accent-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
         />
         <span>
           I agree to the{" "}
@@ -98,7 +110,7 @@ export function SignupForm() {
       </label>
 
       <Button
-        type="button"
+        type="submit"
         size="lg"
         className="h-11 w-full rounded-xl font-semibold shadow-sm shadow-primary/20"
       >
@@ -109,7 +121,7 @@ export function SignupForm() {
         Already have an account?{" "}
         <Link
           href="/login"
-          className="font-semibold text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="font-semibold text-primary underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
         >
           Sign in
         </Link>
