@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import Link from "next/link"
-import { Eye, EyeOff } from "lucide-react"
+import { Eye, EyeOff, LoaderCircle } from "lucide-react"
 import { Controller, type SubmitHandler, useForm } from "react-hook-form"
 
 import { Button } from "@workspace/ui/components/button"
@@ -32,6 +32,7 @@ export function LoginForm() {
       password: "",
     },
   })
+  const { isSubmitting } = form.formState
 
   const onSubmit: SubmitHandler<LoginInput> = async (formData: LoginInput) => {
     const { email, password } = formData
@@ -43,7 +44,7 @@ export function LoginForm() {
       console.error("Login failed:", error)
       toast.add({
         type: "error",
-        description: "Login failed. Please try again.",
+        description: error.message || "Login failed. Please try again.",
       })
       return
     }
@@ -53,79 +54,91 @@ export function LoginForm() {
 
   return (
     <form className="space-y-5" onSubmit={form.handleSubmit(onSubmit)}>
-      <FieldGroup>
-        <Controller
-          name="email"
-          control={form.control}
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Email address</FieldLabel>
-              <Input
-                {...field}
-                id={field.name}
-                type="email"
-                autoComplete="email"
-                inputMode="email"
-                placeholder="you@company.com"
-                aria-invalid={fieldState.invalid}
-                className={inputClassName}
-              />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </Field>
-          )}
-        />
-
-        <Controller
-          name="password"
-          control={form.control}
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <div className="flex items-center justify-between gap-4">
-                <FieldLabel htmlFor={field.name}>Password</FieldLabel>
-                <Link
-                  href="/forgot-password"
-                  className="rounded-md text-sm font-medium text-primary underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-                >
-                  Forgot password?
-                </Link>
-              </div>
-              <div className="relative">
+      <fieldset disabled={isSubmitting} className="min-w-0 space-y-5">
+        <FieldGroup>
+          <Controller
+            name="email"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={field.name}>Email address</FieldLabel>
                 <Input
                   {...field}
                   id={field.name}
-                  type={showPassword ? "text" : "password"}
-                  autoComplete="current-password"
-                  placeholder="Enter your password"
+                  type="email"
+                  autoComplete="email"
+                  inputMode="email"
+                  placeholder="you@company.com"
                   aria-invalid={fieldState.invalid}
-                  className={`${inputClassName} pr-11`}
+                  className={inputClassName}
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((visible) => !visible)}
-                  className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-xl text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-inset"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                  aria-pressed={showPassword}
-                >
-                  {showPassword ? (
-                    <EyeOff className="size-4.5" />
-                  ) : (
-                    <Eye className="size-4.5" />
-                  )}
-                </button>
-              </div>
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </Field>
-          )}
-        />
-      </FieldGroup>
+                {fieldState.invalid && (
+                  <FieldError errors={[fieldState.error]} />
+                )}
+              </Field>
+            )}
+          />
 
-      <Button
-        type="submit"
-        size="lg"
-        className="h-11 w-full rounded-xl font-semibold shadow-sm shadow-primary/20"
-      >
-        Sign in
-      </Button>
+          <Controller
+            name="password"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <div className="flex items-center justify-between gap-4">
+                  <FieldLabel htmlFor={field.name}>Password</FieldLabel>
+                  <Link
+                    href="/forgot-password"
+                    className="rounded-md text-sm font-medium text-primary underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                  >
+                    Forgot password?
+                  </Link>
+                </div>
+                <div className="relative">
+                  <Input
+                    {...field}
+                    id={field.name}
+                    type={showPassword ? "text" : "password"}
+                    autoComplete="current-password"
+                    placeholder="Enter your password"
+                    aria-invalid={fieldState.invalid}
+                    className={`${inputClassName} pr-11`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((visible) => !visible)}
+                    className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-xl text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-inset"
+                    aria-label={
+                      showPassword ? "Hide password" : "Show password"
+                    }
+                    aria-pressed={showPassword}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="size-4.5" />
+                    ) : (
+                      <Eye className="size-4.5" />
+                    )}
+                  </button>
+                </div>
+                {fieldState.invalid && (
+                  <FieldError errors={[fieldState.error]} />
+                )}
+              </Field>
+            )}
+          />
+        </FieldGroup>
+
+        <Button
+          type="submit"
+          size="lg"
+          aria-busy={isSubmitting}
+          className="h-11 w-full rounded-xl font-semibold shadow-sm shadow-primary/20"
+        >
+          {isSubmitting && (
+            <LoaderCircle className="animate-spin" aria-hidden="true" />
+          )}
+          {isSubmitting ? "Signing in..." : "Sign in"}
+        </Button>
+      </fieldset>
 
       <p className="text-center text-sm text-muted-foreground">
         New to StorageSync?{" "}

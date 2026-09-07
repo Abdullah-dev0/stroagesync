@@ -13,6 +13,9 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
   },
+  advanced: {
+    cookiePrefix: "auth-token",
+  },
   baseURL: env.betterAuthUrl,
   trustedOrigins: [env.clientOrigin],
 })
