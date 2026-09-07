@@ -10,10 +10,24 @@ Keep changes simple, focused, and consistent with the existing monorepo. Do not
 add abstractions, dependencies, or defensive behavior unless the current task
 requires them.
 
+## Naming Conventions
+
+- Use `kebab-case` for file and folder names, such as
+  `user-profile.tsx`, `file-upload-dialog.tsx`, and `storage-settings/`.
+- Use `PascalCase` for React component names, such as `UserProfile` and
+  `FileUploadDialog`.
+- Use `camelCase` for functions and variables, such as `uploadFile` and
+  `selectedFolder`.
+- Keep Next.js special filenames in their required lowercase form, such as
+  `page.tsx`, `layout.tsx`, `loading.tsx`, and `route.ts`.
+- Apply these conventions consistently across the monorepo.
+
 ## Styling and UI
 
 - Use Tailwind CSS for styling and follow the existing design tokens in
   `packages/ui/src/styles/globals.css`.
+- Do not use hard-coded colors in components. Use semantic Tailwind color
+  utilities backed by the existing design tokens instead.
 - Reuse components from `packages/ui` before creating app-specific duplicates.
 - Keep reusable UI primitives in `packages/ui`; keep feature-specific components
   close to the app or route that uses them.
@@ -26,6 +40,12 @@ requires them.
   need.
 - Avoid inline styles and arbitrary values when an existing utility or design
   token fits.
+- Use Tailwind CSS canonical class syntax and follow
+  `tailwindcss(suggestCanonicalClasses)` suggestions. For negative arbitrary
+  values, put the minus sign inside the brackets—for example, use
+  `translate-x-[-42%]` instead of `-translate-x-[42%]`. Use Tailwind CSS v4
+  gradient utilities such as `bg-linear-to-br` instead of the legacy
+  `bg-gradient-to-br`.
 
 ## TypeScript
 
