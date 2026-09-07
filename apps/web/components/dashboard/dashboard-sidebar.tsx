@@ -82,19 +82,32 @@ export function DashboardSidebar({ className }: DashboardSidebarProps) {
                   const Icon = item.icon
 
                   return (
-                    <SidebarMenuItem key={item.label}>
+                    <SidebarMenuItem
+                      key={item.label}
+                      className={cn(item.active && "rounded-full bg-[#E9ECFE]")}
+                    >
                       <SidebarMenuButton
                         render={<Link href={item.href} />}
-                        isActive={item.active}
                         tooltip={item.label}
                         aria-label={item.label}
                         aria-current={item.active ? "page" : undefined}
                         className={cn(
-                          "flex h-10 items-center gap-3 rounded-xl px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
-                          item.active && "bg-primary/10 text-primary"
+                          "group h-10 gap-3 rounded-full px-5 text-[16px] font-medium",
+                          "hover:text-current",
+                          item.active
+                            ? "bg-[#E9ECFE] text-foreground hover:bg-[#E9ECFE] hover:text-foreground"
+                            : "hover:bg-transparent hover:text-foreground"
                         )}
                       >
-                        <Icon className="size-4.5" />
+                        <Icon
+                          className={cn(
+                            "size-4.5",
+                            item.active
+                              ? "text-primary group-hover:text-primary"
+                              : "group-hover:text-current"
+                          )}
+                        />
+
                         <span className="group-data-[collapsible=icon]:hidden">
                           {item.label}
                         </span>

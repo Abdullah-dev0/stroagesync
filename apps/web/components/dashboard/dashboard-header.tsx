@@ -30,7 +30,7 @@ export function DashboardHeader() {
           type="search"
           aria-label="Search in StorageSync"
           placeholder="Search in StorageSync"
-          className="h-10 rounded-full border-transparent bg-muted/70 pr-4 pl-9 shadow-none focus-visible:bg-background"
+          className="h-10 rounded-full pr-4 pl-9 shadow-none focus-visible:border-input focus-visible:bg-background focus-visible:ring-0 focus-visible:ring-offset-0"
         />
       </div>
 
