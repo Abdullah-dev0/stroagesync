@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm"
 import { db } from "../../db/client"
 import { user } from "../../db/schema/auth.schema"
-import { AppError } from "../../errors/app-error"
+import { AppError } from "../../lib/app-error"
 
 export const updateUserName = async (userId: string, name: unknown) => {
   if (typeof name !== "string" || name.trim().length < 2) {

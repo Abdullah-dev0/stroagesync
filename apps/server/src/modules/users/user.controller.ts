@@ -1,7 +1,7 @@
 import { fromNodeHeaders } from "better-auth/node"
 import { auth } from "../auth/auth"
 import type { Request, Response } from "express"
-import { AppError } from "../../errors/app-error"
+import { AppError } from "../../lib/app-error"
 import { updateUserName } from "./user.service"
 
 export const getUserSession = async (req: Request, res: Response) => {
