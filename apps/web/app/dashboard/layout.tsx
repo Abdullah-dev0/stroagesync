@@ -1,5 +1,5 @@
 import { DashboardSidebar } from "@/components/dashboard/dashboard-sidebar"
-import { QueryProvider } from "@/app/providers/query-provider"
+import { QueryProvider } from "@/providers/query-provider"
 import { SidebarProvider } from "@workspace/ui/components/sidebar"
 
 export default function Layout({ children }: { children: React.ReactNode }) {

@@ -1,8 +1,10 @@
 "use client"
 
-import { CloudUpload, FolderPlus, Plus } from "lucide-react"
-import { useState } from "react"
+import { CloudUpload, FolderPlus, LoaderCircle, Plus } from "lucide-react"
+import { useState, type SubmitEvent } from "react"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 
+import { clientApi } from "@/lib/api/client"
 import { Button } from "@workspace/ui/components/button"
 import {
   Dialog,
@@ -22,10 +24,52 @@ import {
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import { SidebarMenuButton } from "@workspace/ui/components/sidebar"
-import { useMutation } from "@tanstack/react-query"
+import { toast } from "@workspace/ui/components/toast"
 
 export function CreateNewButton() {
   const [isFolderDialogOpen, setIsFolderDialogOpen] = useState(false)
+  const [folderName, setFolderName] = useState("")
+
+  const queryClient = useQueryClient()
+
+  const createFolder = useMutation({
+    mutationFn: (name: string) =>
+      clientApi("/api/folders", {
+        method: "POST",
+        body: { name },
+      }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["files"] })
+      setFolderName("")
+      setIsFolderDialogOpen(false)
+      toast.add({
+        type: "success",
+        title: "Folder created",
+      })
+    },
+    onError: () => {
+      toast.add({
+        type: "error",
+        title: "Could not create folder",
+        description: "Please try again.",
+      })
+    },
+  })
+
+  function handleCreateFolder(event: SubmitEvent<HTMLFormElement>) {
+    event.preventDefault()
+
+    const name = folderName.trim()
+    if (!name) {
+      toast.add({
+        type: "error",
+        description: "Enter a folder name.",
+      })
+      return
+    }
+
+    createFolder.mutate(name)
+  }
 
   return (
     <>
@@ -69,19 +113,42 @@ export function CreateNewButton() {
 
       <Dialog open={isFolderDialogOpen} onOpenChange={setIsFolderDialogOpen}>
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Create a new folder</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-2">
-            <Label htmlFor="folder-name">Folder name</Label>
-            <Input id="folder-name" placeholder="Untitled folder" autoFocus />
-          </div>
-          <DialogFooter>
-            <DialogClose render={<Button variant="outline" />}>
-              Cancel
-            </DialogClose>
-            <Button type="button">Create folder</Button>
-          </DialogFooter>
+          <form className="grid gap-4" onSubmit={handleCreateFolder}>
+            <DialogHeader>
+              <DialogTitle>Create a new folder</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-2">
+              <Label htmlFor="folder-name">Folder name</Label>
+              <Input
+                id="folder-name"
+                name="folder-name"
+                value={folderName}
+                onChange={(event) => setFolderName(event.target.value)}
+                placeholder="Untitled folder"
+                disabled={createFolder.isPending}
+                autoComplete="off"
+                autoFocus
+              />
+            </div>
+            <DialogFooter>
+              <DialogClose
+                render={<Button variant="outline" />}
+                disabled={createFolder.isPending}
+              >
+                Cancel
+              </DialogClose>
+              <Button
+                type="submit"
+                disabled={createFolder.isPending}
+                aria-busy={createFolder.isPending}
+              >
+                {createFolder.isPending && (
+                  <LoaderCircle className="animate-spin" aria-hidden="true" />
+                )}
+                {createFolder.isPending ? "Creating..." : "Create folder"}
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </>
