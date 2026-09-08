@@ -8,6 +8,7 @@ import { auth } from "./modules/auth/auth"
 import { userRouter } from "./modules/users/user.routes"
 import { healthRouter } from "./routes/health.routes"
 import morgan from "morgan"
+import { requireAuth } from "./middleware/auth.middleware"
 
 export const app: Express = express()
 
@@ -24,7 +25,7 @@ app.all("/api/auth/*splat", toNodeHandler(auth))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
-app.use("/api/users", userRouter)
+app.use("/api/users", requireAuth, userRouter)
 app.use(healthRouter)
 
 app.use(errorHandler)

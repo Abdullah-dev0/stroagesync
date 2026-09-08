@@ -16,6 +16,12 @@ export const auth = betterAuth({
   advanced: {
     cookiePrefix: "auth-token",
   },
+  session: {
+    cookieCache: {
+      enabled: true,
+      maxAge: 5 * 60,
+    },
+  },
   baseURL: env.betterAuthUrl,
   trustedOrigins: [env.clientOrigin],
 })
