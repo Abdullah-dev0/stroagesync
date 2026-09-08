@@ -1,7 +1,5 @@
 import { DashboardSidebar } from "@/components/dashboard/dashboard-sidebar"
-import {
-  SidebarProvider
-} from "@workspace/ui/components/sidebar"
+import { SidebarProvider } from "@workspace/ui/components/sidebar"
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (

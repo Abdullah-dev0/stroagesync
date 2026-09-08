@@ -1,15 +1,9 @@
 import Link from "next/link"
-import {
-  Clock3,
-  FolderClosed,
-  HardDrive,
-  House,
-  Plus,
-  Star,
-  Trash2,
-  Users,
-} from "lucide-react"
+import { FolderClosed, HardDrive } from "lucide-react"
 
+import { CreateNewButton } from "@/components/dashboard/create-new-button"
+import { STORAGE_USAGE } from "./constants"
+import { dashboardNavigation } from "@/components/dashboard/navigation"
 import { Progress } from "@workspace/ui/components/progress"
 import { Separator } from "@workspace/ui/components/separator"
 import { cn } from "@workspace/ui/lib/utils"
@@ -25,14 +19,6 @@ import {
   SidebarMenuButton,
   SidebarRail,
 } from "@workspace/ui/components/sidebar"
-
-const navigation = [
-  { label: "My Drive", href: "/dashboard", icon: House, active: true },
-  { label: "Shared with me", href: "/dashboard/shared", icon: Users },
-  { label: "Recent", href: "/dashboard/recent", icon: Clock3 },
-  { label: "Starred", href: "/dashboard/starred", icon: Star },
-  { label: "Trash", href: "/dashboard/trash", icon: Trash2 },
-]
 
 type DashboardSidebarProps = {
   className?: string
@@ -60,15 +46,7 @@ export function DashboardSidebar({ className }: DashboardSidebarProps) {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              variant="outline"
-              tooltip="New"
-              aria-label="New"
-              className="h-10 gap-3 rounded-xl"
-            >
-              <Plus />
-              <span className="group-data-[collapsible=icon]:hidden">New</span>
-            </SidebarMenuButton>
+            <CreateNewButton />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
@@ -78,7 +56,7 @@ export function DashboardSidebar({ className }: DashboardSidebarProps) {
           <SidebarGroupContent>
             <nav aria-label="Dashboard navigation">
               <SidebarMenu className="gap-1">
-                {navigation.map((item) => {
+                {dashboardNavigation.map((item) => {
                   const Icon = item.icon
 
                   return (
@@ -126,8 +104,8 @@ export function DashboardSidebar({ className }: DashboardSidebarProps) {
           <SidebarMenuItem>
             <SidebarMenuButton
               render={<Link href="/dashboard/storage" />}
-              tooltip="Storage: 6.4 GB of 15 GB"
-              aria-label="Storage: 6.4 GB of 15 GB"
+              tooltip={`Storage: ${STORAGE_USAGE.used} of ${STORAGE_USAGE.total}`}
+              aria-label={`Storage: ${STORAGE_USAGE.used} of ${STORAGE_USAGE.total}`}
             >
               <HardDrive />
             </SidebarMenuButton>
@@ -137,9 +115,14 @@ export function DashboardSidebar({ className }: DashboardSidebarProps) {
           <Separator className="mb-4" />
           <div className="mb-2 flex items-center justify-between gap-3 text-xs">
             <span className="font-medium text-foreground">Storage</span>
-            <span className="text-muted-foreground">6.4 GB of 15 GB</span>
+            <span className="text-muted-foreground">
+              {STORAGE_USAGE.used} of {STORAGE_USAGE.total}
+            </span>
           </div>
-          <Progress value={43} aria-label="43 percent of storage used" />
+          <Progress
+            value={STORAGE_USAGE.percentage}
+            aria-label={`${STORAGE_USAGE.percentage} percent of storage used`}
+          />
           <Link
             href="/dashboard/storage"
             className="mt-3 inline-flex rounded text-xs font-medium text-primary underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
