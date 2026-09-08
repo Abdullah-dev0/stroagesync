@@ -25,50 +25,56 @@ import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import { SidebarMenuButton } from "@workspace/ui/components/sidebar"
 import { toast } from "@workspace/ui/components/toast"
+import {
+  createFolderInputSchema,
+  folderSchema,
+  type CreateFolderInput,
+} from "@workspace/validation/folders"
+import { cn } from "cn"
 
 export function CreateNewButton() {
   const [isFolderDialogOpen, setIsFolderDialogOpen] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [folderName, setFolderName] = useState("")
-
   const queryClient = useQueryClient()
 
   const createFolder = useMutation({
-    mutationFn: (name: string) =>
+    mutationFn: (input: CreateFolderInput) =>
       clientApi("/api/folders", {
         method: "POST",
-        body: { name },
+        body: input,
+        output: folderSchema,
       }),
-    onSuccess: () => {
+    onSuccess: (folder) => {
       void queryClient.invalidateQueries({ queryKey: ["files"] })
       setFolderName("")
+      setErrorMessage(null)
       setIsFolderDialogOpen(false)
       toast.add({
         type: "success",
         title: "Folder created",
+        description: `${folder.name} is ready.`,
       })
     },
     onError: () => {
-      toast.add({
-        type: "error",
-        title: "Could not create folder",
-        description: "Please try again.",
-      })
+      setErrorMessage("Failed to create folder. Please try again.")
     },
   })
 
   function handleCreateFolder(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault()
 
-    const name = folderName.trim()
-    if (!name) {
-      toast.add({
-        type: "error",
-        description: "Enter a folder name.",
-      })
+    const input = createFolderInputSchema.safeParse({ name: folderName })
+
+    if (!input.success) {
+      setErrorMessage(
+        input.error.issues[0]?.message ?? "Enter a valid folder name."
+      )
       return
     }
 
-    createFolder.mutate(name)
+    setErrorMessage(null)
+    createFolder.mutate(input.data)
   }
 
   return (
@@ -123,12 +129,30 @@ export function CreateNewButton() {
                 id="folder-name"
                 name="folder-name"
                 value={folderName}
-                onChange={(event) => setFolderName(event.target.value)}
+                onChange={(event) => {
+                  setFolderName(event.target.value)
+                  setErrorMessage(null)
+                }}
                 placeholder="Untitled folder"
+                maxLength={255}
                 disabled={createFolder.isPending}
+                aria-invalid={Boolean(errorMessage)}
+                className={cn(
+                  "focus:ring-0 focus-visible:ring-0",
+                  errorMessage &&
+                    "border-red-500! focus:border-red-500! focus-visible:border-red-500!"
+                )}
+                aria-describedby={
+                  errorMessage ? "folder-name-error" : undefined
+                }
                 autoComplete="off"
                 autoFocus
               />
+              {errorMessage && (
+                <p id="folder-name-error" className="text-sm text-red-500">
+                  {errorMessage}
+                </p>
+              )}
             </div>
             <DialogFooter>
               <DialogClose
