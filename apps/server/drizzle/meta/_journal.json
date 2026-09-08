@@ -8,6 +8,20 @@
       "when": 1788725506108,
       "tag": "0000_outstanding_silver_samurai",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1788874563147,
+      "tag": "0001_true_starhawk",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788875286195,
+      "tag": "0002_wandering_microbe",
+      "breakpoints": true
     }
   ]
 }
