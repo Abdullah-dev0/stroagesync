@@ -1,17 +1,22 @@
-import type { Request, Response } from "express"
-import { createFolderInputSchema } from "../../../../../packages/validation/src/folders"
+import { createFolderInputSchema } from "@workspace/validation/folders"
+import type { AuthenticatedHandler } from "../../middleware/auth.middleware"
+import { createFolder as createFolderRecord } from "./folder.service"
 
-export const createFolder = async (req: Request, res: Response) => {
+export const createFolder: AuthenticatedHandler = async (req, res) => {
   const validation = createFolderInputSchema.safeParse(req.body)
 
   if (!validation.success) {
-    return res
-      .status(400)
-      .json({ error: validation.error.issues[0]?.message ?? "Invalid input." })
+    res.status(400).json({
+      message: validation.error.issues[0]?.message ?? "Invalid input.",
+      code: "INVALID_FOLDER_INPUT",
+    })
+    return
   }
 
+  const newFolder = await createFolderRecord(
+    validation.data.name,
+    res.locals.auth.user.id
+  )
 
-  
-
-  // return res.json(session)
+  res.status(201).json(newFolder)
 }

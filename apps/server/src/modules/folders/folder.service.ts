@@ -1,24 +1,24 @@
-import { eq } from "drizzle-orm"
+import { randomUUID } from "node:crypto"
 import { db } from "../../db/client"
-import { user } from "../../db/schema/auth.schema"
+import { folder } from "../../db/schema"
 import { AppError } from "../../lib/app-error"
 
-export const createFolder = async (name: string) => {
-  const [updatedUser] = await db
-    .update(user)
-    .set({ name: name.trim() })
-    .where(eq(user.id, userId))
+export const createFolder = async (name: string, ownerId: string) => {
+  const [newFolder] = await db
+    .insert(folder)
+    .values({
+      id: randomUUID(),
+      name: name.trim(),
+      ownerId,
+    })
     .returning({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      image: user.image,
-      updatedAt: user.updatedAt,
+      id: folder.id,
+      name: folder.name,
     })
 
-  if (!updatedUser) {
-    throw new AppError("User not found", 404, "USER_NOT_FOUND")
+  if (!newFolder) {
+    throw new AppError("Failed to create folder", 500, "FOLDER_CREATE_FAILED")
   }
 
-  return updatedUser
+  return newFolder
 }

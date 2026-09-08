@@ -2,6 +2,7 @@
 
 import { CloudUpload, FolderPlus, LoaderCircle, Plus } from "lucide-react"
 import { useState, type SubmitEvent } from "react"
+import { BetterFetchError } from "@better-fetch/fetch"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 
 import { clientApi } from "@/lib/api/client"
@@ -56,7 +57,11 @@ export function CreateNewButton() {
         description: `${folder.name} is ready.`,
       })
     },
-    onError: () => {
+    onError: (error) => {
+      if (error instanceof BetterFetchError && error.status === 401) {
+        return
+      }
+
       setErrorMessage("Failed to create folder. Please try again.")
     },
   })
