@@ -21,6 +21,9 @@ pnpm dev
 - Web: `http://localhost:3000`
 - API: `http://localhost:4000`
 
+See [Frontend API requests](docs/API_CLIENT.md) for Better Fetch, TanStack Query,
+environment configuration, and error handling examples.
+
 ## Database
 
 Generate migrations after changing the Drizzle schema:

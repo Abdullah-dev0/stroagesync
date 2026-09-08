@@ -10,7 +10,7 @@ import {
   DialogContent,
   DialogFooter,
   DialogHeader,
-  DialogTitle
+  DialogTitle,
 } from "@workspace/ui/components/dialog"
 import {
   DropdownMenu,
@@ -22,6 +22,7 @@ import {
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import { SidebarMenuButton } from "@workspace/ui/components/sidebar"
+import { useMutation } from "@tanstack/react-query"
 
 export function CreateNewButton() {
   const [isFolderDialogOpen, setIsFolderDialogOpen] = useState(false)
