@@ -6,6 +6,7 @@ export const createFolderInputSchema = z.object({
     .trim()
     .min(1, "Enter a folder name.")
     .max(255, "Folder name must be 255 characters or fewer."),
+  parentId: z.string().nullable(),
 })
 
 export const folderSchema = z.object({

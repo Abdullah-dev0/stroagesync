@@ -7,7 +7,7 @@ import { env } from "./config/env"
 import { requireAuth } from "./middleware/auth.middleware"
 import { errorHandler } from "./middleware/error.middleware"
 import { auth } from "./modules/auth/auth"
-import { folderRouter } from "./modules/folders/folder.routes"
+import { storageRouter } from "./modules/storage/storage.routes"
 import { userRouter } from "./modules/users/user.routes"
 import { healthRouter } from "./routes/health.routes"
 
@@ -26,7 +26,7 @@ app.all("/api/auth/*splat", toNodeHandler(auth))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use("/api/users", requireAuth, userRouter)
-app.use("/api/folders", requireAuth, folderRouter)
+app.use("/api/storage", requireAuth, storageRouter)
 app.use(healthRouter)
 
 app.use(errorHandler)

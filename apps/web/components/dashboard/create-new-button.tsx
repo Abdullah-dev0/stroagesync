@@ -30,7 +30,7 @@ import {
   createFolderInputSchema,
   folderSchema,
   type CreateFolderInput,
-} from "@workspace/validation/folders"
+} from "@workspace/validation/storage"
 import { cn } from "cn"
 
 export function CreateNewButton() {
@@ -41,7 +41,7 @@ export function CreateNewButton() {
 
   const createFolder = useMutation({
     mutationFn: (input: CreateFolderInput) =>
-      clientApi("/api/folders", {
+      clientApi("/api/storage/folders", {
         method: "POST",
         body: input,
         output: folderSchema,
@@ -69,7 +69,10 @@ export function CreateNewButton() {
   function handleCreateFolder(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault()
 
-    const input = createFolderInputSchema.safeParse({ name: folderName })
+    const input = createFolderInputSchema.safeParse({
+      name: folderName,
+      parentId: null,
+    })
 
     if (!input.success) {
       setErrorMessage(

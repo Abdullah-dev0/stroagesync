@@ -1,19 +1,23 @@
-import { randomUUID } from "node:crypto"
 import { db } from "../../db/client"
-import { folder } from "../../db/schema"
+import { storageItem } from "../../db/schema"
 import { AppError } from "../../lib/app-error"
 
-export const createFolder = async (name: string, ownerId: string) => {
+export const createFolder = async (
+  name: string,
+  ownerId: string,
+  parentId: string | null
+) => {
   const [newFolder] = await db
-    .insert(folder)
+    .insert(storageItem)
     .values({
-      id: randomUUID(),
       name: name.trim(),
+      type: "folder",
       ownerId,
+      parentId,
     })
     .returning({
-      id: folder.id,
-      name: folder.name,
+      id: storageItem.id,
+      name: storageItem.name,
     })
 
   if (!newFolder) {

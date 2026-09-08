@@ -1,6 +1,6 @@
-import { createFolderInputSchema } from "@workspace/validation/folders"
+import { createFolderInputSchema } from "@workspace/validation/storage"
 import type { AuthenticatedHandler } from "../../middleware/auth.middleware"
-import { createFolder as createFolderRecord } from "./folder.service"
+import { createFolder as createFolderRecord } from "./storage.service"
 
 export const createFolder: AuthenticatedHandler = async (req, res) => {
   const validation = createFolderInputSchema.safeParse(req.body)
@@ -15,15 +15,9 @@ export const createFolder: AuthenticatedHandler = async (req, res) => {
 
   const newFolder = await createFolderRecord(
     validation.data.name,
-    res.locals.auth.user.id
+    res.locals.auth.user.id,
+    validation.data.parentId
   )
 
   res.status(201).json(newFolder)
-}
-
-export const getFolders: AuthenticatedHandler = async (req, res) => {
-  const userId = res.locals.auth.user.id
-  // const folders = await getFoldersByUserId(userId)
-
-  // res.status(200).json(folders)
 }

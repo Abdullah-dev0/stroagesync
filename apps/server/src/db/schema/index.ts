@@ -1,5 +1,7 @@
-export { file } from "./file.schema"
-export { folder } from "./folder.schema"
+export {
+  storageItem,
+  storageItemType,
+} from "./storage-item.schema"
 export {
   user,
   account,
