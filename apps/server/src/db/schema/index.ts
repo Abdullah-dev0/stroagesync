@@ -1,3 +1,4 @@
+export { file } from "./file.schema"
 export { folder } from "./folder.schema"
 export {
   user,
