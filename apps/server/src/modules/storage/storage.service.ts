@@ -1,3 +1,4 @@
+import { and, desc, eq } from "drizzle-orm"
 import { db } from "../../db/client"
 import { storageItem } from "../../db/schema"
 import { AppError } from "../../lib/app-error"
@@ -25,4 +26,39 @@ export const createFolder = async (
   }
 
   return newFolder
+}
+
+export const listStorageItemsByOwnerId = async (ownerId: string) => {
+  const storageItems = await db
+    .select({
+      id: storageItem.id,
+      name: storageItem.name,
+      type: storageItem.type,
+      parentId: storageItem.parentId,
+      mimeType: storageItem.mimeType,
+      size: storageItem.size,
+      createdAt: storageItem.createdAt,
+      updatedAt: storageItem.updatedAt,
+    })
+    .from(storageItem)
+    .where(eq(storageItem.ownerId, ownerId))
+    .orderBy(desc(storageItem.updatedAt))
+
+  return storageItems
+}
+
+export const deleteStorageItemById = async (
+  itemId: string,
+  ownerId: string
+) => {
+  const [deletedItem] = await db
+    .delete(storageItem)
+    .where(and(eq(storageItem.id, itemId), eq(storageItem.ownerId, ownerId)))
+    .returning({ id: storageItem.id })
+
+  if (!deletedItem) {
+    throw new AppError("Storage item not found.", 404, "STORAGE_ITEM_NOT_FOUND")
+  }
+
+  return deletedItem
 }

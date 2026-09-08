@@ -1,9 +1,10 @@
 "use client"
 
 import { CloudUpload, FolderPlus, LoaderCircle, Plus } from "lucide-react"
+import { useRouter } from "next/navigation"
 import { useState, type SubmitEvent } from "react"
 import { BetterFetchError } from "@better-fetch/fetch"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useMutation } from "@tanstack/react-query"
 
 import { clientApi } from "@/lib/api/client"
 import { Button } from "@workspace/ui/components/button"
@@ -37,7 +38,7 @@ export function CreateNewButton() {
   const [isFolderDialogOpen, setIsFolderDialogOpen] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [folderName, setFolderName] = useState("")
-  const queryClient = useQueryClient()
+  const router = useRouter()
 
   const createFolder = useMutation({
     mutationFn: (input: CreateFolderInput) =>
@@ -47,7 +48,7 @@ export function CreateNewButton() {
         output: folderSchema,
       }),
     onSuccess: (folder) => {
-      void queryClient.invalidateQueries({ queryKey: ["files"] })
+      router.refresh()
       setFolderName("")
       setErrorMessage(null)
       setIsFolderDialogOpen(false)

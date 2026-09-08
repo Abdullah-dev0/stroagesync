@@ -1,7 +1,12 @@
 import { Router, type Router as ExpressRouter } from "express"
-import { createFolder } from "./storage.controller"
+import {
+  createFolder,
+  deleteStorageItem,
+  getStorageItems,
+} from "./storage.controller"
 
 export const storageRouter: ExpressRouter = Router()
 
 storageRouter.post("/folders", createFolder)
-stroageRouter.get("/folders",
+storageRouter.get("/items", getStorageItems)
+storageRouter.delete("/items/:itemId", deleteStorageItem)

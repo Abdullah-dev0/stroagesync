@@ -1,6 +1,11 @@
 import { createFolderInputSchema } from "@workspace/validation/storage"
+import { AppError } from "../../lib/app-error"
 import type { AuthenticatedHandler } from "../../middleware/auth.middleware"
-import { createFolder as createFolderRecord } from "./storage.service"
+import {
+  createFolder as createFolderRecord,
+  deleteStorageItemById,
+  listStorageItemsByOwnerId
+} from "./storage.service"
 
 export const createFolder: AuthenticatedHandler = async (req, res) => {
   const validation = createFolderInputSchema.safeParse(req.body)
@@ -20,4 +25,23 @@ export const createFolder: AuthenticatedHandler = async (req, res) => {
   )
 
   res.status(201).json(newFolder)
+}
+
+export const getStorageItems: AuthenticatedHandler = async (_req, res) => {
+  const storageItems = await listStorageItemsByOwnerId(res.locals.auth.user.id)
+
+  res.status(200).json(storageItems)
+}
+
+export const deleteStorageItem: AuthenticatedHandler = async (req, res) => {
+  const { itemId } = req.params
+
+  if (!itemId) {
+    throw new AppError("Item ID is required.", 400, "ITEM_ID_REQUIRED")
+  }
+
+  await deleteStorageItemById(itemId, res.locals.auth.user.id)
+  res
+    .status(200)
+    .json({ message: `Storage item ${itemId} deleted successfully.` })
 }
