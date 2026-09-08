@@ -24,7 +24,7 @@ export const clientApi = createFetch({
     try {
       await authClient.signOut()
     } finally {
-      window.location.replace("/login")
+      window.location.replace("/login?unauthorized=true")
     }
   },
 })

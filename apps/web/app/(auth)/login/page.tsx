@@ -1,6 +1,6 @@
 import Image from "next/image"
 import Link from "next/link"
-import { CircleCheck, FolderClosed } from "lucide-react"
+import { CircleCheck, CircleX, FolderClosed } from "lucide-react"
 
 import { LoginForm } from "@/components/auth/login-form"
 
@@ -20,11 +20,15 @@ function Brand() {
 }
 
 type LoginPageProps = {
-  searchParams: Promise<{ signup?: string | string[] }>
+  searchParams: Promise<{
+    signup?: string
+    unauthorized?: boolean
+  }>
 }
 
 export default async function Page({ searchParams }: LoginPageProps) {
   const signup = (await searchParams).signup
+  const unauthorized = (await searchParams).unauthorized
   const signupSucceeded = signup === "success"
 
   return (
@@ -99,8 +103,22 @@ export default async function Page({ searchParams }: LoginPageProps) {
                 className="mt-0.5 size-4.5 shrink-0 text-primary"
                 aria-hidden="true"
               />
+              <p>Your account was created successfully. Sign in to continue.</p>
+            </div>
+          )}
+
+          {unauthorized && (
+            <div
+              role="status"
+              className="mb-5 flex items-start gap-3 rounded-xl border border-primary/20 bg-primary/10 p-4 text-sm text-foreground"
+            >
+              <CircleX
+                className="mt-0.5 size-4.5 shrink-0 text-primary"
+                aria-hidden="true"
+              />
               <p>
-                Your account was created successfully. Sign in to continue.
+                You have been signed out please sign in again to continue using
+                StorageSync.
               </p>
             </div>
           )}

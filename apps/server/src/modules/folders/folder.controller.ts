@@ -20,3 +20,10 @@ export const createFolder: AuthenticatedHandler = async (req, res) => {
 
   res.status(201).json(newFolder)
 }
+
+export const getFolders: AuthenticatedHandler = async (req, res) => {
+  const userId = res.locals.auth.user.id
+  // const folders = await getFoldersByUserId(userId)
+
+  // res.status(200).json(folders)
+}
