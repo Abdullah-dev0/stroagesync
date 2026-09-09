@@ -2,12 +2,19 @@ import { and, desc, eq } from "drizzle-orm"
 import { db } from "../../db/client"
 import { storageItem } from "../../db/schema"
 import { AppError } from "../../lib/app-error"
+import { createFolderInputSchema } from "@workspace/validation/storage"
 
 export const createFolder = async (
   name: string,
   ownerId: string,
   parentId: string | null
 ) => {
+  const validation = createFolderInputSchema.safeParse({ name, parentId })
+
+  if (!validation.success) {
+    throw new AppError(validation.error.message, 400, "INVALID_FOLDER_INPUT")
+  }
+
   const [newFolder] = await db
     .insert(storageItem)
     .values({
