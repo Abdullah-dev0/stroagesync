@@ -91,13 +91,10 @@ export function CreateNewButton() {
         return
       }
 
-      console.log(error.message)
-
       toast.add({
         type: "error",
         title: "Upload failed",
-        description:
-          error.message || "Failed to upload files. Please try again.",
+        description: "We couldn't upload your files. Please try again.",
       })
     },
   })

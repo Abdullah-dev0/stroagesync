@@ -33,5 +33,8 @@ export const errorHandler: ErrorRequestHandler = (
   }
 
   console.error(error)
-  response.status(500).json({ message: "Internal server error" })
+  response.status(500).json({
+    message: "Internal server error",
+    code: "INTERNAL_SERVER_ERROR",
+  })
 }
