@@ -1,12 +1,10 @@
-import { randomUUID } from "node:crypto"
-import { mkdir, unlink, writeFile } from "node:fs/promises"
-import path from "node:path"
-import { and, desc, eq } from "drizzle-orm"
 import { createFolderInputSchema } from "@workspace/validation/storage"
-import { env } from "../../config/env"
+import { and, desc, eq } from "drizzle-orm"
 import { db } from "../../db/client"
 import { storageItem } from "../../db/schema"
 import { AppError } from "../../lib/app-error"
+import { env } from "../../config/env"
+import { PutObjectCommand, S3 } from "@aws-sdk/client-s3"
 
 export const createFolder = async (
   name: string,
@@ -77,4 +75,21 @@ export const deleteStorageItemById = async (
 export const saveFileToStorage = async (
   file: Express.Multer.File,
   ownerId: string
-) => {}
+) => {
+  try {
+    const value = new PutObjectCommand({
+      Bucket: env.uploadDir,
+      Key: env.secretAccessKey,
+      Body: file.buffer,
+      ContentLength: file.size,
+      ContentType: file.mimetype || "application/octet-stream",
+      IfNoneMatch: "*",
+    })
+
+    const [insertedFiles] = await db.insert(storageItem).values().returning()
+  } catch (error) {
+    if (error instanceof S3) {
+      // await db.delete.from(storageItem)
+    }
+  }
+}

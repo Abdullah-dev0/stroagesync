@@ -54,7 +54,7 @@ export const uploadFile: AuthenticatedHandler = async (req, res) => {
 
   console.log(
     "Files received:",
-    req.files.map((file) => file.originalname)
+    req.files.map((file) => file)
   )
 
   const uploadedFiles = []

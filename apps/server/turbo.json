@@ -8,7 +8,11 @@
         "BETTER_AUTH_URL",
         "CLIENT_ORIGIN",
         "DATABASE_URL",
-        "PORT"
+        "PORT",
+        "ACCESS_KEY_ID",
+        "SECRET_ACCESS_KEY",
+        "UPLOAD_DIR",
+        "R2_ENDPOINT"
       ]
     }
   }
