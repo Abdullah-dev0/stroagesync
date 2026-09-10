@@ -5,7 +5,7 @@ import {
   createFolder as createFolderRecord,
   deleteStorageItemById,
   listStorageItemsByOwnerId,
-  saveFileToStorage,
+  saveFilesToStorage,
 } from "./storage.service"
 
 export const createFolder: AuthenticatedHandler = async (req, res) => {
@@ -52,25 +52,10 @@ export const uploadFile: AuthenticatedHandler = async (req, res) => {
     throw new AppError("No files uploaded.", 400, "NO_FILES_UPLOADED")
   }
 
-  console.log(
-    "Files received:",
-    req.files.map((file) => file)
+  const uploadedFiles = await saveFilesToStorage(
+    req.files,
+    res.locals.auth.user.id
   )
 
-  const uploadedFiles = []
-
-  for (const file of req.files) {
-    if (!file.originalname || file.originalname.length > 255) {
-      throw new AppError(
-        "File name must be between 1 and 255 characters.",
-        400,
-        "INVALID_FILE_NAME"
-      )
-    }
-
-    const newFile = await saveFileToStorage(file, res.locals.auth.user.id)
-    uploadedFiles.push(newFile)
-  }
-
-  // res.status(201).json(uploadedFiles)
+  res.status(201).json(uploadedFiles)
 }

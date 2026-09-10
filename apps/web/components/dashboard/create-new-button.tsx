@@ -75,6 +75,7 @@ export function CreateNewButton() {
         method: "POST",
         body: files,
         output: storageItemsSchema,
+        timeout: 120_000,
       })
     },
     onSuccess: () => {

@@ -1,10 +1,13 @@
+import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3"
+import { randomUUID } from "node:crypto"
+import path from "node:path"
 import { createFolderInputSchema } from "@workspace/validation/storage"
 import { and, desc, eq } from "drizzle-orm"
+import { env } from "../../config/env"
 import { db } from "../../db/client"
 import { storageItem } from "../../db/schema"
+import { r2Client } from "../../lib/r2"
 import { AppError } from "../../lib/app-error"
-import { env } from "../../config/env"
-import { PutObjectCommand, S3 } from "@aws-sdk/client-s3"
 
 export const createFolder = async (
   name: string,
@@ -72,24 +75,7 @@ export const deleteStorageItemById = async (
   return deletedItem
 }
 
-export const saveFileToStorage = async (
-  file: Express.Multer.File,
+export const saveFilesToStorage = async (
+  files: Express.Multer.File[],
   ownerId: string
-) => {
-  try {
-    const value = new PutObjectCommand({
-      Bucket: env.uploadDir,
-      Key: env.secretAccessKey,
-      Body: file.buffer,
-      ContentLength: file.size,
-      ContentType: file.mimetype || "application/octet-stream",
-      IfNoneMatch: "*",
-    })
-
-    const [insertedFiles] = await db.insert(storageItem).values().returning()
-  } catch (error) {
-    if (error instanceof S3) {
-      // await db.delete.from(storageItem)
-    }
-  }
-}
+) => {}

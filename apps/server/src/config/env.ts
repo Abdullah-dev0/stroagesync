@@ -2,17 +2,23 @@ import { config } from "dotenv"
 
 config({ path: ".env.local", quiet: true })
 
-export const env = {
-  port: Number(process.env.PORT),
-  clientOrigin: process.env.CLIENT_ORIGIN,
-  databaseUrl: process.env.DATABASE_URL,
-  betterAuthUrl: process.env.BETTER_AUTH_URL,
-  uploadDir: process.env.UPLOAD_DIR,
-  accessKeyId: process.env.ACCESS_KEY_ID,
-  secretAccessKey: process.env.SECRET_ACCESS_KEY,
-  r2Endpoint: process.env.R2_ENDPOINT,
+function requireEnvironmentVariable(name: string) {
+  const value = process.env[name]?.trim()
+
+  if (!value) {
+    throw new Error(`Missing environment variable: ${name}`)
+  }
+
+  return value
 }
 
-for (const [key, value] of Object.entries(env)) {
-  if (!value) throw new Error(`Missing environment variable: ${key}`)
+export const env = {
+  port: Number(process.env.PORT) || 4000,
+  clientOrigin: requireEnvironmentVariable("CLIENT_ORIGIN"),
+  databaseUrl: requireEnvironmentVariable("DATABASE_URL"),
+  betterAuthUrl: requireEnvironmentVariable("BETTER_AUTH_URL"),
+  r2Endpoint: requireEnvironmentVariable("R2_ENDPOINT"),
+  r2AccessKeyId: requireEnvironmentVariable("R2_ACCESS_KEY_ID"),
+  r2SecretAccessKey: requireEnvironmentVariable("R2_SECRET_ACCESS_KEY"),
+  r2BucketName: requireEnvironmentVariable("R2_BUCKET_NAME"),
 }
