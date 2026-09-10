@@ -47,17 +47,30 @@ export const deleteStorageItem: AuthenticatedHandler = async (req, res) => {
     .json({ message: `Storage item ${itemId} deleted successfully.` })
 }
 
-// export const uploadFile: AuthenticatedHandler = async (req, res) => {
-//   if (!req.files || req.files.length === 0) {
-//     throw new AppError("No files uploaded.", 400, "NO_FILES_UPLOADED")
-//   }
+export const uploadFile: AuthenticatedHandler = async (req, res) => {
+  if (!Array.isArray(req.files) || req.files.length === 0) {
+    throw new AppError("No files uploaded.", 400, "NO_FILES_UPLOADED")
+  }
 
-//   const uploadedFiles = []
+  console.log(
+    "Files received:",
+    req.files.map((file) => file.originalname)
+  )
 
-//   for (const file of req.files) {
-//     const newFile = await saveFileToStorage(file, res.locals.auth.user.id)
-//     uploadedFiles.push(newFile)
-//   }
+  const uploadedFiles = []
 
-//   res.status(201).json(uploadedFiles)
-// }
+  for (const file of req.files) {
+    if (!file.originalname || file.originalname.length > 255) {
+      throw new AppError(
+        "File name must be between 1 and 255 characters.",
+        400,
+        "INVALID_FILE_NAME"
+      )
+    }
+
+    const newFile = await saveFileToStorage(file, res.locals.auth.user.id)
+    uploadedFiles.push(newFile)
+  }
+
+  // res.status(201).json(uploadedFiles)
+}

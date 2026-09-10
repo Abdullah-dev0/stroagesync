@@ -30,6 +30,7 @@ import { toast } from "@workspace/ui/components/toast"
 import {
   createFolderInputSchema,
   folderSchema,
+  storageItemsSchema,
   type CreateFolderInput,
 } from "@workspace/validation/storage"
 import { cn } from "cn"
@@ -73,7 +74,7 @@ export function CreateNewButton() {
       return clientApi("/api/storage/upload", {
         method: "POST",
         body: files,
-        output: folderSchema,
+        output: storageItemsSchema,
       })
     },
     onSuccess: () => {
@@ -131,23 +132,26 @@ export function CreateNewButton() {
       return
     }
 
-    const fromData = new FormData()
+    const formData = new FormData()
 
-    await Promise.all(
-      files.map(async (file) => {
-        if (file.size > 10 * 1024 * 1024) {
-          toast.add({
-            type: "error",
-            title: "File too large",
-            description: `${file.name} exceeds the 10MB size limit.`,
-          })
-          return
-        }
-        fromData.append("files", file)
-      })
-    )
+    for (const file of files) {
+      if (file.size > 16 * 1024 * 1024) {
+        toast.add({
+          type: "error",
+          title: "File too large",
+          description: `${file.name} exceeds the 16 MB size limit.`,
+        })
+        continue
+      }
 
-    handleUploadFiles.mutate(fromData)
+      formData.append("files", file)
+    }
+
+    if ([...formData.keys()].length > 0) {
+      handleUploadFiles.mutate(formData)
+    }
+
+    event.currentTarget.value = ""
   }
 
   return (

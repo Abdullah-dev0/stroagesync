@@ -7,4 +7,5 @@ export const env = {
   clientOrigin: process.env.CLIENT_ORIGIN || "http://localhost:3000",
   databaseUrl: process.env.DATABASE_URL,
   betterAuthUrl: process.env.BETTER_AUTH_URL,
+  uploadDir: process.env.UPLOAD_DIR || "uploads",
 }

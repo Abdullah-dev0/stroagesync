@@ -1,8 +1,12 @@
+import { randomUUID } from "node:crypto"
+import { mkdir, unlink, writeFile } from "node:fs/promises"
+import path from "node:path"
 import { and, desc, eq } from "drizzle-orm"
+import { createFolderInputSchema } from "@workspace/validation/storage"
+import { env } from "../../config/env"
 import { db } from "../../db/client"
 import { storageItem } from "../../db/schema"
 import { AppError } from "../../lib/app-error"
-import { createFolderInputSchema } from "@workspace/validation/storage"
 
 export const createFolder = async (
   name: string,
@@ -70,4 +74,7 @@ export const deleteStorageItemById = async (
   return deletedItem
 }
 
-export const saveFileToStorage = async (file: File, ownerId: string) => {}
+export const saveFileToStorage = async (
+  file: Express.Multer.File,
+  ownerId: string
+) => {}
