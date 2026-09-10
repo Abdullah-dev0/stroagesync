@@ -122,7 +122,20 @@ export function CreateNewButton() {
         output: storageItemsSchema,
       })
     },
-    onSuccess: (uploadedFiles) => {
+    onMutate: ({ files }) => {
+      const toastId = toast.add({
+        type: "loading",
+        title: "Uploading files",
+        description:
+          files.length === 1
+            ? `${files[0]?.name ?? "File"} is uploading.`
+            : `${files.length} files are uploading.`,
+        timeout: 0,
+      })
+
+      return { toastId }
+    },
+    onSuccess: (uploadedFiles, _variables, mutationContext) => {
       const uploadedFileIds = new Set(uploadedFiles.map(({ id }) => id))
 
       queryClient.setQueryData<StorageItem[]>(
@@ -133,21 +146,38 @@ export function CreateNewButton() {
         ]
       )
 
-      toast.add({
+      toast.update(mutationContext.toastId, {
         type: "success",
         title: "Files uploaded",
         description: "Your files have been uploaded successfully.",
+        timeout: 5000,
       })
     },
-    onError: (error) => {
-      if (error instanceof BetterFetchError && error.status === 401) {
+    onSettled: (_data, error, _variables, mutationContext) => {
+      if (!mutationContext) return
+
+      if (!error) {
+        toast.update(mutationContext.toastId, {
+          type: "success",
+          title: "Files uploaded",
+          description: "Your files have been uploaded successfully.",
+          timeout: 5000,
+        })
+
         return
       }
 
-      toast.add({
+      if (error instanceof BetterFetchError && error.status === 401) {
+        toast.close(mutationContext.toastId)
+        return
+      }
+
+      toast.update(mutationContext.toastId, {
         type: "error",
         title: "Upload failed",
         description: "We couldn't upload your files. Please try again.",
+        timeout: 5000,
+        priority: "high",
       })
     },
   })
