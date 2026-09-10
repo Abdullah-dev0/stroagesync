@@ -4,7 +4,8 @@ import type { AuthenticatedHandler } from "../../middleware/auth.middleware"
 import {
   createFolder as createFolderRecord,
   deleteStorageItemById,
-  listStorageItemsByOwnerId
+  listStorageItemsByOwnerId,
+  saveFileToStorage,
 } from "./storage.service"
 
 export const createFolder: AuthenticatedHandler = async (req, res) => {
@@ -45,3 +46,18 @@ export const deleteStorageItem: AuthenticatedHandler = async (req, res) => {
     .status(200)
     .json({ message: `Storage item ${itemId} deleted successfully.` })
 }
+
+// export const uploadFile: AuthenticatedHandler = async (req, res) => {
+//   if (!req.files || req.files.length === 0) {
+//     throw new AppError("No files uploaded.", 400, "NO_FILES_UPLOADED")
+//   }
+
+//   const uploadedFiles = []
+
+//   for (const file of req.files) {
+//     const newFile = await saveFileToStorage(file, res.locals.auth.user.id)
+//     uploadedFiles.push(newFile)
+//   }
+
+//   res.status(201).json(uploadedFiles)
+// }

@@ -69,3 +69,5 @@ export const deleteStorageItemById = async (
 
   return deletedItem
 }
+
+export const saveFileToStorage = async (file: File, ownerId: string) => {}

@@ -1,12 +1,12 @@
 "use client"
 
-import { CloudUpload, FolderPlus, LoaderCircle, Plus } from "lucide-react"
-import { useRouter } from "next/navigation"
-import { useState, type SubmitEvent } from "react"
 import { BetterFetchError } from "@better-fetch/fetch"
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { CloudUpload, FolderPlus, LoaderCircle, Plus } from "lucide-react"
+import { useRef, useState, type ChangeEvent, type SubmitEvent } from "react"
 
 import { clientApi } from "@/lib/api/client"
+import { storageItemsQueryKey } from "@/lib/query-keys"
 import { Button } from "@workspace/ui/components/button"
 import {
   Dialog,
@@ -38,7 +38,8 @@ export function CreateNewButton() {
   const [isFolderDialogOpen, setIsFolderDialogOpen] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [folderName, setFolderName] = useState("")
-  const router = useRouter()
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const queryClient = useQueryClient()
 
   const createFolder = useMutation({
     mutationFn: (input: CreateFolderInput) =>
@@ -48,7 +49,7 @@ export function CreateNewButton() {
         output: folderSchema,
       }),
     onSuccess: (folder) => {
-      router.refresh()
+      void queryClient.invalidateQueries({ queryKey: storageItemsQueryKey })
       setFolderName("")
       setErrorMessage(null)
       setIsFolderDialogOpen(false)
@@ -64,6 +65,36 @@ export function CreateNewButton() {
       }
 
       setErrorMessage("Failed to create folder. Please try again.")
+    },
+  })
+
+  const handleUploadFiles = useMutation({
+    mutationFn: async (files: FormData) => {
+      return clientApi("/api/storage/upload", {
+        method: "POST",
+        body: files,
+        output: folderSchema,
+      })
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: storageItemsQueryKey })
+      toast.add({
+        type: "success",
+        title: "Files uploaded",
+        description: "Your files have been uploaded successfully.",
+      })
+    },
+    onError: (error) => {
+      if (error instanceof BetterFetchError && error.status === 401) {
+        return
+      }
+
+      toast.add({
+        type: "error",
+        title: "Upload failed",
+        description:
+          error.message || "Failed to upload files. Please try again.",
+      })
     },
   })
 
@@ -84,6 +115,39 @@ export function CreateNewButton() {
 
     setErrorMessage(null)
     createFolder.mutate(input.data)
+  }
+
+  const handleFileUpload = async (event: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.currentTarget.files ?? [])
+
+    if (!files?.length) return
+
+    if (files.length > 3) {
+      toast.add({
+        type: "error",
+        title: "Too many files",
+        description: "You can only upload up to 3 files at a time.",
+      })
+      return
+    }
+
+    const fromData = new FormData()
+
+    await Promise.all(
+      files.map(async (file) => {
+        if (file.size > 10 * 1024 * 1024) {
+          toast.add({
+            type: "error",
+            title: "File too large",
+            description: `${file.name} exceeds the 10MB size limit.`,
+          })
+          return
+        }
+        fromData.append("files", file)
+      })
+    )
+
+    handleUploadFiles.mutate(fromData)
   }
 
   return (
@@ -115,7 +179,10 @@ export function CreateNewButton() {
             New folder
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem className="cursor-pointer gap-3 px-2 py-2.5">
+          <DropdownMenuItem
+            className="relative cursor-pointer gap-3 px-2 py-2.5"
+            onClick={() => fileInputRef.current?.click()}
+          >
             <CloudUpload className="size-4 text-muted-foreground" />
             File upload
           </DropdownMenuItem>
@@ -125,6 +192,14 @@ export function CreateNewButton() {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        multiple
+        className="sr-only"
+        onChange={handleFileUpload}
+      />
 
       <Dialog open={isFolderDialogOpen} onOpenChange={setIsFolderDialogOpen}>
         <DialogContent>

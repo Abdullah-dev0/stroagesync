@@ -1,7 +1,7 @@
 "use client"
 
 import { BetterFetchError } from "@better-fetch/fetch"
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import {
   EllipsisVertical,
   Eye,
@@ -11,9 +11,9 @@ import {
   Share2,
   Trash2,
 } from "lucide-react"
-import { useRouter } from "next/navigation"
 
 import { clientApi } from "@/lib/api/client"
+import { storageItemsQueryKey } from "@/lib/query-keys"
 import type { StorageItem } from "@workspace/validation/storage"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -30,7 +30,7 @@ type StorageItemCardProps = {
 }
 
 export function StorageItemCard({ item }: StorageItemCardProps) {
-  const router = useRouter()
+  const queryClient = useQueryClient()
   const Icon = item.type === "folder" ? Folder : File
 
   const deleteItem = useMutation({
@@ -39,7 +39,11 @@ export function StorageItemCard({ item }: StorageItemCardProps) {
         method: "DELETE",
       }),
     onSuccess: () => {
-      router.refresh()
+      queryClient.setQueryData<StorageItem[]>(
+        storageItemsQueryKey,
+        (items = []) =>
+          items.filter((currentItem) => currentItem.id !== item.id)
+      )
       toast.add({
         type: "success",
         title: "Item deleted",
