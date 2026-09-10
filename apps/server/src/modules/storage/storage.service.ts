@@ -1,13 +1,12 @@
-import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3"
-import { randomUUID } from "node:crypto"
-import path from "node:path"
 import { createFolderInputSchema } from "@workspace/validation/storage"
 import { and, desc, eq } from "drizzle-orm"
-import { env } from "../../config/env"
 import { db } from "../../db/client"
 import { storageItem } from "../../db/schema"
-import { r2Client } from "../../lib/r2"
 import { AppError } from "../../lib/app-error"
+import { r2Client } from "../../lib/r2"
+import { randomUUID } from "crypto"
+import { PutObjectCommand } from "@aws-sdk/client-s3"
+import { env } from "../../config/env"
 
 export const createFolder = async (
   name: string,
@@ -78,4 +77,38 @@ export const deleteStorageItemById = async (
 export const saveFilesToStorage = async (
   files: Express.Multer.File[],
   ownerId: string
-) => {}
+) => {
+  const fileRecords = await Promise.all(
+    files.map(async (file) => {
+      const fileId = randomUUID()
+      const storageKey = `users/${ownerId}/objects/${fileId}`
+
+      await r2Client.send(
+        new PutObjectCommand({
+          Bucket: env.r2BucketName,
+          Key: storageKey,
+          Body: file.buffer,
+          ContentLength: file.size,
+          ContentType: file.mimetype,
+        })
+      )
+
+      return {
+        name: file.originalname,
+        type: "file" as const,
+        ownerId,
+        parentId: null,
+        storageKey,
+        mimeType: file.mimetype,
+        size: file.size,
+      }
+    })
+  )
+
+  const insertedFiles = await db
+    .insert(storageItem)
+    .values(fileRecords)
+    .returning()
+
+  return insertedFiles
+}

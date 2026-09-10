@@ -78,8 +78,8 @@ export function CreateNewButton() {
         timeout: 120_000,
       })
     },
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: storageItemsQueryKey })
+    onSuccess: (data) => {
+      console.log(data)
       toast.add({
         type: "success",
         title: "Files uploaded",
@@ -90,6 +90,8 @@ export function CreateNewButton() {
       if (error instanceof BetterFetchError && error.status === 401) {
         return
       }
+
+      console.log(error.message)
 
       toast.add({
         type: "error",

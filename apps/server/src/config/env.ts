@@ -13,7 +13,7 @@ function requireEnvironmentVariable(name: string) {
 }
 
 export const env = {
-  port: Number(process.env.PORT) || 4000,
+  port: requireEnvironmentVariable("PORT"),
   clientOrigin: requireEnvironmentVariable("CLIENT_ORIGIN"),
   databaseUrl: requireEnvironmentVariable("DATABASE_URL"),
   betterAuthUrl: requireEnvironmentVariable("BETTER_AUTH_URL"),
