@@ -144,6 +144,7 @@
   --muted-foreground: #7d8798;
   --border: #e6e8ed;
   --primary: #5d61ff;
+  --sidebar-active: #e9ecfe;
   --chart-1: #9964e8;
   --chart-2: #4cb6c6;
   --chart-3: #eba72e;
@@ -160,6 +161,7 @@
   --muted-foreground: #9ba4b7;
   --border: #303541;
   --primary: #8588ff;
+  --sidebar-active: #252a44;
 }
 
 @theme inline {
@@ -191,6 +193,7 @@
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
   --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-active: var(--sidebar-active);
   --color-sidebar-accent: var(--sidebar-accent);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);

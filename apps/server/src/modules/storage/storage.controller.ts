@@ -1,11 +1,16 @@
-import { createFolderInputSchema } from "@workspace/validation/storage"
+import {
+  completeUploadsInputSchema,
+  createFolderInputSchema,
+  createUploadUrlsInputSchema,
+} from "@workspace/validation/storage"
 import { AppError } from "../../lib/app-error"
 import type { AuthenticatedHandler } from "../../middleware/auth.middleware"
 import {
+  completePendingUploads,
   createFolder as createFolderRecord,
+  createPresignedUploads,
   deleteStorageItemById,
   listStorageItemsByOwnerId,
-  saveFilesToStorage,
 } from "./storage.service"
 
 export const createFolder: AuthenticatedHandler = async (req, res) => {
@@ -47,15 +52,40 @@ export const deleteStorageItem: AuthenticatedHandler = async (req, res) => {
     .json({ message: `Storage item ${itemId} deleted successfully.` })
 }
 
-export const uploadFile: AuthenticatedHandler = async (req, res) => {
-  if (!Array.isArray(req.files) || req.files.length === 0) {
-    throw new AppError("No files uploaded.", 400, "NO_FILES_UPLOADED")
+export const createUploadUrls: AuthenticatedHandler = async (req, res) => {
+  const validation = createUploadUrlsInputSchema.safeParse(req.body)
+
+  if (!validation.success) {
+    throw new AppError(
+      validation.error.issues[0]?.message ?? "Invalid upload.",
+      400,
+      "INVALID_UPLOAD_INPUT"
+    )
   }
 
-  const uploadedFiles = await saveFilesToStorage(
-    req.files,
+  const uploads = await createPresignedUploads(
+    validation.data.files,
     res.locals.auth.user.id
   )
 
-  res.status(201).json(uploadedFiles)
+  res.status(201).json(uploads)
+}
+
+export const completeUploads: AuthenticatedHandler = async (req, res) => {
+  const validation = completeUploadsInputSchema.safeParse(req.body)
+
+  if (!validation.success) {
+    throw new AppError(
+      validation.error.issues[0]?.message ?? "Invalid upload completion.",
+      400,
+      "INVALID_UPLOAD_COMPLETION"
+    )
+  }
+
+  const uploadedFiles = await completePendingUploads(
+    validation.data.fileIds,
+    res.locals.auth.user.id
+  )
+
+  res.status(200).json(uploadedFiles)
 }

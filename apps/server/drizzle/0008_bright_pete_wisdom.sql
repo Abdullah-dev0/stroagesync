@@ -1,0 +1,1 @@
+ALTER TYPE "public"."storage_item_status" ADD VALUE 'cleanup_pending';

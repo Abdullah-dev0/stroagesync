@@ -1,5 +1,6 @@
 export {
   storageItem,
+  storageItemStatus,
   storageItemType,
 } from "./storage-item.schema"
 export {

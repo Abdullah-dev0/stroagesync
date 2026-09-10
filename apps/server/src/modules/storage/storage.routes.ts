@@ -1,15 +1,16 @@
 import { Router, type Router as ExpressRouter } from "express"
-import { uploadFiles } from "../../middleware/upload.middleware"
 import {
+  completeUploads,
   createFolder,
+  createUploadUrls,
   deleteStorageItem,
   getStorageItems,
-  uploadFile,
 } from "./storage.controller"
 
 export const storageRouter: ExpressRouter = Router()
 
 storageRouter.post("/folders", createFolder)
-storageRouter.post("/upload", uploadFiles, uploadFile)
+storageRouter.post("/uploads/presign", createUploadUrls)
+storageRouter.post("/uploads/complete", completeUploads)
 storageRouter.get("/items", getStorageItems)
 storageRouter.delete("/items/:itemId", deleteStorageItem)

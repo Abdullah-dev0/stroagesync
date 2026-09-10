@@ -62,7 +62,9 @@ export function DashboardSidebar({ className }: DashboardSidebarProps) {
                   return (
                     <SidebarMenuItem
                       key={item.label}
-                      className={cn(item.active && "rounded-full bg-[#E9ECFE]")}
+                      className={cn(
+                        item.active && "rounded-full bg-sidebar-active"
+                      )}
                     >
                       <SidebarMenuButton
                         render={<Link href={item.href} />}
@@ -73,8 +75,8 @@ export function DashboardSidebar({ className }: DashboardSidebarProps) {
                           "group h-10 gap-3 rounded-full px-5 text-[16px] font-medium",
                           "hover:text-current",
                           item.active
-                            ? "bg-[#E9ECFE] text-foreground hover:bg-[#E9ECFE] hover:text-foreground"
-                            : "hover:bg-transparent hover:text-foreground"
+                            ? "bg-sidebar-active text-foreground hover:bg-sidebar-active hover:text-foreground"
+                            : "hover:bg-muted hover:text-foreground"
                         )}
                       >
                         <Icon

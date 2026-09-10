@@ -28,10 +28,15 @@ import { Label } from "@workspace/ui/components/label"
 import { SidebarMenuButton } from "@workspace/ui/components/sidebar"
 import { toast } from "@workspace/ui/components/toast"
 import {
+  completeUploadsInputSchema,
   createFolderInputSchema,
+  createUploadUrlsInputSchema,
   folderSchema,
+  presignedUploadsSchema,
   storageItemsSchema,
   type CreateFolderInput,
+  type CreateUploadUrlsInput,
+  type StorageItem,
 } from "@workspace/validation/storage"
 import { cn } from "cn"
 
@@ -70,16 +75,64 @@ export function CreateNewButton() {
   })
 
   const handleUploadFiles = useMutation({
-    mutationFn: async (files: FormData) => {
-      return clientApi("/api/storage/upload", {
+    mutationFn: async ({
+      files,
+      uploadInput,
+    }: {
+      files: File[]
+      uploadInput: CreateUploadUrlsInput
+    }) => {
+      const uploads = await clientApi("/api/storage/uploads/presign", {
         method: "POST",
-        body: files,
+        body: uploadInput,
+        output: presignedUploadsSchema,
+      })
+
+      if (uploads.length !== files.length) {
+        throw new Error("Received an unexpected number of upload URLs.")
+      }
+
+      await Promise.all(
+        uploads.map(async (upload, index) => {
+          const file = files[index]
+
+          if (!file) {
+            throw new Error("Missing file for upload.")
+          }
+
+          const response = await fetch(upload.uploadUrl, {
+            method: "PUT",
+            headers: { "Content-Type": upload.mimeType },
+            body: file,
+          })
+
+          if (!response.ok) {
+            throw new Error("R2 upload failed.")
+          }
+        })
+      )
+
+      const completionInput = completeUploadsInputSchema.parse({
+        fileIds: uploads.map(({ id }) => id),
+      })
+
+      return clientApi("/api/storage/uploads/complete", {
+        method: "POST",
+        body: completionInput,
         output: storageItemsSchema,
-        timeout: 120_000,
       })
     },
-    onSuccess: (data) => {
-      console.log(data)
+    onSuccess: (uploadedFiles) => {
+      const uploadedFileIds = new Set(uploadedFiles.map(({ id }) => id))
+
+      queryClient.setQueryData<StorageItem[]>(
+        storageItemsQueryKey,
+        (items = []) => [
+          ...uploadedFiles,
+          ...items.filter(({ id }) => !uploadedFileIds.has(id)),
+        ]
+      )
+
       toast.add({
         type: "success",
         title: "Files uploaded",
@@ -118,42 +171,36 @@ export function CreateNewButton() {
     createFolder.mutate(input.data)
   }
 
-  const handleFileUpload = async (event: ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = (event: ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.currentTarget.files ?? [])
 
-    if (!files?.length) return
+    if (files.length === 0) return
 
-    if (files.length > 3) {
+    const uploadInput = createUploadUrlsInputSchema.safeParse({
+      files: files.map((file) => ({
+        name: file.name,
+        mimeType: file.type,
+        size: file.size,
+      })),
+    })
+
+    if (!uploadInput.success) {
       toast.add({
         type: "error",
-        title: "Too many files",
-        description: "You can only upload up to 3 files at a time.",
+        title: "Upload failed",
+        description:
+          uploadInput.error.issues[0]?.message ??
+          "One or more selected files are invalid.",
       })
+
       return
     }
 
-    const formData = new FormData()
-
-    for (const file of files) {
-      if (file.size > 16 * 1024 * 1024) {
-        toast.add({
-          type: "error",
-          title: "File too large",
-          description: `${file.name} exceeds the 16 MB size limit.`,
-        })
-        continue
-      }
-
-      formData.append("files", file)
-    }
-
-    if ([...formData.keys()].length > 0) {
-      handleUploadFiles.mutate(formData)
-    }
-
-    event.currentTarget.value = ""
+    handleUploadFiles.mutate({
+      files,
+      uploadInput: uploadInput.data,
+    })
   }
-
   return (
     <>
       <DropdownMenu>

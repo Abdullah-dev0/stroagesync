@@ -6,11 +6,16 @@ import {
   pgTable,
   text,
   timestamp,
-  uuid
+  uuid,
 } from "drizzle-orm/pg-core"
 import { user } from "./auth.schema"
 
 export const storageItemType = pgEnum("storage_item_type", ["file", "folder"])
+export const storageItemStatus = pgEnum("storage_item_status", [
+  "pending",
+  "ready",
+  "cleanup_pending",
+])
 
 export const storageItem = pgTable(
   "storage_item",
@@ -18,6 +23,7 @@ export const storageItem = pgTable(
     id: uuid("id").defaultRandom().primaryKey(),
     name: text("name").notNull(),
     type: storageItemType("type").notNull(),
+    status: storageItemStatus("status").default("ready").notNull(),
 
     ownerId: text("owner_id")
       .notNull()

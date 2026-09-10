@@ -1,12 +1,23 @@
-import { createFolderInputSchema } from "@workspace/validation/storage"
-import { and, desc, eq } from "drizzle-orm"
+import {
+  DeleteObjectCommand,
+  HeadObjectCommand,
+  PutObjectCommand,
+} from "@aws-sdk/client-s3"
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner"
+import {
+  createFolderInputSchema,
+  type CreateUploadUrlsInput,
+  type PresignedUpload,
+} from "@workspace/validation/storage"
+import { randomUUID } from "crypto"
+import { and, desc, eq, inArray } from "drizzle-orm"
+import { env } from "../../config/env"
 import { db } from "../../db/client"
 import { storageItem } from "../../db/schema"
 import { AppError } from "../../lib/app-error"
 import { r2Client } from "../../lib/r2"
-import { randomUUID } from "crypto"
-import { PutObjectCommand } from "@aws-sdk/client-s3"
-import { env } from "../../config/env"
+
+const UPLOAD_URL_EXPIRES_IN_SECONDS = 5 * 60
 
 export const createFolder = async (
   name: string,
@@ -40,7 +51,7 @@ export const createFolder = async (
 }
 
 export const listStorageItemsByOwnerId = async (ownerId: string) => {
-  const storageItems = await db
+  return db
     .select({
       id: storageItem.id,
       name: storageItem.name,
@@ -52,10 +63,10 @@ export const listStorageItemsByOwnerId = async (ownerId: string) => {
       updatedAt: storageItem.updatedAt,
     })
     .from(storageItem)
-    .where(eq(storageItem.ownerId, ownerId))
+    .where(
+      and(eq(storageItem.ownerId, ownerId), eq(storageItem.status, "ready"))
+    )
     .orderBy(desc(storageItem.updatedAt))
-
-  return storageItems
 }
 
 export const deleteStorageItemById = async (
@@ -65,50 +76,150 @@ export const deleteStorageItemById = async (
   const [deletedItem] = await db
     .delete(storageItem)
     .where(and(eq(storageItem.id, itemId), eq(storageItem.ownerId, ownerId)))
-    .returning({ id: storageItem.id })
+    .returning({ id: storageItem.id, key: storageItem.storageKey })
 
   if (!deletedItem) {
     throw new AppError("Storage item not found.", 404, "STORAGE_ITEM_NOT_FOUND")
   }
 
+  await r2Client.send(
+    new DeleteObjectCommand({
+      Bucket: env.r2BucketName,
+      Key: deletedItem.key!,
+    })
+  )
+
   return deletedItem
 }
 
-export const saveFilesToStorage = async (
-  files: Express.Multer.File[],
+export const createPresignedUploads = async (
+  files: CreateUploadUrlsInput["files"],
   ownerId: string
-) => {
-  const fileRecords = await Promise.all(
+): Promise<PresignedUpload[]> => {
+  const uploads = await Promise.all(
     files.map(async (file) => {
       const fileId = randomUUID()
       const storageKey = `users/${ownerId}/objects/${fileId}`
-
-      await r2Client.send(
+      const uploadUrl = await getSignedUrl(
+        r2Client,
         new PutObjectCommand({
           Bucket: env.r2BucketName,
           Key: storageKey,
-          Body: file.buffer,
           ContentLength: file.size,
-          ContentType: file.mimetype,
-        })
+          ContentType: file.mimeType,
+        }),
+        { expiresIn: UPLOAD_URL_EXPIRES_IN_SECONDS }
       )
 
       return {
-        name: file.originalname,
-        type: "file" as const,
-        ownerId,
-        parentId: null,
-        storageKey,
-        mimeType: file.mimetype,
-        size: file.size,
+        record: {
+          id: fileId,
+          name: file.name,
+          type: "file" as const,
+          status: "pending" as const,
+          ownerId,
+          parentId: null,
+          storageKey,
+          mimeType: file.mimeType,
+          size: file.size,
+        },
+        response: {
+          id: fileId,
+          uploadUrl,
+          mimeType: file.mimeType,
+        },
       }
     })
   )
 
-  const insertedFiles = await db
-    .insert(storageItem)
-    .values(fileRecords)
-    .returning()
+  await db.insert(storageItem).values(uploads.map(({ record }) => record))
 
-  return insertedFiles
+  return uploads.map(({ response }) => response)
+}
+
+export const completePendingUploads = async (
+  fileIds: string[],
+  ownerId: string
+) => {
+  const files = await db
+    .select({
+      id: storageItem.id,
+      storageKey: storageItem.storageKey,
+      mimeType: storageItem.mimeType,
+      size: storageItem.size,
+    })
+    .from(storageItem)
+    .where(
+      and(
+        eq(storageItem.ownerId, ownerId),
+        eq(storageItem.type, "file"),
+        inArray(storageItem.status, ["pending", "ready"]),
+        inArray(storageItem.id, fileIds)
+      )
+    )
+
+  if (files.length !== fileIds.length) {
+    throw new AppError("Upload not found.", 404, "UPLOAD_NOT_FOUND")
+  }
+
+  await Promise.all(
+    files.map(async (file) => {
+      if (!file.storageKey || !file.mimeType || file.size === null) {
+        throw new AppError(
+          "Upload metadata is incomplete.",
+          500,
+          "INVALID_UPLOAD_METADATA"
+        )
+      }
+
+      const object = await r2Client.send(
+        new HeadObjectCommand({
+          Bucket: env.r2BucketName,
+          Key: file.storageKey,
+        })
+      )
+
+      if (
+        object.ContentLength !== file.size ||
+        object.ContentType !== file.mimeType
+      ) {
+        throw new AppError(
+          "Uploaded file does not match the expected metadata.",
+          400,
+          "UPLOAD_VERIFICATION_FAILED"
+        )
+      }
+    })
+  )
+
+  const completedFiles = await db
+    .update(storageItem)
+    .set({ status: "ready", updatedAt: new Date() })
+    .where(
+      and(
+        eq(storageItem.ownerId, ownerId),
+        inArray(storageItem.id, fileIds),
+        inArray(storageItem.status, ["pending", "ready"])
+      )
+    )
+    .returning({
+      id: storageItem.id,
+      name: storageItem.name,
+      type: storageItem.type,
+      parentId: storageItem.parentId,
+      mimeType: storageItem.mimeType,
+      size: storageItem.size,
+      createdAt: storageItem.createdAt,
+      updatedAt: storageItem.updatedAt,
+    })
+
+  if (completedFiles.length !== fileIds.length) {
+    throw new AppError(
+      "Upload expired before completion.",
+      409,
+      "UPLOAD_EXPIRED"
+    )
+  }
+
+  return completedFiles
 }
