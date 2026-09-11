@@ -33,7 +33,7 @@ export default function AuthLayout({
             width={960}
             height={640}
             alt=""
-            className="h-auto w-full max-w-lg animate-bounce"
+            className="h-auto w-full max-w-lg animate-[bounce_1s_ease-in-out_3.5]"
             preload
           />
         </div>
