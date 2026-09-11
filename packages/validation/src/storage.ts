@@ -77,6 +77,10 @@ export const storageItemSchema = z.discriminatedUnion("type", [
 
 export const storageItemsSchema = z.array(storageItemSchema)
 
+export const storageUsageSchema = z.object({
+  usedBytes: z.number().int().nonnegative(),
+})
+
 export const filePreviewSchema = z.object({
   url: z.url(),
   mimeType: z.string().min(1),
@@ -96,3 +100,4 @@ export type RenameStorageItemInput = z.infer<
   typeof renameStorageItemInputSchema
 >
 export type StorageItem = z.infer<typeof storageItemSchema>
+export type StorageUsage = z.infer<typeof storageUsageSchema>

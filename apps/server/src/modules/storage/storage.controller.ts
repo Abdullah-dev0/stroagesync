@@ -13,6 +13,7 @@ import {
   createFolder as createFolderRecord,
   createPresignedUploads,
   deleteStorageItemById,
+  getStorageUsageByOwnerId,
   listStorageItemsByOwnerId,
   renameStorageItemById,
 } from "./storage.service"
@@ -41,6 +42,12 @@ export const getStorageItems: AuthenticatedHandler = async (_req, res) => {
   const storageItems = await listStorageItemsByOwnerId(res.locals.auth.user.id)
 
   res.status(200).json(storageItems)
+}
+
+export const getStorageUsage: AuthenticatedHandler = async (_req, res) => {
+  const usage = await getStorageUsageByOwnerId(res.locals.auth.user.id)
+
+  res.status(200).json(usage)
 }
 
 export const deleteStorageItem: AuthenticatedHandler = async (req, res) => {

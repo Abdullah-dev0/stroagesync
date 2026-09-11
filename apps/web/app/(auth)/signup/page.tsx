@@ -36,7 +36,7 @@ export default function Page() {
             width={960}
             height={640}
             alt=""
-            className="h-auto w-full max-w-lg"
+            className="h-auto w-full max-w-lg animate-bounce"
             preload
           />
         </div>

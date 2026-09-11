@@ -1,17 +1,16 @@
 import Link from "next/link"
-import { FolderClosed, HardDrive } from "lucide-react"
+import { FolderClosed } from "lucide-react"
+import { Suspense } from "react"
 
 import { StorageCreateMenu } from "@/components/dashboard/storage-create-menu.tsx"
-import { STORAGE_USAGE } from "./constants"
 import { dashboardNavigation } from "@/components/dashboard/navigation"
-import { Progress } from "@workspace/ui/components/progress"
-import { Separator } from "@workspace/ui/components/separator"
+import { StorageUsageFooter } from "@/components/dashboard/storage-usage-footer"
+import { StorageUsageFooterSkeleton } from "@/components/dashboard/storage-usage-footer-skeleton"
 import { cn } from "@workspace/ui/lib/utils"
 import {
   Sidebar,
   SidebarHeader,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarMenu,
@@ -101,38 +100,9 @@ export function DashboardSidebar({ className }: DashboardSidebarProps) {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter>
-        <SidebarMenu className="hidden group-data-[collapsible=icon]:flex">
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              render={<Link href="/dashboard/storage" />}
-              tooltip={`Storage: ${STORAGE_USAGE.used} of ${STORAGE_USAGE.total}`}
-              aria-label={`Storage: ${STORAGE_USAGE.used} of ${STORAGE_USAGE.total}`}
-            >
-              <HardDrive />
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-        <div className="p-2 pt-4 group-data-[collapsible=icon]:hidden">
-          <Separator className="mb-4" />
-          <div className="mb-2 flex items-center justify-between gap-3 text-xs">
-            <span className="font-medium text-foreground">Storage</span>
-            <span className="text-muted-foreground">
-              {STORAGE_USAGE.used} of {STORAGE_USAGE.total}
-            </span>
-          </div>
-          <Progress
-            value={STORAGE_USAGE.percentage}
-            aria-label={`${STORAGE_USAGE.percentage} percent of storage used`}
-          />
-          <Link
-            href="/dashboard/storage"
-            className="mt-3 inline-flex rounded text-xs font-medium text-primary underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-          >
-            Buy more storage
-          </Link>
-        </div>
-      </SidebarFooter>
+      <Suspense fallback={<StorageUsageFooterSkeleton />}>
+        <StorageUsageFooter />
+      </Suspense>
       <SidebarRail />
     </Sidebar>
   )

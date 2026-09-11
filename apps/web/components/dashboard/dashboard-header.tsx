@@ -1,5 +1,6 @@
-import { Bell, FolderClosed, LogOut, Search, Settings } from "lucide-react"
+import { Bell, FolderClosed, Search, Settings } from "lucide-react"
 
+import { LogoutMenuItem } from "@/components/dashboard/logout-menu-item"
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -73,10 +74,7 @@ export function DashboardHeader() {
               <Settings />
               Settings
             </DropdownMenuItem>
-            <DropdownMenuItem className="px-2 py-2">
-              <LogOut />
-              Log out
-            </DropdownMenuItem>
+            <LogoutMenuItem />
           </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>

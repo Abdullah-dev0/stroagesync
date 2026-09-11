@@ -11,7 +11,7 @@ import {
   type PresignedUpload,
 } from "@workspace/validation/storage"
 import { randomUUID } from "crypto"
-import { and, desc, eq, inArray } from "drizzle-orm"
+import { and, desc, eq, inArray, sum } from "drizzle-orm"
 import { env } from "../../config/env"
 import { db } from "../../db/client"
 import { storageItem } from "../../db/schema"
@@ -79,6 +79,21 @@ export const listStorageItemsByOwnerId = async (ownerId: string) => {
       and(eq(storageItem.ownerId, ownerId), eq(storageItem.status, "ready"))
     )
     .orderBy(desc(storageItem.updatedAt))
+}
+
+export const getStorageUsageByOwnerId = async (ownerId: string) => {
+  const [usage] = await db
+    .select({ usedBytes: sum(storageItem.size) })
+    .from(storageItem)
+    .where(
+      and(
+        eq(storageItem.ownerId, ownerId),
+        eq(storageItem.type, "file"),
+        eq(storageItem.status, "ready")
+      )
+    )
+
+  return { usedBytes: Number(usage?.usedBytes ?? 0) }
 }
 
 export const deleteStorageItemById = async (

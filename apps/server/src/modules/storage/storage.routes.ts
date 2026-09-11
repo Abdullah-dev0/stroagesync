@@ -7,6 +7,7 @@ import {
   getFileDownload,
   getFilePreview,
   getStorageItems,
+  getStorageUsage,
   renameStorageItem,
 } from "./storage.controller"
 
@@ -16,6 +17,7 @@ storageRouter.post("/folders", createFolder)
 storageRouter.post("/uploads/presign", createUploadUrls)
 storageRouter.post("/uploads/complete", completeUploads)
 storageRouter.get("/items", getStorageItems)
+storageRouter.get("/usage", getStorageUsage)
 storageRouter.delete("/items/:itemId", deleteStorageItem)
 storageRouter.get("/items/:itemId/preview", getFilePreview)
 storageRouter.get("/items/:itemId/download", getFileDownload)
