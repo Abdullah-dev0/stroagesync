@@ -22,6 +22,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
 import { toast } from "@workspace/ui/components/toast"
@@ -117,7 +118,7 @@ export function StorageItemCard({ item }: StorageItemCardProps) {
           >
             <EllipsisVertical />
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" sideOffset={6} className="w-44">
+          <DropdownMenuContent align="end" sideOffset={6} className="w-52">
             {item.type === "folder" && (
               <DropdownMenuItem className="cursor-pointer gap-2 px-2 py-2">
                 <Eye />
@@ -131,9 +132,12 @@ export function StorageItemCard({ item }: StorageItemCardProps) {
               <Pencil />
               Rename
             </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer gap-2 px-2 py-2">
+            <DropdownMenuItem className="gap-2 px-2 py-2" disabled>
               <Share2 />
               Share
+              <DropdownMenuShortcut className="tracking-normal">
+                Coming soon
+              </DropdownMenuShortcut>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem

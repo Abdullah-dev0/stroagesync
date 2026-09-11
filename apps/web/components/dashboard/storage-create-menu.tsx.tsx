@@ -21,6 +21,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
 import { Input } from "@workspace/ui/components/input"
@@ -40,7 +41,7 @@ import {
 } from "@workspace/validation/storage"
 import { cn } from "cn"
 
-export function CreateNewButton() {
+export function StorageCreateMenu() {
   const [isFolderDialogOpen, setIsFolderDialogOpen] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [folderName, setFolderName] = useState("")
@@ -267,9 +268,12 @@ export function CreateNewButton() {
             <CloudUpload className="size-4 text-muted-foreground" />
             File upload
           </DropdownMenuItem>
-          <DropdownMenuItem className="cursor-pointer gap-3 px-2 py-2.5">
+          <DropdownMenuItem className="gap-3 px-2 py-2.5" disabled>
             <CloudUpload className="size-4 text-muted-foreground" />
             Folder upload
+            <DropdownMenuShortcut className="tracking-normal">
+              Coming soon
+            </DropdownMenuShortcut>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

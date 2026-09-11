@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { FolderClosed, HardDrive } from "lucide-react"
 
-import { CreateNewButton } from "@/components/dashboard/create-new-button"
+import { StorageCreateMenu } from "@/components/dashboard/storage-create-menu.tsx"
 import { STORAGE_USAGE } from "./constants"
 import { dashboardNavigation } from "@/components/dashboard/navigation"
 import { Progress } from "@workspace/ui/components/progress"
@@ -46,7 +46,7 @@ export function DashboardSidebar({ className }: DashboardSidebarProps) {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <CreateNewButton />
+            <StorageCreateMenu />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
