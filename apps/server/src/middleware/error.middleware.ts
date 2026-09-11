@@ -18,7 +18,7 @@ export const errorHandler: ErrorRequestHandler = (
     return
   }
 
-  console.error(error)
+  console.log(error)
   response.status(500).json({
     message: "Internal server error",
     code: "INTERNAL_SERVER_ERROR",

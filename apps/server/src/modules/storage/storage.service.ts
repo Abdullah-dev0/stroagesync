@@ -1,5 +1,6 @@
 import {
   DeleteObjectCommand,
+  GetObjectCommand,
   HeadObjectCommand,
   PutObjectCommand,
 } from "@aws-sdk/client-s3"
@@ -18,6 +19,16 @@ import { AppError } from "../../lib/app-error"
 import { r2Client } from "../../lib/r2"
 
 const UPLOAD_URL_EXPIRES_IN_SECONDS = 5 * 60
+const PREVIEW_URL_EXPIRES_IN_SECONDS = 60
+
+const previewableMimeTypes = new Set([
+  "application/pdf",
+  "image/avif",
+  "image/gif",
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+])
 
 export const createFolder = async (
   name: string,
@@ -222,4 +233,50 @@ export const completePendingUploads = async (
   }
 
   return completedFiles
+}
+
+export const createFilePreview = async (itemId: string, ownerId: string) => {
+  const [file] = await db
+    .select({
+      storageKey: storageItem.storageKey,
+      mimeType: storageItem.mimeType,
+    })
+    .from(storageItem)
+    .where(
+      and(
+        eq(storageItem.id, itemId),
+        eq(storageItem.ownerId, ownerId),
+        eq(storageItem.type, "file"),
+        eq(storageItem.status, "ready")
+      )
+    )
+    .limit(1)
+
+  if (!file?.storageKey || !file.mimeType) {
+    throw new AppError("File not found.", 404, "FILE_NOT_FOUND")
+  }
+
+  if (!previewableMimeTypes.has(file.mimeType)) {
+    throw new AppError(
+      "This file type cannot be previewed.",
+      415,
+      "PREVIEW_NOT_SUPPORTED"
+    )
+  }
+
+  const url = await getSignedUrl(
+    r2Client,
+    new GetObjectCommand({
+      Bucket: env.r2BucketName,
+      Key: file.storageKey,
+      ResponseContentType: file.mimeType,
+      ResponseContentDisposition: "inline",
+    }),
+    { expiresIn: PREVIEW_URL_EXPIRES_IN_SECONDS }
+  )
+
+  return {
+    url,
+    mimeType: file.mimeType,
+  }
 }

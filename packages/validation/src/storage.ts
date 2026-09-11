@@ -71,8 +71,14 @@ export const storageItemSchema = z.discriminatedUnion("type", [
 
 export const storageItemsSchema = z.array(storageItemSchema)
 
+export const filePreviewSchema = z.object({
+  url: z.url(),
+  mimeType: z.string().min(1),
+})
+
 export type CreateFolderInput = z.infer<typeof createFolderInputSchema>
 export type CreateUploadUrlsInput = z.infer<typeof createUploadUrlsInputSchema>
+export type FilePreview = z.infer<typeof filePreviewSchema>
 export type Folder = z.infer<typeof folderSchema>
 export type PresignedUpload = z.infer<typeof presignedUploadSchema>
 export type StorageItem = z.infer<typeof storageItemSchema>
