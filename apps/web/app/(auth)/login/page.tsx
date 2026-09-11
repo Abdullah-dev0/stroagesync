@@ -59,7 +59,7 @@ export default async function Page({ searchParams }: LoginPageProps) {
           />
           <p>
             You have been signed out please sign in again to continue using
-            StorageSync.
+            SyncNest.
           </p>
         </div>
       )}

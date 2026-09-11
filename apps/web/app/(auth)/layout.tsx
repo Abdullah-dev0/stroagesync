@@ -18,12 +18,12 @@ export default function AuthLayout({
           <Link
             href="/"
             className="inline-flex items-center gap-2.5 rounded-lg font-semibold tracking-tight focus-visible:ring-2 focus-visible:ring-primary-foreground/70 focus-visible:outline-none"
-            aria-label="StorageSync home"
+            aria-label="SyncNest home"
           >
             <span className="flex size-9 items-center justify-center rounded-xl bg-primary-foreground text-primary shadow-sm">
               <FolderClosed className="size-4.5" strokeWidth={2.4} />
             </span>
-            <span>StorageSync</span>
+            <span>SyncNest</span>
           </Link>
         </div>
 

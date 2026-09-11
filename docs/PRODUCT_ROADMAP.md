@@ -1,4 +1,4 @@
-# StorageSync Product Roadmap
+# SyncNest Product Roadmap
 
 > This is a living product-direction document, not a fixed implementation
 > contract. Priorities, designs, and technical choices will change as the
@@ -6,7 +6,7 @@
 
 ## Product vision
 
-StorageSync begins as a dependable cloud drive and grows into a flexible place
+SyncNest begins as a dependable cloud drive and grows into a flexible place
 to store, receive, protect, share, and automate files.
 
 The first important user journey is:
@@ -169,12 +169,12 @@ architecture using established, reviewed cryptographic designs.
 Potential commands:
 
 ```text
-storagesync login
-storagesync ls
-storagesync upload build.zip
-storagesync download <file-id>
-storagesync share build.zip --expire 24h
-storagesync sync ./project
+syncnest login
+syncnest ls
+syncnest upload build.zip
+syncnest download <file-id>
+syncnest share build.zip --expire 24h
+syncnest sync ./project
 ```
 
 ### Webhooks

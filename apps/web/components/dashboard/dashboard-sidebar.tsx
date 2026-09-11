@@ -32,15 +32,15 @@ export function DashboardSidebar({ className }: DashboardSidebarProps) {
             <SidebarMenuButton
               render={<Link href="/dashboard" />}
               size="lg"
-              tooltip="StorageSync"
-              aria-label="StorageSync dashboard"
+              tooltip="SyncNest"
+              aria-label="SyncNest dashboard"
               className="font-semibold tracking-tight"
             >
               <span className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
                 <FolderClosed className="size-4" strokeWidth={2.4} />
               </span>
               <span className="group-data-[collapsible=icon]:hidden">
-                StorageSync
+                SyncNest
               </span>
             </SidebarMenuButton>
           </SidebarMenuItem>

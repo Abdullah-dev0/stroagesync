@@ -141,7 +141,7 @@ export function LoginForm() {
       </fieldset>
 
       <p className="text-center text-sm text-muted-foreground">
-        New to StorageSync?{" "}
+        New to SyncNest?{" "}
         <Link
           href="/signup"
           className="font-semibold text-primary underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"

@@ -3,7 +3,7 @@ import { Router, type Router as ExpressRouter } from "express"
 export const healthRouter: ExpressRouter = Router()
 
 healthRouter.get("/", (_request, response) => {
-  response.json({ message: "StorageSync API is running" })
+  response.json({ message: "SyncNest API is running" })
 })
 
 healthRouter.get("/health", async (_request, response) => {

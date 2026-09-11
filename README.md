@@ -1,6 +1,6 @@
-# StorageSync
+# SyncNest
 
-StorageSync is a pnpm and Turborepo monorepo containing a Next.js web app,
+SyncNest is a pnpm and Turborepo monorepo containing a Next.js web app,
 an Express API, and shared UI packages.
 
 ## Getting started
