@@ -4,6 +4,7 @@ import {
   createFolder,
   createUploadUrls,
   deleteStorageItem,
+  getFileDownload,
   getFilePreview,
   getStorageItems,
 } from "./storage.controller"
@@ -16,3 +17,4 @@ storageRouter.post("/uploads/complete", completeUploads)
 storageRouter.get("/items", getStorageItems)
 storageRouter.delete("/items/:itemId", deleteStorageItem)
 storageRouter.get("/items/:itemId/preview", getFilePreview)
+storageRouter.get("/items/:itemId/download", getFileDownload)

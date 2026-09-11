@@ -76,8 +76,13 @@ export const filePreviewSchema = z.object({
   mimeType: z.string().min(1),
 })
 
+export const fileDownloadSchema = z.object({
+  url: z.url(),
+})
+
 export type CreateFolderInput = z.infer<typeof createFolderInputSchema>
 export type CreateUploadUrlsInput = z.infer<typeof createUploadUrlsInputSchema>
+export type FileDownload = z.infer<typeof fileDownloadSchema>
 export type FilePreview = z.infer<typeof filePreviewSchema>
 export type Folder = z.infer<typeof folderSchema>
 export type PresignedUpload = z.infer<typeof presignedUploadSchema>

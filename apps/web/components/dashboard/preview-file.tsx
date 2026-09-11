@@ -1,5 +1,10 @@
-import { FileText, LoaderCircle, X } from "lucide-react"
+"use client"
 
+import { BetterFetchError } from "@better-fetch/fetch"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { Download, FileText, LoaderCircle, X } from "lucide-react"
+
+import { clientApi } from "@/lib/api/client"
 import { Button } from "@workspace/ui/components/button"
 import {
   Dialog,
@@ -8,11 +13,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog"
+import { toast } from "@workspace/ui/components/toast"
+import { fileDownloadSchema } from "@workspace/validation/storage"
 import type {
   FilePreview as FilePreviewData,
   StorageItem,
 } from "@workspace/validation/storage"
-import Image from "next/image"
+
+const DOWNLOAD_URL_CACHE_MS = 50_000
 
 type PreviewFileProps = {
   item: StorageItem
@@ -31,6 +39,34 @@ export function PreviewFile({
   onOpenChange,
   preview,
 }: PreviewFileProps) {
+  const queryClient = useQueryClient()
+  const downloadFile = useMutation({
+    mutationFn: () =>
+      queryClient.query({
+        queryKey: ["file-download", item.id],
+        queryFn: () =>
+          clientApi(`/api/storage/items/${item.id}/download`, {
+            output: fileDownloadSchema,
+          }),
+        staleTime: DOWNLOAD_URL_CACHE_MS,
+        gcTime: DOWNLOAD_URL_CACHE_MS,
+      }),
+    onSuccess: ({ url }) => {
+      window.location.assign(url)
+    },
+    onError: (error) => {
+      if (error instanceof BetterFetchError && error.status === 401) {
+        return
+      }
+
+      toast.add({
+        type: "error",
+        title: "Download failed",
+        description: "This file could not be downloaded. Please try again.",
+      })
+    },
+  })
+
   return (
     <Dialog open={isPreviewOpen} onOpenChange={onOpenChange}>
       <DialogContent
@@ -54,6 +90,20 @@ export function PreviewFile({
             <FileText className="size-4" aria-hidden="true" />
           </span>
           <DialogTitle className="truncate text-base">{item.name}</DialogTitle>
+          <Button
+            variant="ghost"
+            className="ml-auto gap-2 text-foreground hover:bg-muted"
+            disabled={downloadFile.isPending}
+            aria-busy={downloadFile.isPending}
+            onClick={() => downloadFile.mutate()}
+          >
+            {downloadFile.isPending ? (
+              <LoaderCircle className="animate-spin" aria-hidden="true" />
+            ) : (
+              <Download aria-hidden="true" />
+            )}
+            <span className="hidden sm:inline">Download</span>
+          </Button>
         </DialogHeader>
 
         <div
@@ -77,7 +127,9 @@ export function PreviewFile({
           )}
 
           {preview.data?.mimeType.startsWith("image/") && (
-            <Image
+            // Signed preview URLs expire quickly and do not provide intrinsic dimensions.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
               src={preview.data.url}
               alt={item.name}
               className="h-auto max-h-full w-auto max-w-full object-contain"
@@ -85,11 +137,13 @@ export function PreviewFile({
           )}
 
           {preview.data?.mimeType === "application/pdf" && (
-            <iframe
-              src={preview.data.url}
-              title={`Preview of ${item.name}`}
-              className="size-full border-0"
-            />
+            <div className="size-full overflow-hidden">
+              <iframe
+                src={`${preview.data.url}#navpanes=1`}
+                title={`Preview of ${item.name}`}
+                className="h-[calc(100%+3.5rem)] w-full -translate-y-14 border-0"
+              />
+            </div>
           )}
 
           {preview.data &&

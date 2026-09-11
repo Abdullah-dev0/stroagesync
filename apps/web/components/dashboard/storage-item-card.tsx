@@ -31,6 +31,8 @@ import {
 } from "@workspace/validation/storage"
 import { PreviewFile } from "./preview-file"
 
+const PREVIEW_URL_CACHE_MS = 50_000
+
 type StorageItemCardProps = {
   item: StorageItem
 }
@@ -42,8 +44,14 @@ export function StorageItemCard({ item }: StorageItemCardProps) {
 
   const previewFile = useMutation({
     mutationFn: () =>
-      clientApi(`/api/storage/items/${item.id}/preview`, {
-        output: filePreviewSchema,
+      queryClient.query({
+        queryKey: ["file-preview", item.id],
+        queryFn: () =>
+          clientApi(`/api/storage/items/${item.id}/preview`, {
+            output: filePreviewSchema,
+          }),
+        staleTime: PREVIEW_URL_CACHE_MS,
+        gcTime: PREVIEW_URL_CACHE_MS,
       }),
   })
 

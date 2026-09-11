@@ -7,6 +7,7 @@ import { AppError } from "../../lib/app-error"
 import type { AuthenticatedHandler } from "../../middleware/auth.middleware"
 import {
   completePendingUploads,
+  createFileDownload,
   createFilePreview,
   createFolder as createFolderRecord,
   createPresignedUploads,
@@ -101,4 +102,16 @@ export const getFilePreview: AuthenticatedHandler = async (req, res) => {
   const preview = await createFilePreview(itemId, res.locals.auth.user.id)
 
   res.status(200).json(preview)
+}
+
+export const getFileDownload: AuthenticatedHandler = async (req, res) => {
+  const { itemId } = req.params
+
+  if (!itemId) {
+    throw new AppError("Item ID is required.", 400, "ITEM_ID_REQUIRED")
+  }
+
+  const download = await createFileDownload(itemId, res.locals.auth.user.id)
+
+  res.status(200).json(download)
 }

@@ -20,6 +20,7 @@ import { r2Client } from "../../lib/r2"
 
 const UPLOAD_URL_EXPIRES_IN_SECONDS = 5 * 60
 const PREVIEW_URL_EXPIRES_IN_SECONDS = 60
+const DOWNLOAD_URL_EXPIRES_IN_SECONDS = 60
 
 const previewableMimeTypes = new Set([
   "application/pdf",
@@ -279,4 +280,38 @@ export const createFilePreview = async (itemId: string, ownerId: string) => {
     url,
     mimeType: file.mimeType,
   }
+}
+
+export const createFileDownload = async (itemId: string, ownerId: string) => {
+  const [file] = await db
+    .select({
+      name: storageItem.name,
+      storageKey: storageItem.storageKey,
+    })
+    .from(storageItem)
+    .where(
+      and(
+        eq(storageItem.id, itemId),
+        eq(storageItem.ownerId, ownerId),
+        eq(storageItem.type, "file"),
+        eq(storageItem.status, "ready")
+      )
+    )
+    .limit(1)
+
+  if (!file?.storageKey) {
+    throw new AppError("File not found.", 404, "FILE_NOT_FOUND")
+  }
+
+  const url = await getSignedUrl(
+    r2Client,
+    new GetObjectCommand({
+      Bucket: env.r2BucketName,
+      Key: file.storageKey,
+      ResponseContentDisposition: `attachment; filename*=UTF-8''${encodeURIComponent(file.name)}`,
+    }),
+    { expiresIn: DOWNLOAD_URL_EXPIRES_IN_SECONDS }
+  )
+
+  return { url }
 }
