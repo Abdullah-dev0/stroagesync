@@ -2,6 +2,7 @@ import {
   completeUploadsInputSchema,
   createFolderInputSchema,
   createUploadUrlsInputSchema,
+  renameStorageItemInputSchema,
 } from "@workspace/validation/storage"
 import { AppError } from "../../lib/app-error"
 import type { AuthenticatedHandler } from "../../middleware/auth.middleware"
@@ -13,6 +14,7 @@ import {
   createPresignedUploads,
   deleteStorageItemById,
   listStorageItemsByOwnerId,
+  renameStorageItemById,
 } from "./storage.service"
 
 export const createFolder: AuthenticatedHandler = async (req, res) => {
@@ -114,4 +116,30 @@ export const getFileDownload: AuthenticatedHandler = async (req, res) => {
   const download = await createFileDownload(itemId, res.locals.auth.user.id)
 
   res.status(200).json(download)
+}
+
+export const renameStorageItem: AuthenticatedHandler = async (req, res) => {
+  const { itemId } = req.params
+
+  if (!itemId) {
+    throw new AppError("Item ID is required.", 400, "ITEM_ID_REQUIRED")
+  }
+
+  const validation = renameStorageItemInputSchema.safeParse(req.body)
+
+  if (!validation.success) {
+    throw new AppError(
+      validation.error.issues[0]?.message ?? "Invalid name.",
+      400,
+      "INVALID_RENAME_INPUT"
+    )
+  }
+
+  const renamedItem = await renameStorageItemById(
+    itemId,
+    validation.data.name,
+    res.locals.auth.user.id
+  )
+
+  res.status(200).json(renamedItem)
 }

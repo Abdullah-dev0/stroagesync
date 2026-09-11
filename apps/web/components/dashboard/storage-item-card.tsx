@@ -9,7 +9,7 @@ import {
   Folder,
   Pencil,
   Share2,
-  Trash2
+  Trash2,
 } from "lucide-react"
 import { useState, type MouseEvent } from "react"
 
@@ -25,13 +25,9 @@ import {
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
 import { toast } from "@workspace/ui/components/toast"
-import {
-  filePreviewSchema,
-  type StorageItem,
-} from "@workspace/validation/storage"
-import { PreviewFile } from "./preview-file"
-
-const PREVIEW_URL_CACHE_MS = 50_000
+import type { StorageItem } from "@workspace/validation/storage"
+import { PreviewFile } from "./preview-stroage-item-dialog"
+import { RenameStorageItemDialog } from "./rename-storage-item-dialog"
 
 type StorageItemCardProps = {
   item: StorageItem
@@ -39,21 +35,9 @@ type StorageItemCardProps = {
 
 export function StorageItemCard({ item }: StorageItemCardProps) {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false)
+  const [isRenameOpen, setIsRenameOpen] = useState(false)
   const queryClient = useQueryClient()
   const Icon = item.type === "folder" ? Folder : File
-
-  const previewFile = useMutation({
-    mutationFn: () =>
-      queryClient.query({
-        queryKey: ["file-preview", item.id],
-        queryFn: () =>
-          clientApi(`/api/storage/items/${item.id}/preview`, {
-            output: filePreviewSchema,
-          }),
-        staleTime: PREVIEW_URL_CACHE_MS,
-        gcTime: PREVIEW_URL_CACHE_MS,
-      }),
-  })
 
   const deleteItem = useMutation({
     mutationFn: () =>
@@ -89,17 +73,7 @@ export function StorageItemCard({ item }: StorageItemCardProps) {
   function openPreview() {
     if (item.type !== "file") return
 
-    previewFile.reset()
     setIsPreviewOpen(true)
-    previewFile.mutate()
-  }
-
-  function handlePreviewOpenChange(open: boolean) {
-    setIsPreviewOpen(open)
-
-    if (!open) {
-      previewFile.reset()
-    }
   }
 
   function handleItemDoubleClick(event: MouseEvent<HTMLElement>) {
@@ -150,7 +124,10 @@ export function StorageItemCard({ item }: StorageItemCardProps) {
                 Open
               </DropdownMenuItem>
             )}
-            <DropdownMenuItem className="cursor-pointer gap-2 px-2 py-2">
+            <DropdownMenuItem
+              className="cursor-pointer gap-2 px-2 py-2"
+              onClick={() => setIsRenameOpen(true)}
+            >
               <Pencil />
               Rename
             </DropdownMenuItem>
@@ -170,11 +147,15 @@ export function StorageItemCard({ item }: StorageItemCardProps) {
           </DropdownMenuContent>
         </DropdownMenu>
       </article>
+      <RenameStorageItemDialog
+        item={item}
+        open={isRenameOpen}
+        onOpenChange={setIsRenameOpen}
+      />
       <PreviewFile
         item={item}
         isPreviewOpen={isPreviewOpen}
-        onOpenChange={handlePreviewOpenChange}
-        preview={previewFile}
+        onOpenChange={setIsPreviewOpen}
       />
     </>
   )

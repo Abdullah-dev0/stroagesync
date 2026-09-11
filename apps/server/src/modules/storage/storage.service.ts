@@ -315,3 +315,36 @@ export const createFileDownload = async (itemId: string, ownerId: string) => {
 
   return { url }
 }
+
+export const renameStorageItemById = async (
+  itemId: string,
+  name: string,
+  ownerId: string
+) => {
+  const [renamedItem] = await db
+    .update(storageItem)
+    .set({ name, updatedAt: new Date() })
+    .where(
+      and(
+        eq(storageItem.id, itemId),
+        eq(storageItem.ownerId, ownerId),
+        eq(storageItem.status, "ready")
+      )
+    )
+    .returning({
+      id: storageItem.id,
+      name: storageItem.name,
+      type: storageItem.type,
+      parentId: storageItem.parentId,
+      mimeType: storageItem.mimeType,
+      size: storageItem.size,
+      createdAt: storageItem.createdAt,
+      updatedAt: storageItem.updatedAt,
+    })
+
+  if (!renamedItem) {
+    throw new AppError("Storage item not found.", 404, "STORAGE_ITEM_NOT_FOUND")
+  }
+
+  return renamedItem
+}

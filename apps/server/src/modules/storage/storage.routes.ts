@@ -7,6 +7,7 @@ import {
   getFileDownload,
   getFilePreview,
   getStorageItems,
+  renameStorageItem,
 } from "./storage.controller"
 
 export const storageRouter: ExpressRouter = Router()
@@ -18,3 +19,4 @@ storageRouter.get("/items", getStorageItems)
 storageRouter.delete("/items/:itemId", deleteStorageItem)
 storageRouter.get("/items/:itemId/preview", getFilePreview)
 storageRouter.get("/items/:itemId/download", getFileDownload)
+storageRouter.patch("/items/:itemId", renameStorageItem)

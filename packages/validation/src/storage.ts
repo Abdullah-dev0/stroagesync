@@ -3,13 +3,19 @@ import { z } from "zod"
 export const MAX_UPLOAD_FILES = 3
 export const MAX_UPLOAD_FILE_SIZE = 16 * 1024 * 1024
 
+const storageItemNameSchema = z
+  .string()
+  .trim()
+  .min(1, "Enter a name.")
+  .max(255, "Name must be 255 characters or fewer.")
+
 export const createFolderInputSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(1, "Enter a folder name.")
-    .max(255, "Folder name must be 255 characters or fewer."),
+  name: storageItemNameSchema,
   parentId: z.uuid().nullable(),
+})
+
+export const renameStorageItemInputSchema = createFolderInputSchema.pick({
+  name: true,
 })
 
 export const folderSchema = z.object({
@@ -86,4 +92,7 @@ export type FileDownload = z.infer<typeof fileDownloadSchema>
 export type FilePreview = z.infer<typeof filePreviewSchema>
 export type Folder = z.infer<typeof folderSchema>
 export type PresignedUpload = z.infer<typeof presignedUploadSchema>
+export type RenameStorageItemInput = z.infer<
+  typeof renameStorageItemInputSchema
+>
 export type StorageItem = z.infer<typeof storageItemSchema>

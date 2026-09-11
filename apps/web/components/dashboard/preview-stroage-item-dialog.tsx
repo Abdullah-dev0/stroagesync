@@ -1,7 +1,7 @@
 "use client"
 
 import { BetterFetchError } from "@better-fetch/fetch"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Download, FileText, LoaderCircle, X } from "lucide-react"
 
 import { clientApi } from "@/lib/api/client"
@@ -14,32 +14,38 @@ import {
   DialogTitle,
 } from "@workspace/ui/components/dialog"
 import { toast } from "@workspace/ui/components/toast"
-import { fileDownloadSchema } from "@workspace/validation/storage"
-import type {
-  FilePreview as FilePreviewData,
-  StorageItem,
+import {
+  fileDownloadSchema,
+  filePreviewSchema,
+  type StorageItem,
 } from "@workspace/validation/storage"
 
+const PREVIEW_URL_CACHE_MS = 50_000
 const DOWNLOAD_URL_CACHE_MS = 50_000
 
 type PreviewFileProps = {
   item: StorageItem
   isPreviewOpen: boolean
   onOpenChange: (open: boolean) => void
-  preview: {
-    data: FilePreviewData | undefined
-    isError: boolean
-    isPending: boolean
-  }
 }
 
 export function PreviewFile({
   item,
   isPreviewOpen,
   onOpenChange,
-  preview,
 }: PreviewFileProps) {
   const queryClient = useQueryClient()
+  const previewFile = useQuery({
+    queryKey: ["file-preview", item.id],
+    queryFn: () =>
+      clientApi(`/api/storage/items/${item.id}/preview`, {
+        output: filePreviewSchema,
+      }),
+    enabled: isPreviewOpen && item.type === "file",
+    staleTime: PREVIEW_URL_CACHE_MS,
+    gcTime: PREVIEW_URL_CACHE_MS,
+  })
+
   const downloadFile = useMutation({
     mutationFn: () =>
       queryClient.query({
@@ -108,16 +114,16 @@ export function PreviewFile({
 
         <div
           className="flex min-h-0 flex-1 items-center justify-center overflow-auto p-4 sm:p-8"
-          aria-busy={preview.isPending}
+          aria-busy={previewFile.isPending}
         >
-          {preview.isPending && (
+          {previewFile.isPending && (
             <LoaderCircle
               className="size-6 animate-spin text-muted-foreground"
               aria-label="Loading preview"
             />
           )}
 
-          {preview.isError && (
+          {previewFile.isError && (
             <div className="grid max-w-sm gap-1 p-6 text-center">
               <p className="font-medium text-foreground">Preview unavailable</p>
               <p className="text-sm text-muted-foreground">
@@ -126,29 +132,29 @@ export function PreviewFile({
             </div>
           )}
 
-          {preview.data?.mimeType.startsWith("image/") && (
+          {previewFile.data?.mimeType.startsWith("image/") && (
             // Signed preview URLs expire quickly and do not provide intrinsic dimensions.
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={preview.data.url}
+              src={previewFile.data.url}
               alt={item.name}
               className="h-auto max-h-full w-auto max-w-full object-contain"
             />
           )}
 
-          {preview.data?.mimeType === "application/pdf" && (
+          {previewFile.data?.mimeType === "application/pdf" && (
             <div className="size-full overflow-hidden">
               <iframe
-                src={`${preview.data.url}#navpanes=1`}
+                src={`${previewFile.data.url}#navpanes=1`}
                 title={`Preview of ${item.name}`}
                 className="h-[calc(100%+3.5rem)] w-full -translate-y-14 border-0"
               />
             </div>
           )}
 
-          {preview.data &&
-            !preview.data.mimeType.startsWith("image/") &&
-            preview.data.mimeType !== "application/pdf" && (
+          {previewFile.data &&
+            !previewFile.data.mimeType.startsWith("image/") &&
+            previewFile.data.mimeType !== "application/pdf" && (
               <div className="grid max-w-sm gap-1 p-6 text-center">
                 <p className="font-medium text-foreground">
                   Preview unavailable
