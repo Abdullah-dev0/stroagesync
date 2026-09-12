@@ -26,7 +26,11 @@ export const folderSchema = z.object({
 const uploadFileMetadataSchema = z.object({
   name: z.string().trim().min(1).max(255),
   mimeType: z.string().trim().min(1).max(255),
-  size: z.number().int().nonnegative().max(MAX_UPLOAD_FILE_SIZE),
+  size: z
+    .number()
+    .int()
+    .nonnegative()
+    .max(MAX_UPLOAD_FILE_SIZE, "Each file must be 16 MB or smaller."),
 })
 
 export const createUploadUrlsInputSchema = z.object({
