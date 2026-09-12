@@ -2,6 +2,7 @@ import { CircleCheck, CircleX } from "lucide-react"
 import Link from "next/link"
 
 import { LoginForm } from "@/components/auth/login-form"
+import { redirectIfAuthenticated } from "@/lib/redirect-if-authenticated"
 
 type LoginPageProps = {
   searchParams: Promise<{
@@ -11,6 +12,8 @@ type LoginPageProps = {
 }
 
 export default async function Page({ searchParams }: LoginPageProps) {
+  await redirectIfAuthenticated()
+
   const signup = (await searchParams).signup
   const unauthorized = (await searchParams).unauthorized === "true"
   const signupSucceeded = signup === "success"

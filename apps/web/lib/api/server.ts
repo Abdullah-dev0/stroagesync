@@ -19,7 +19,7 @@ export async function getServerApi() {
     retry: 0,
     onError: ({ response }) => {
       if (response.status === 401) {
-        redirect("/login?unauthorized=true")
+        redirect("/api/session/invalidate")
       }
     },
   })

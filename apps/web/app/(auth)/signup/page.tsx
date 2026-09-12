@@ -1,8 +1,11 @@
 import Link from "next/link"
 
 import { SignupForm } from "@/components/auth/signup-form"
+import { redirectIfAuthenticated } from "@/lib/redirect-if-authenticated"
 
-export default function Page() {
+export default async function Page() {
+  await redirectIfAuthenticated()
+
   return (
     <>
       <div className="mb-12 flex items-center justify-between lg:hidden">
