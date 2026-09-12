@@ -13,6 +13,7 @@ import {
 } from "lucide-react"
 import { useState, type MouseEvent } from "react"
 
+import { getApiErrorMessage } from "@/lib/api/api-error"
 import { clientApi } from "@/lib/api/client"
 import { formatFileSize } from "@/lib/format-size"
 import { storageItemsQueryKey } from "@/lib/query-keys"
@@ -65,8 +66,10 @@ export function StorageItemCard({ item }: StorageItemCardProps) {
       toast.add({
         type: "error",
         title: "Delete failed",
-        description:
-          error.message || "Failed to delete the item. Please try again.",
+        description: getApiErrorMessage(
+          error,
+          "Failed to delete the item. Please try again."
+        ),
       })
     },
   })

@@ -9,9 +9,9 @@ export const auth = betterAuth({
     provider: "pg",
     schema,
   }),
-  autoSignIn: false,
   emailAndPassword: {
     enabled: true,
+    autoSignIn: false,
   },
   advanced: {
     cookiePrefix: "auth-token",

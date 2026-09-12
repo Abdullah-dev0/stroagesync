@@ -6,13 +6,13 @@ import { LoginForm } from "@/components/auth/login-form"
 type LoginPageProps = {
   searchParams: Promise<{
     signup?: string
-    unauthorized?: boolean
+    unauthorized?: string
   }>
 }
 
 export default async function Page({ searchParams }: LoginPageProps) {
   const signup = (await searchParams).signup
-  const unauthorized = (await searchParams).unauthorized
+  const unauthorized = (await searchParams).unauthorized === "true"
   const signupSucceeded = signup === "success"
 
   return (
@@ -57,10 +57,7 @@ export default async function Page({ searchParams }: LoginPageProps) {
             className="mt-0.5 size-4.5 shrink-0 text-primary"
             aria-hidden="true"
           />
-          <p>
-            You have been signed out please sign in again to continue using
-            SyncNest.
-          </p>
+          <p>Your session expired. Sign in again to continue.</p>
         </div>
       )}
 

@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { CloudUpload, FolderPlus, LoaderCircle, Plus } from "lucide-react"
 import { useRef, useState, type ChangeEvent, type SubmitEvent } from "react"
 
+import { getApiErrorMessage } from "@/lib/api/api-error"
 import { clientApi } from "@/lib/api/client"
 import { storageItemsQueryKey } from "@/lib/query-keys"
 import { Button } from "@workspace/ui/components/button"
@@ -71,7 +72,12 @@ export function StorageCreateMenu() {
         return
       }
 
-      setErrorMessage("Failed to create folder. Please try again.")
+      setErrorMessage(
+        getApiErrorMessage(
+          error,
+          "Failed to create folder. Please try again."
+        )
+      )
     },
   })
 
@@ -176,7 +182,10 @@ export function StorageCreateMenu() {
       toast.update(mutationContext.toastId, {
         type: "error",
         title: "Upload failed",
-        description: "We couldn't upload your files. Please try again.",
+        description: getApiErrorMessage(
+          error,
+          "We couldn't upload your files. Please try again."
+        ),
         timeout: 5000,
         priority: "high",
       })

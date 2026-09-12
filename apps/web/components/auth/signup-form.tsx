@@ -50,7 +50,7 @@ export function SignupForm() {
       console.error("Signup failed:", error)
       toast.add({
         type: "error",
-        description: "Signup failed. Please try again.",
+        description: error.message || "Signup failed. Please try again.",
       })
       return
     }

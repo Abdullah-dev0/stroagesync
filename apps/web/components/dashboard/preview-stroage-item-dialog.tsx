@@ -4,6 +4,7 @@ import { BetterFetchError } from "@better-fetch/fetch"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Download, FileText, LoaderCircle, X } from "lucide-react"
 
+import { getApiErrorMessage } from "@/lib/api/api-error"
 import { clientApi } from "@/lib/api/client"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -68,7 +69,10 @@ export function PreviewFile({
       toast.add({
         type: "error",
         title: "Download failed",
-        description: "This file could not be downloaded. Please try again.",
+        description: getApiErrorMessage(
+          error,
+          "This file could not be downloaded. Please try again."
+        ),
       })
     },
   })
@@ -127,7 +131,10 @@ export function PreviewFile({
             <div className="grid max-w-sm gap-1 p-6 text-center">
               <p className="font-medium text-foreground">Preview unavailable</p>
               <p className="text-sm text-muted-foreground">
-                This file could not be previewed. Please try again.
+                {getApiErrorMessage(
+                  previewFile.error,
+                  "This file could not be previewed. Please try again."
+                )}
               </p>
             </div>
           )}

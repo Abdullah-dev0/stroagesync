@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { LoaderCircle } from "lucide-react"
 import { useState, type SubmitEvent } from "react"
 
+import { getApiErrorMessage } from "@/lib/api/api-error"
 import { clientApi } from "@/lib/api/client"
 import { storageItemsQueryKey } from "@/lib/query-keys"
 import { Button } from "@workspace/ui/components/button"
@@ -69,7 +70,9 @@ export function RenameStorageItemDialog({
         return
       }
 
-      setErrorMessage(error.message || "Failed to rename the item.")
+      setErrorMessage(
+        getApiErrorMessage(error, "Failed to rename the item.")
+      )
     },
   })
 

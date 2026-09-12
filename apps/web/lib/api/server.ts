@@ -2,6 +2,8 @@ import "server-only"
 
 import { createFetch } from "@better-fetch/fetch"
 import { cookies } from "next/headers"
+import { redirect } from "next/navigation"
+
 import { apiUrl } from "./config"
 
 // Create within each request so cookies are never shared between users.
@@ -15,5 +17,10 @@ export async function getServerApi() {
     throw: true,
     timeout: 10_000,
     retry: 0,
+    onError: ({ response }) => {
+      if (response.status === 401) {
+        redirect("/login?unauthorized=true")
+      }
+    },
   })
 }
