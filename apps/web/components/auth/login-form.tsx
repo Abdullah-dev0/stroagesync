@@ -67,6 +67,7 @@ export function LoginForm() {
                   id={field.name}
                   type="email"
                   autoComplete="email"
+                  disabled={isSubmitting}
                   inputMode="email"
                   placeholder="you@company.com"
                   aria-invalid={fieldState.invalid}
@@ -100,6 +101,7 @@ export function LoginForm() {
                     type={showPassword ? "text" : "password"}
                     autoComplete="current-password"
                     placeholder="Enter your password"
+                    disabled={isSubmitting}
                     aria-invalid={fieldState.invalid}
                     className={`${inputClassName} pr-11`}
                   />
