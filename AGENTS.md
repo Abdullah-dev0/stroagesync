@@ -105,4 +105,4 @@ requires them.
 ## Important Rule 
 
 - If you are unsure about a rule, ask for clarification before writing code.
-- Do not write business logic; I will write it myself. This is the reason why i am Making this application you are allow to make design decisions.
+- Do not write business logic; I will write it myself. This is the reason why i am Making this application you are allow to make design decisions also this is production Grade  Application so tell me hwo people add any feacture in production.
