@@ -64,6 +64,13 @@
       "when": 1789057167275,
       "tag": "0008_bright_pete_wisdom",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1789416167518,
+      "tag": "0009_square_cerebro",
+      "breakpoints": true
     }
   ]
 }

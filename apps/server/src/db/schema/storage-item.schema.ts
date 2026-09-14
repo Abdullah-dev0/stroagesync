@@ -36,7 +36,7 @@ export const storageItem = pgTable(
     storageKey: text("storage_key").unique(),
     mimeType: text("mime_type"),
     size: bigint("size", { mode: "number" }),
-
+    deletedAt: timestamp("deleted_at"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },

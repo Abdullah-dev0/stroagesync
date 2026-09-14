@@ -15,6 +15,7 @@ import {
   deleteStorageItemById,
   getStorageUsageByOwnerId,
   listStorageItemsByOwnerId,
+  listTrashStorageItemsByOwnerId,
   renameStorageItemById,
 } from "./storage.service"
 
@@ -149,4 +150,12 @@ export const renameStorageItem: AuthenticatedHandler = async (req, res) => {
   )
 
   res.status(200).json(renamedItem)
+}
+
+export const getTrashedItems: AuthenticatedHandler = async (req, res) => {
+  const trashedItems = await listTrashStorageItemsByOwnerId(
+    res.locals.auth.user.id
+  )
+
+  res.status(200).json(trashedItems)
 }

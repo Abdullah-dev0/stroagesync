@@ -11,7 +11,7 @@ import {
   type PresignedUpload,
 } from "@workspace/validation/storage"
 import { randomUUID } from "crypto"
-import { and, desc, eq, inArray, sum } from "drizzle-orm"
+import { and, desc, eq, inArray, isNotNull, isNull, sum } from "drizzle-orm"
 import { env } from "../../config/env"
 import { db } from "../../db/client"
 import { storageItem } from "../../db/schema"
@@ -76,7 +76,11 @@ export const listStorageItemsByOwnerId = async (ownerId: string) => {
     })
     .from(storageItem)
     .where(
-      and(eq(storageItem.ownerId, ownerId), eq(storageItem.status, "ready"))
+      and(
+        eq(storageItem.ownerId, ownerId),
+        eq(storageItem.status, "ready"),
+        isNull(storageItem.deletedAt)
+      )
     )
     .orderBy(desc(storageItem.updatedAt))
 }
@@ -101,20 +105,17 @@ export const deleteStorageItemById = async (
   ownerId: string
 ) => {
   const [deletedItem] = await db
-    .delete(storageItem)
+    .update(storageItem)
+    .set({
+      deletedAt: new Date(),
+      updatedAt: new Date(),
+    })
     .where(and(eq(storageItem.id, itemId), eq(storageItem.ownerId, ownerId)))
-    .returning({ id: storageItem.id, key: storageItem.storageKey })
+    .returning({ id: storageItem.id })
 
   if (!deletedItem) {
     throw new AppError("Storage item not found.", 404, "STORAGE_ITEM_NOT_FOUND")
   }
-
-  await r2Client.send(
-    new DeleteObjectCommand({
-      Bucket: env.r2BucketName,
-      Key: deletedItem.key!,
-    })
-  )
 
   return deletedItem
 }
@@ -362,4 +363,27 @@ export const renameStorageItemById = async (
   }
 
   return renamedItem
+}
+
+export const listTrashStorageItemsByOwnerId = async (ownerId: string) => {
+  return await db
+    .select({
+      id: storageItem.id,
+      name: storageItem.name,
+      type: storageItem.type,
+      parentId: storageItem.parentId,
+      mimeType: storageItem.mimeType,
+      size: storageItem.size,
+      createdAt: storageItem.createdAt,
+      updatedAt: storageItem.updatedAt,
+    })
+    .from(storageItem)
+    .where(
+      and(
+        eq(storageItem.ownerId, ownerId),
+        eq(storageItem.status, "ready"),
+        isNotNull(storageItem.deletedAt)
+      )
+    )
+    .orderBy(desc(storageItem.updatedAt))
 }

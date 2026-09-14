@@ -1,0 +1,54 @@
+import { Clock3, Trash2 } from "lucide-react"
+import { Suspense } from "react"
+
+import { DashboardHeader } from "@/components/dashboard/dashboard-header"
+import { StorageItemGridSkeleton } from "@/components/dashboard/storage-item-grid-skeleton"
+import { TrashItemGrid } from "@/components/dashboard/trash-item-grid"
+import { Button } from "@workspace/ui/components/button"
+
+export default function Page() {
+  return (
+    <div className="w-full">
+      <DashboardHeader />
+
+      <div className="w-full p-4 sm:p-7">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+              Trash
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Restore items or remove them permanently.
+            </p>
+          </div>
+
+          <Button
+            variant="destructive"
+            className="self-start disabled:cursor-not-allowed"
+            disabled
+          >
+            <Trash2 aria-hidden="true" />
+            Empty trash
+          </Button>
+        </div>
+
+        <div className="mt-6 flex items-start gap-3 rounded-lg border border-border bg-card p-4">
+          <Clock3
+            className="mt-0.5 size-4 shrink-0 text-primary"
+            aria-hidden="true"
+          />
+          <p className="text-sm leading-5 text-muted-foreground">
+            Items in trash still use storage and are permanently deleted after
+            30 days.
+          </p>
+        </div>
+
+        <div className="mt-6">
+          <Suspense fallback={<StorageItemGridSkeleton />}>
+            <TrashItemGrid />
+          </Suspense>
+        </div>
+      </div>
+    </div>
+  )
+}

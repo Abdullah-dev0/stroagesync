@@ -8,6 +8,7 @@ import {
   getFilePreview,
   getStorageItems,
   getStorageUsage,
+  getTrashedItems,
   renameStorageItem,
 } from "./storage.controller"
 
@@ -22,3 +23,4 @@ storageRouter.delete("/items/:itemId", deleteStorageItem)
 storageRouter.get("/items/:itemId/preview", getFilePreview)
 storageRouter.get("/items/:itemId/download", getFileDownload)
 storageRouter.patch("/items/:itemId", renameStorageItem)
+storageRouter.get("/trash", getTrashedItems)

@@ -5,11 +5,10 @@ export type DashboardNavigationItem = {
   label: string
   href: string
   icon: LucideIcon
-  active?: boolean
 }
 
 export const dashboardNavigation: DashboardNavigationItem[] = [
-  { label: "My Drive", href: "/dashboard", icon: House, active: true },
+  { label: "My Drive", href: "/dashboard", icon: House },
   { label: "Shared with me", href: "/dashboard/shared", icon: Users },
   { label: "Recent", href: "/dashboard/recent", icon: Clock3 },
   { label: "Starred", href: "/dashboard/starred", icon: Star },

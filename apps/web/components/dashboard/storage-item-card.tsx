@@ -8,6 +8,7 @@ import {
   File,
   Folder,
   Pencil,
+  RotateCcw,
   Share2,
   Trash2,
 } from "lucide-react"
@@ -16,7 +17,7 @@ import { useState, type MouseEvent } from "react"
 import { getApiErrorMessage } from "@/lib/api/api-error"
 import { clientApi } from "@/lib/api/client"
 import { formatFileSize } from "@/lib/format-size"
-import { storageItemsQueryKey } from "@/lib/query-keys"
+import { storageItemsQueryKey, trashItemsQueryKey } from "@/lib/query-keys"
 import { Button } from "@workspace/ui/components/button"
 import {
   DropdownMenu,
@@ -27,19 +28,25 @@ import {
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
 import { toast } from "@workspace/ui/components/toast"
+import { cn } from "@workspace/ui/lib/utils"
 import type { StorageItem } from "@workspace/validation/storage"
 import { PreviewFile } from "./preview-stroage-item-dialog"
 import { RenameStorageItemDialog } from "./rename-storage-item-dialog"
 
 type StorageItemCardProps = {
   item: StorageItem
+  location?: "drive" | "trash"
 }
 
-export function StorageItemCard({ item }: StorageItemCardProps) {
+export function StorageItemCard({
+  item,
+  location = "drive",
+}: StorageItemCardProps) {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false)
   const [isRenameOpen, setIsRenameOpen] = useState(false)
   const queryClient = useQueryClient()
   const Icon = item.type === "folder" ? Folder : File
+  const isTrash = location === "trash"
 
   const deleteItem = useMutation({
     mutationFn: () =>
@@ -52,6 +59,7 @@ export function StorageItemCard({ item }: StorageItemCardProps) {
         (items = []) =>
           items.filter((currentItem) => currentItem.id !== item.id)
       )
+      // update the cahce here after mutation
       toast.add({
         type: "success",
         title: "Item deleted",
@@ -75,7 +83,7 @@ export function StorageItemCard({ item }: StorageItemCardProps) {
   })
 
   function openPreview() {
-    if (item.type !== "file") return
+    if (isTrash || item.type !== "file") return
 
     setIsPreviewOpen(true)
   }
@@ -94,10 +102,18 @@ export function StorageItemCard({ item }: StorageItemCardProps) {
   return (
     <>
       <article
-        className="flex cursor-pointer items-center gap-3 rounded-lg border border-border bg-card p-4"
+        className={cn(
+          "flex items-center gap-3 rounded-lg border border-border bg-card p-4",
+          !isTrash && "cursor-pointer"
+        )}
         onDoubleClick={handleItemDoubleClick}
       >
-        <Icon className="size-5 shrink-0 text-primary" />
+        <Icon
+          className={cn(
+            "size-5 shrink-0",
+            isTrash ? "text-muted-foreground" : "text-primary"
+          )}
+        />
         <div className="min-w-0 flex-1">
           <h2 className="truncate text-sm font-medium text-foreground">
             {item.name}
@@ -122,48 +138,75 @@ export function StorageItemCard({ item }: StorageItemCardProps) {
             <EllipsisVertical />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" sideOffset={6} className="w-52">
-            {item.type === "folder" && (
-              <DropdownMenuItem className="cursor-pointer gap-2 px-2 py-2">
-                <Eye />
-                Open
-              </DropdownMenuItem>
+            {isTrash ? (
+              <>
+                <DropdownMenuItem className="gap-2 px-2 py-2" disabled>
+                  <RotateCcw />
+                  Restore
+                  <DropdownMenuShortcut className="tracking-normal">
+                    Coming soon
+                  </DropdownMenuShortcut>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  variant="destructive"
+                  className="gap-2 px-2 py-2"
+                  disabled
+                >
+                  <Trash2 />
+                  Delete forever
+                </DropdownMenuItem>
+              </>
+            ) : (
+              <>
+                {item.type === "folder" && (
+                  <DropdownMenuItem className="cursor-pointer gap-2 px-2 py-2">
+                    <Eye />
+                    Open
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem
+                  className="cursor-pointer gap-2 px-2 py-2"
+                  onClick={() => setIsRenameOpen(true)}
+                >
+                  <Pencil />
+                  Rename
+                </DropdownMenuItem>
+                <DropdownMenuItem className="gap-2 px-2 py-2" disabled>
+                  <Share2 />
+                  Share
+                  <DropdownMenuShortcut className="tracking-normal">
+                    Coming soon
+                  </DropdownMenuShortcut>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  variant="destructive"
+                  className="cursor-pointer gap-2 px-2 py-2"
+                  onClick={() => deleteItem.mutate()}
+                >
+                  <Trash2 />
+                  Delete
+                </DropdownMenuItem>
+              </>
             )}
-            <DropdownMenuItem
-              className="cursor-pointer gap-2 px-2 py-2"
-              onClick={() => setIsRenameOpen(true)}
-            >
-              <Pencil />
-              Rename
-            </DropdownMenuItem>
-            <DropdownMenuItem className="gap-2 px-2 py-2" disabled>
-              <Share2 />
-              Share
-              <DropdownMenuShortcut className="tracking-normal">
-                Coming soon
-              </DropdownMenuShortcut>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              variant="destructive"
-              className="cursor-pointer gap-2 px-2 py-2"
-              onClick={() => deleteItem.mutate()}
-            >
-              <Trash2 />
-              Delete
-            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </article>
-      <RenameStorageItemDialog
-        item={item}
-        open={isRenameOpen}
-        onOpenChange={setIsRenameOpen}
-      />
-      <PreviewFile
-        item={item}
-        isPreviewOpen={isPreviewOpen}
-        onOpenChange={setIsPreviewOpen}
-      />
+      {!isTrash && (
+        <>
+          <RenameStorageItemDialog
+            item={item}
+            open={isRenameOpen}
+            onOpenChange={setIsRenameOpen}
+          />
+          <PreviewFile
+            item={item}
+            isPreviewOpen={isPreviewOpen}
+            onOpenChange={setIsPreviewOpen}
+          />
+        </>
+      )}
     </>
   )
 }
