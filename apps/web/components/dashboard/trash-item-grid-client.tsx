@@ -1,20 +1,24 @@
 "use client"
 
-import { useQuery } from "@tanstack/react-query"
-import { RotateCcw, Trash2 } from "lucide-react"
+import { BetterFetchError } from "@better-fetch/fetch"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { LoaderCircle, RotateCcw, Trash2 } from "lucide-react"
 
 import { StorageItemCard } from "@/components/dashboard/storage-item-card"
 import { TrashEmptyState } from "@/components/dashboard/trash-empty-state"
+import { getApiErrorMessage } from "@/lib/api/api-error"
 import { clientApi } from "@/lib/api/client"
-import { trashItemsQueryKey } from "@/lib/query-keys"
+import { storageItemsQueryKey, trashItemsQueryKey } from "@/lib/query-keys"
 import {
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuShortcut,
 } from "@workspace/ui/components/dropdown-menu"
+import { toast } from "@workspace/ui/components/toast"
 import {
   storageItemsSchema,
+  storageItemSchema,
   type StorageItem,
+  type UpdateStorageItemTrashInput,
 } from "@workspace/validation/storage"
 
 type TrashItemGridClientProps = {
@@ -24,6 +28,7 @@ type TrashItemGridClientProps = {
 export function TrashItemGridClient({
   initialItems,
 }: TrashItemGridClientProps) {
+  const queryClient = useQueryClient()
   const { data: items } = useQuery({
     queryKey: trashItemsQueryKey,
     queryFn: () =>
@@ -31,6 +36,50 @@ export function TrashItemGridClient({
         output: storageItemsSchema,
       }),
     initialData: initialItems,
+  })
+
+  const restoreItem = useMutation({
+    mutationFn: (item: StorageItem) =>
+      clientApi(`/api/storage/items/${item.id}/trash`, {
+        method: "PATCH",
+        body: { trashed: false } satisfies UpdateStorageItemTrashInput,
+        output: storageItemSchema,
+      }),
+    onSuccess: (restoredItem, item) => {
+      queryClient.setQueryData<StorageItem[]>(
+        trashItemsQueryKey,
+        (currentItems = []) =>
+          currentItems.filter((currentItem) => currentItem.id !== item.id)
+      )
+      queryClient.setQueryData<StorageItem[]>(
+        storageItemsQueryKey,
+        (currentItems = []) => [
+          restoredItem,
+          ...currentItems.filter(
+            (currentItem) => currentItem.id !== restoredItem.id
+          ),
+        ]
+      )
+      toast.add({
+        type: "success",
+        title: "Item restored",
+        description: `${item.name} is back in My Drive.`,
+      })
+    },
+    onError: (error) => {
+      if (error instanceof BetterFetchError && error.status === 401) {
+        return
+      }
+
+      toast.add({
+        type: "error",
+        title: "Restore failed",
+        description: getApiErrorMessage(
+          error,
+          "Failed to restore the item. Please try again."
+        ),
+      })
+    },
   })
 
   if (items.length === 0) {
@@ -46,12 +95,18 @@ export function TrashItemGridClient({
           muted
           actions={
             <>
-              <DropdownMenuItem className="gap-2 px-2 py-2" disabled>
-                <RotateCcw />
+              <DropdownMenuItem
+                className="cursor-pointer gap-2 px-2 py-2"
+                disabled={restoreItem.isPending}
+                onClick={() => restoreItem.mutate(item)}
+              >
+                {restoreItem.isPending &&
+                restoreItem.variables?.id === item.id ? (
+                  <LoaderCircle className="animate-spin" aria-hidden="true" />
+                ) : (
+                  <RotateCcw />
+                )}
                 Restore
-                <DropdownMenuShortcut className="tracking-normal">
-                  Coming soon
-                </DropdownMenuShortcut>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem

@@ -3,6 +3,7 @@ import {
   createFolderInputSchema,
   createUploadUrlsInputSchema,
   renameStorageItemInputSchema,
+  updateStorageItemTrashInputSchema,
 } from "@workspace/validation/storage"
 import { AppError } from "../../lib/app-error"
 import type { AuthenticatedHandler } from "../../middleware/auth.middleware"
@@ -12,11 +13,11 @@ import {
   createFilePreview,
   createFolder as createFolderRecord,
   createPresignedUploads,
-  deleteStorageItemById,
   getStorageUsageByOwnerId,
   listStorageItemsByOwnerId,
   listTrashStorageItemsByOwnerId,
   renameStorageItemById,
+  updateStorageItemTrashById,
 } from "./storage.service"
 
 export const createFolder: AuthenticatedHandler = async (req, res) => {
@@ -51,17 +52,33 @@ export const getStorageUsage: AuthenticatedHandler = async (_req, res) => {
   res.status(200).json(usage)
 }
 
-export const deleteStorageItem: AuthenticatedHandler = async (req, res) => {
+export const updateStorageItemTrash: AuthenticatedHandler = async (
+  req,
+  res
+) => {
   const { itemId } = req.params
 
   if (!itemId) {
     throw new AppError("Item ID is required.", 400, "ITEM_ID_REQUIRED")
   }
 
-  await deleteStorageItemById(itemId, res.locals.auth.user.id)
-  res
-    .status(200)
-    .json({ message: `Storage item ${itemId} deleted successfully.` })
+  const validation = updateStorageItemTrashInputSchema.safeParse(req.body)
+
+  if (!validation.success) {
+    throw new AppError(
+      validation.error.issues[0]?.message ?? "Invalid trash state.",
+      400,
+      "INVALID_TRASH_STATE"
+    )
+  }
+
+  const updatedItem = await updateStorageItemTrashById(
+    itemId,
+    res.locals.auth.user.id,
+    validation.data.trashed
+  )
+
+  res.status(200).json(updatedItem)
 }
 
 export const createUploadUrls: AuthenticatedHandler = async (req, res) => {

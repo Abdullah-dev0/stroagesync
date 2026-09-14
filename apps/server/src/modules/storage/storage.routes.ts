@@ -3,13 +3,13 @@ import {
   completeUploads,
   createFolder,
   createUploadUrls,
-  deleteStorageItem,
   getFileDownload,
   getFilePreview,
   getStorageItems,
   getStorageUsage,
   getTrashedItems,
   renameStorageItem,
+  updateStorageItemTrash,
 } from "./storage.controller"
 
 export const storageRouter: ExpressRouter = Router()
@@ -19,8 +19,8 @@ storageRouter.post("/uploads/presign", createUploadUrls)
 storageRouter.post("/uploads/complete", completeUploads)
 storageRouter.get("/items", getStorageItems)
 storageRouter.get("/usage", getStorageUsage)
-storageRouter.delete("/items/:itemId", deleteStorageItem)
 storageRouter.get("/items/:itemId/preview", getFilePreview)
 storageRouter.get("/items/:itemId/download", getFileDownload)
 storageRouter.patch("/items/:itemId", renameStorageItem)
+storageRouter.patch("/items/:itemId/trash", updateStorageItemTrash)
 storageRouter.get("/trash", getTrashedItems)

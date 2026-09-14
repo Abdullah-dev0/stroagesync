@@ -1,5 +1,4 @@
 import {
-  DeleteObjectCommand,
   GetObjectCommand,
   HeadObjectCommand,
   PutObjectCommand,
@@ -100,24 +99,40 @@ export const getStorageUsageByOwnerId = async (ownerId: string) => {
   return { usedBytes: Number(usage?.usedBytes ?? 0) }
 }
 
-export const deleteStorageItemById = async (
+export const updateStorageItemTrashById = async (
   itemId: string,
-  ownerId: string
+  ownerId: string,
+  trashed: boolean
 ) => {
-  const [deletedItem] = await db
+  const [updatedItem] = await db
     .update(storageItem)
     .set({
-      deletedAt: new Date(),
+      deletedAt: trashed ? new Date() : null,
       updatedAt: new Date(),
     })
-    .where(and(eq(storageItem.id, itemId), eq(storageItem.ownerId, ownerId)))
-    .returning({ id: storageItem.id })
+    .where(
+      and(
+        eq(storageItem.id, itemId),
+        eq(storageItem.ownerId, ownerId),
+        eq(storageItem.status, "ready")
+      )
+    )
+    .returning({
+      id: storageItem.id,
+      name: storageItem.name,
+      type: storageItem.type,
+      parentId: storageItem.parentId,
+      mimeType: storageItem.mimeType,
+      size: storageItem.size,
+      createdAt: storageItem.createdAt,
+      updatedAt: storageItem.updatedAt,
+    })
 
-  if (!deletedItem) {
+  if (!updatedItem) {
     throw new AppError("Storage item not found.", 404, "STORAGE_ITEM_NOT_FOUND")
   }
 
-  return deletedItem
+  return updatedItem
 }
 
 export const createPresignedUploads = async (

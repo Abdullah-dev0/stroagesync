@@ -18,6 +18,10 @@ export const renameStorageItemInputSchema = createFolderInputSchema.pick({
   name: true,
 })
 
+export const updateStorageItemTrashInputSchema = z.object({
+  trashed: z.boolean(),
+})
+
 export const folderSchema = z.object({
   id: z.uuid(),
   name: z.string(),
@@ -105,3 +109,6 @@ export type RenameStorageItemInput = z.infer<
 >
 export type StorageItem = z.infer<typeof storageItemSchema>
 export type StorageUsage = z.infer<typeof storageUsageSchema>
+export type UpdateStorageItemTrashInput = z.infer<
+  typeof updateStorageItemTrashInputSchema
+>

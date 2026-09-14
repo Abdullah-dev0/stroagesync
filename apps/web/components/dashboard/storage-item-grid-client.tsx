@@ -20,7 +20,9 @@ import {
 import { toast } from "@workspace/ui/components/toast"
 import {
   storageItemsSchema,
+  storageItemSchema,
   type StorageItem,
+  type UpdateStorageItemTrashInput,
 } from "@workspace/validation/storage"
 
 type StorageItemGridClientProps = {
@@ -42,18 +44,28 @@ export function StorageItemGridClient({
     initialData: initialItems,
   })
 
-  const deleteItem = useMutation({
+  const trashItem = useMutation({
     mutationFn: (item: StorageItem) =>
-      clientApi(`/api/storage/items/${item.id}`, {
-        method: "DELETE",
+      clientApi(`/api/storage/items/${item.id}/trash`, {
+        method: "PATCH",
+        body: { trashed: true } satisfies UpdateStorageItemTrashInput,
+        output: storageItemSchema,
       }),
-    onSuccess: (_data, item) => {
+    onSuccess: (trashedItem, item) => {
       queryClient.setQueryData<StorageItem[]>(
         storageItemsQueryKey,
         (currentItems = []) =>
           currentItems.filter((currentItem) => currentItem.id !== item.id)
       )
-      void queryClient.invalidateQueries({ queryKey: trashItemsQueryKey })
+      queryClient.setQueryData<StorageItem[]>(
+        trashItemsQueryKey,
+        (currentItems = []) => [
+          trashedItem,
+          ...currentItems.filter(
+            (currentItem) => currentItem.id !== trashedItem.id
+          ),
+        ]
+      )
       toast.add({
         type: "success",
         title: "Item moved to trash",
@@ -67,7 +79,7 @@ export function StorageItemGridClient({
 
       toast.add({
         type: "error",
-        title: "Delete failed",
+        title: "Move failed",
         description: getApiErrorMessage(
           error,
           "Failed to move the item to trash. Please try again."
@@ -116,13 +128,11 @@ export function StorageItemGridClient({
                 <DropdownMenuItem
                   variant="destructive"
                   className="cursor-pointer gap-2 px-2 py-2"
-                  disabled={
-                    deleteItem.isPending && deleteItem.variables?.id === item.id
-                  }
-                  onClick={() => deleteItem.mutate(item)}
+                  disabled={trashItem.isPending}
+                  onClick={() => trashItem.mutate(item)}
                 >
                   <Trash2 />
-                  Delete
+                  Move to trash
                 </DropdownMenuItem>
               </>
             }
