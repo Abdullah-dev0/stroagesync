@@ -6,6 +6,7 @@
   "scripts": {
     "build": "tsc --noEmit && tsup",
     "db:generate": "drizzle-kit generate",
+    "db:migrate": "node dist/migrate.js",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "dev": "tsx watch src/index.ts",
