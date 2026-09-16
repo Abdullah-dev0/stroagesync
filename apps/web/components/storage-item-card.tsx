@@ -19,7 +19,7 @@ type StorageItemCardProps = {
   actions: ReactNode
   muted?: boolean
   onOpen?: () => void
-  pending: boolean
+  pending?: boolean
 }
 
 export function StorageItemCard({

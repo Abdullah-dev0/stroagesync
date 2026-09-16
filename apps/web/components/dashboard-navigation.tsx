@@ -35,7 +35,7 @@ export function DashboardNavigation() {
                 aria-current={isActive ? "page" : undefined}
                 isActive={isActive}
                 className={cn(
-                  "group h-10 gap-3 rounded-full px-5 text-[16px] font-medium",
+                  "group h-10 gap-3 rounded-full px-5 text-[16px] font-medium ring-inset",
                   "hover:text-current",
                   isActive
                     ? "bg-sidebar-active text-foreground hover:bg-sidebar-active hover:text-foreground"

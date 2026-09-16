@@ -252,7 +252,7 @@ export function StorageCreateMenu() {
             <SidebarMenuButton
               tooltip="New"
               aria-label="New"
-              className="h-10 w-full cursor-pointer gap-2 rounded-full rounded-xl bg-primary px-3 text-sm font-semibold text-primary-foreground shadow-sm transition-[background-color,scale] duration-150 hover:bg-primary/90 hover:text-primary-foreground active:scale-96"
+              className="h-10 w-full cursor-pointer gap-3 rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-sm ring-inset transition-[background-color,scale] duration-150 hover:bg-primary/90 hover:text-primary-foreground active:scale-96"
             />
           }
         >
