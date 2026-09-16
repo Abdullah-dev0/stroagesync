@@ -153,7 +153,9 @@ export function TrashItemGridClient({
               key={item.id}
               item={item}
               muted
-              pending={restoreItem.isPending || permanentlyDeleteItem.isPending}
+              pending={
+                restoreItem.isPending && restoreItem.variables?.id === item.id
+              }
               actions={
                 <>
                   <DropdownMenuItem
