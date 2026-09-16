@@ -27,11 +27,11 @@ export default function DashboardError({
     >
       <div className="flex items-center gap-2 text-sm font-medium text-destructive">
         <TriangleAlert className="size-4 shrink-0" aria-hidden="true" />
-        Couldn&apos;t load your items
+        Couldn&apos;t load the dashboard
       </div>
       <p className="text-sm leading-5 text-muted-foreground">
-        Something went wrong while fetching your files. Check your connection
-        and try again.
+        Something went wrong while loading this page. Check your connection and
+        try again.
       </p>
       <Button variant="outline" size="sm" onClick={unstable_retry}>
         <RotateCcw />

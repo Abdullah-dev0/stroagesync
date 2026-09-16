@@ -59,7 +59,10 @@ export function DashboardSidebar({ className }: DashboardSidebarProps) {
       </SidebarContent>
 
       <Suspense fallback={<StorageUsageFooterSkeleton />}>
-        <DataErrorBoundary title="Couldn't load trash">
+        <DataErrorBoundary
+          title="Couldn't load storage usage"
+          className="mx-2 w-auto"
+        >
           <StorageUsageFooter />
         </DataErrorBoundary>
       </Suspense>

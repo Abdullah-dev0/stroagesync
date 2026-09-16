@@ -2,27 +2,39 @@
 
 import { RotateCcw, TriangleAlert } from "lucide-react"
 import { unstable_catchError, type ErrorInfo } from "next/error"
+import { useEffect } from "react"
 
 import { Button } from "@workspace/ui/components/button"
+import { cn } from "@workspace/ui/lib/utils"
 
 type DataErrorBoundaryProps = {
   title?: string
   description?: string
+  className?: string
 }
 
 function DataErrorFallback(
-  { title = "Couldn't load this section", description }: DataErrorBoundaryProps,
+  {
+    title = "Couldn't load this section",
+    description,
+    className,
+  }: DataErrorBoundaryProps,
   { error, unstable_retry }: ErrorInfo
 ) {
-  // Errors reaching this boundary are sanitized by Next.js when they
-  // originate in Server Components, so only log them — never render
-  // error.message. Wire an error reporting service (e.g. Sentry) here.
-  console.error(error)
+  useEffect(() => {
+    // Errors reaching this boundary are sanitized by Next.js when they
+    // originate in Server Components, so only log them — never render
+    // error.message. Wire an error reporting service (e.g. Sentry) here.
+    console.error(error)
+  }, [error])
 
   return (
     <div
       role="alert"
-      className="flex flex-col gap-3 rounded-lg border border-destructive/30 bg-destructive/5 p-4"
+      className={cn(
+        "flex w-full flex-col gap-3 rounded-lg border border-destructive/30 bg-destructive/5 p-4",
+        className
+      )}
     >
       <div className="flex flex-wrap items-center gap-x-2 gap-y-2">
         <TriangleAlert
