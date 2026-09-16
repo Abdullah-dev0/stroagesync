@@ -3,7 +3,7 @@
 import { BetterFetchError } from "@better-fetch/fetch"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { LoaderCircle, RotateCcw, Trash2 } from "lucide-react"
-import { useState } from "react"
+import { use, useState } from "react"
 
 import { StorageItemCard } from "@/components/storage-item-card"
 import { TrashEmptyState } from "@/components/trash/trash-empty-state"
@@ -34,12 +34,13 @@ import {
 } from "@workspace/validation/storage"
 
 type TrashItemGridClientProps = {
-  initialItems: StorageItem[]
+  itemsPromise: Promise<StorageItem[]>
 }
 
 export function TrashItemGridClient({
-  initialItems,
+  itemsPromise,
 }: TrashItemGridClientProps) {
+  const initialItems = use(itemsPromise)
   const [deleteItem, setDeleteItem] = useState<StorageItem | null>(null)
   const queryClient = useQueryClient()
   const { data: items } = useQuery({

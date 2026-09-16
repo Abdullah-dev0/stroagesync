@@ -3,7 +3,7 @@
 import { BetterFetchError } from "@better-fetch/fetch"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Trash2 } from "lucide-react"
-import { useState } from "react"
+import { use, useState } from "react"
 
 import { getApiErrorMessage } from "@/lib/api/api-error"
 import { clientApi } from "@/lib/api/client"
@@ -26,16 +26,21 @@ import {
   type StorageItem,
 } from "@workspace/validation/storage"
 
-export function EmptyTrashAction() {
+type EmptyTrashActionProps = {
+  itemsPromise: Promise<StorageItem[]>
+}
+
+export function EmptyTrashAction({ itemsPromise }: EmptyTrashActionProps) {
+  const initialItems = use(itemsPromise)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const queryClient = useQueryClient()
-  const { data: items = [], isPending: isLoadingItems } = useQuery({
+  const { data: items } = useQuery({
     queryKey: trashItemsQueryKey,
     queryFn: () =>
       clientApi("/api/storage/trash", {
         output: storageItemsSchema,
       }),
-    enabled: false,
+    initialData: initialItems,
   })
 
   const emptyTrash = useMutation({
@@ -81,15 +86,11 @@ export function EmptyTrashAction() {
       <Button
         variant="destructive"
         className="self-start"
-        disabled={isLoadingItems || items.length === 0 || emptyTrash.isPending}
-        aria-busy={isLoadingItems || emptyTrash.isPending}
+        disabled={items.length === 0 || emptyTrash.isPending}
+        aria-busy={emptyTrash.isPending}
         onClick={() => setIsDialogOpen(true)}
       >
-        {isLoadingItems || emptyTrash.isPending ? (
-          <Spinner />
-        ) : (
-          <Trash2 aria-hidden="true" />
-        )}
+        {emptyTrash.isPending ? <Spinner /> : <Trash2 aria-hidden="true" />}
         Empty trash
       </Button>
 

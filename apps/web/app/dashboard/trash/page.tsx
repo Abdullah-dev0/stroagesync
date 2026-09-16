@@ -4,9 +4,23 @@ import { Suspense } from "react"
 import { DashboardHeader } from "@/components/dashboard-header"
 import { StorageItemGridSkeleton } from "@/components/storage-item-grid-skeleton"
 import { EmptyTrashAction } from "@/components/trash/empty-trash-action"
-import { TrashItemGrid } from "@/components/trash/trash-item-grid"
+import { TrashItemGridClient } from "@/components/trash/trash-item-grid-client"
+import { getServerApi } from "@/lib/api/server"
+import { Button } from "@workspace/ui/components/button"
+import { Spinner } from "@workspace/ui/components/spinner"
+import { storageItemsSchema } from "@workspace/validation/storage"
+
+async function getTrashItems() {
+  const serverApi = await getServerApi()
+
+  return serverApi("/api/storage/trash", {
+    output: storageItemsSchema,
+  })
+}
 
 export default function Page() {
+  const itemsPromise = getTrashItems()
+
   return (
     <div className="w-full">
       <DashboardHeader />
@@ -21,7 +35,16 @@ export default function Page() {
             </p>
           </div>
 
-          <EmptyTrashAction />
+          <Suspense
+            fallback={
+              <Button variant="destructive" className="self-start" disabled>
+                <Spinner />
+                Empty trash
+              </Button>
+            }
+          >
+            <EmptyTrashAction itemsPromise={itemsPromise} />
+          </Suspense>
         </div>
 
         <div className="mt-6 flex items-start gap-3 rounded-lg border border-border bg-card p-4">
@@ -36,7 +59,7 @@ export default function Page() {
 
         <div className="mt-6">
           <Suspense fallback={<StorageItemGridSkeleton />}>
-            <TrashItemGrid />
+            <TrashItemGridClient itemsPromise={itemsPromise} />
           </Suspense>
         </div>
       </div>
