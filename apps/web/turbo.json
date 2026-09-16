@@ -2,8 +2,11 @@
   "$schema": "https://turbo.build/schema.json",
   "extends": ["//"],
   "tasks": {
+    "build": {
+      "env": ["API_URL", "NEXT_PUBLIC_API_URL", "SITE_URL"]
+    },
     "dev": {
-      "env": ["API_URL", "SITE_URL"]
+      "env": ["API_URL", "NEXT_PUBLIC_API_URL", "SITE_URL"]
     }
   }
 }

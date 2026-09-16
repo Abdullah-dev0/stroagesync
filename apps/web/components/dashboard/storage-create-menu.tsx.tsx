@@ -249,11 +249,11 @@ export function StorageCreateMenu() {
             <SidebarMenuButton
               tooltip="New"
               aria-label="New"
-              className="w-fit cursor-pointer gap-2 rounded-full border-2 border-primary bg-background p-4 text-sm font-medium text-foreground shadow-none hover:bg-background"
+              className="h-10 w-full cursor-pointer gap-2 rounded-xl bg-primary px-3 text-sm font-semibold text-primary-foreground shadow-sm transition-[background-color,scale] duration-150 hover:bg-primary/90 hover:text-primary-foreground active:scale-96"
             />
           }
         >
-          <Plus className="size-4 text-primary" strokeWidth={2.2} />
+          <Plus className="size-4" strokeWidth={2} />
           <span className="group-data-[collapsible=icon]:hidden">New</span>
         </DropdownMenuTrigger>
         <DropdownMenuContent

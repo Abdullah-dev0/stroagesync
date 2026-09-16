@@ -4,7 +4,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "build": "tsc --noEmit && tsup src/index.ts --format esm --platform node --clean",
+    "build": "tsc --noEmit && tsup",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
