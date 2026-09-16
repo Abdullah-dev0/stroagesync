@@ -2,7 +2,7 @@
 
 import { BetterFetchError } from "@better-fetch/fetch"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { Clock3, LoaderCircle, RotateCcw, Trash2 } from "lucide-react"
+import { LoaderCircle, RotateCcw, Trash2 } from "lucide-react"
 import { useState } from "react"
 
 import { StorageItemCard } from "@/components/storage-item-card"
@@ -41,7 +41,6 @@ export function TrashItemGridClient({
   initialItems,
 }: TrashItemGridClientProps) {
   const [deleteItem, setDeleteItem] = useState<StorageItem | null>(null)
-  const [isEmptyTrashDialogOpen, setIsEmptyTrashDialogOpen] = useState(false)
   const queryClient = useQueryClient()
   const { data: items } = useQuery({
     queryKey: trashItemsQueryKey,
@@ -51,21 +50,6 @@ export function TrashItemGridClient({
       }),
     initialData: initialItems,
   })
-
-  function removeDeletedItems(deletedIds: string[]) {
-    const deletedIdSet = new Set(deletedIds)
-
-    queryClient.setQueryData<StorageItem[]>(
-      trashItemsQueryKey,
-      (currentItems = []) =>
-        currentItems.filter((item) => !deletedIdSet.has(item.id))
-    )
-    queryClient.setQueryData<StorageItem[]>(
-      storageItemsQueryKey,
-      (currentItems = []) =>
-        currentItems.filter((item) => !deletedIdSet.has(item.id))
-    )
-  }
 
   const restoreItem = useMutation({
     mutationFn: (item: StorageItem) =>
@@ -118,7 +102,22 @@ export function TrashItemGridClient({
         output: deleteStorageItemsResultSchema,
       }),
     onSuccess: ({ deletedIds }, item) => {
-      removeDeletedItems(deletedIds)
+      const deletedIdSet = new Set(deletedIds)
+
+      queryClient.setQueryData<StorageItem[]>(
+        trashItemsQueryKey,
+        (currentItems = []) =>
+          currentItems.filter(
+            (currentItem) => !deletedIdSet.has(currentItem.id)
+          )
+      )
+      queryClient.setQueryData<StorageItem[]>(
+        storageItemsQueryKey,
+        (currentItems = []) =>
+          currentItems.filter(
+            (currentItem) => !deletedIdSet.has(currentItem.id)
+          )
+      )
       setDeleteItem(null)
       toast.add({
         type: "success",
@@ -142,119 +141,52 @@ export function TrashItemGridClient({
     },
   })
 
-  const emptyTrash = useMutation({
-    mutationFn: () =>
-      clientApi("/api/storage/trash", {
-        method: "DELETE",
-        output: deleteStorageItemsResultSchema,
-      }),
-    onSuccess: ({ deletedIds }) => {
-      removeDeletedItems(deletedIds)
-      setIsEmptyTrashDialogOpen(false)
-      toast.add({
-        type: "success",
-        title: "Trash emptied",
-        description: "All trashed items have been permanently deleted.",
-      })
-    },
-    onError: (error) => {
-      if (error instanceof BetterFetchError && error.status === 401) {
-        return
-      }
-
-      toast.add({
-        type: "error",
-        title: "Could not empty trash",
-        description: getApiErrorMessage(
-          error,
-          "Failed to empty the trash. Please try again."
-        ),
-      })
-    },
-  })
-
   return (
-    <div className="w-full p-4 sm:p-7">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-            Trash
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Restore items or remove them permanently.
-          </p>
+    <>
+      {items.length === 0 ? (
+        <TrashEmptyState />
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {items.map((item) => (
+            <StorageItemCard
+              key={item.id}
+              item={item}
+              muted
+              pending={restoreItem.isPending || permanentlyDeleteItem.isPending}
+              actions={
+                <>
+                  <DropdownMenuItem
+                    className="cursor-pointer gap-2 px-2 py-2"
+                    disabled={restoreItem.isPending}
+                    onClick={() => restoreItem.mutate(item)}
+                  >
+                    {restoreItem.isPending &&
+                    restoreItem.variables?.id === item.id ? (
+                      <LoaderCircle
+                        className="animate-spin"
+                        aria-hidden="true"
+                      />
+                    ) : (
+                      <RotateCcw />
+                    )}
+                    Restore
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    variant="destructive"
+                    className="cursor-pointer gap-2 px-2 py-2"
+                    disabled={permanentlyDeleteItem.isPending}
+                    onClick={() => setDeleteItem(item)}
+                  >
+                    <Trash2 />
+                    Delete forever
+                  </DropdownMenuItem>
+                </>
+              }
+            />
+          ))}
         </div>
-
-        <Button
-          variant="destructive"
-          className="self-start"
-          disabled={items.length === 0 || emptyTrash.isPending}
-          onClick={() => setIsEmptyTrashDialogOpen(true)}
-        >
-          {emptyTrash.isPending ? (
-            <LoaderCircle className="animate-spin" aria-hidden="true" />
-          ) : (
-            <Trash2 aria-hidden="true" />
-          )}
-          Empty trash
-        </Button>
-      </div>
-
-      <div className="mt-6 flex items-start gap-3 rounded-lg border border-border bg-card p-4">
-        <Clock3
-          className="mt-0.5 size-4 shrink-0 text-primary"
-          aria-hidden="true"
-        />
-        <p className="text-sm leading-5 text-muted-foreground">
-          Items in trash still use storage until you delete them permanently.
-        </p>
-      </div>
-
-      <div className="mt-6">
-        {items.length === 0 ? (
-          <TrashEmptyState />
-        ) : (
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {items.map((item) => (
-              <StorageItemCard
-                key={item.id}
-                item={item}
-                muted
-                actions={
-                  <>
-                    <DropdownMenuItem
-                      className="cursor-pointer gap-2 px-2 py-2"
-                      disabled={restoreItem.isPending}
-                      onClick={() => restoreItem.mutate(item)}
-                    >
-                      {restoreItem.isPending &&
-                      restoreItem.variables?.id === item.id ? (
-                        <LoaderCircle
-                          className="animate-spin"
-                          aria-hidden="true"
-                        />
-                      ) : (
-                        <RotateCcw />
-                      )}
-                      Restore
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      variant="destructive"
-                      className="cursor-pointer gap-2 px-2 py-2"
-                      disabled={permanentlyDeleteItem.isPending}
-                      onClick={() => setDeleteItem(item)}
-                    >
-                      <Trash2 />
-                      Delete forever
-                    </DropdownMenuItem>
-                  </>
-                }
-              />
-            ))}
-          </div>
-        )}
-      </div>
+      )}
 
       <Dialog
         open={Boolean(deleteItem)}
@@ -299,40 +231,6 @@ export function TrashItemGridClient({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      <Dialog
-        open={isEmptyTrashDialogOpen}
-        onOpenChange={setIsEmptyTrashDialogOpen}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Empty trash?</DialogTitle>
-            <DialogDescription>
-              All {items.length} {items.length === 1 ? "item" : "items"} in
-              trash will be permanently deleted. This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <DialogClose
-              render={<Button variant="outline" />}
-              disabled={emptyTrash.isPending}
-            >
-              Cancel
-            </DialogClose>
-            <Button
-              variant="destructive"
-              disabled={emptyTrash.isPending}
-              aria-busy={emptyTrash.isPending}
-              onClick={() => emptyTrash.mutate()}
-            >
-              {emptyTrash.isPending && (
-                <LoaderCircle className="animate-spin" aria-hidden="true" />
-              )}
-              {emptyTrash.isPending ? "Deleting..." : "Empty trash"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+    </>
   )
 }

@@ -10,6 +10,14 @@ Keep changes simple, focused, and consistent with the existing monorepo. Do not
 add abstractions, dependencies, or defensive behavior unless the current task
 requires them.
 
+## React and Next.js Performance
+
+- When writing, reviewing, or refactoring React components or Next.js pages,
+  implementing client- or server-side data fetching, or optimizing bundle size,
+  rendering, or load performance, load and follow the
+  `vercel-react-best-practices` skill at
+  `.agents/skills/vercel-react-best-practices/SKILL.md`.
+
 ## Naming Conventions
 
 - Use `kebab-case` for file and folder names, such as
