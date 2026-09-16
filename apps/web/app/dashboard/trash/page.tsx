@@ -1,8 +1,8 @@
 import { Suspense } from "react"
 
-import { DashboardHeader } from "@/components/dashboard/dashboard-header"
-import { StorageItemGridSkeleton } from "@/components/dashboard/storage-item-grid-skeleton"
-import { TrashItemGrid } from "@/components/dashboard/trash-item-grid"
+import { DashboardHeader } from "@/components/dashboard-header"
+import { StorageItemGridSkeleton } from "@/components/storage-item-grid-skeleton"
+import { TrashItemGrid } from "@/components/trash/trash-item-grid"
 
 export default function Page() {
   return (

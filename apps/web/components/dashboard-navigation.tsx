@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
-import { dashboardNavigation } from "@/components/dashboard/navigation"
+import { dashboardNavigation } from "@/components/navigation"
 import {
   SidebarMenu,
   SidebarMenuButton,

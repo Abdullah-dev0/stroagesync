@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 
-import { DashboardSidebar } from "@/components/dashboard/dashboard-sidebar"
+import { DashboardSidebar } from "@/components/dashboard-sidebar"
 import { QueryProvider } from "@/providers/query-provider"
 import { SidebarProvider } from "@workspace/ui/components/sidebar"
 

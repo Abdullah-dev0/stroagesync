@@ -1,6 +1,6 @@
 import { Bell, FolderClosed, Search, Settings } from "lucide-react"
 
-import { LogoutMenuItem } from "@/components/dashboard/logout-menu-item"
+import { LogoutMenuItem } from "@/components/logout-menu-item"
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Button } from "@workspace/ui/components/button"
 import {

@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { HardDrive } from "lucide-react"
 
-import { STORAGE_LIMIT_BYTES } from "@/components/dashboard/constants"
+import { STORAGE_LIMIT_BYTES } from "@/components/constants"
 import { getServerApi } from "@/lib/api/server"
 import { formatFileSize } from "@/lib/format-size"
 import { Progress } from "@workspace/ui/components/progress"

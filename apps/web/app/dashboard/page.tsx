@@ -1,6 +1,6 @@
 import { StorageItemGrid } from "@/components/dashboard/storage-item-grid"
-import { StorageItemGridSkeleton } from "@/components/dashboard/storage-item-grid-skeleton"
-import { DashboardHeader } from "@/components/dashboard/dashboard-header"
+import { DashboardHeader } from "@/components/dashboard-header"
+import { StorageItemGridSkeleton } from "@/components/storage-item-grid-skeleton"
 import { Suspense } from "react"
 
 export default function Page() {

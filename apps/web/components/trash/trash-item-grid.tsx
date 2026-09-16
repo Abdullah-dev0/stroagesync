@@ -1,4 +1,4 @@
-import { TrashItemGridClient } from "@/components/dashboard/trash-item-grid-client"
+import { TrashItemGridClient } from "@/components/trash/trash-item-grid-client"
 import { getServerApi } from "@/lib/api/server"
 import { storageItemsSchema } from "@workspace/validation/storage"
 
