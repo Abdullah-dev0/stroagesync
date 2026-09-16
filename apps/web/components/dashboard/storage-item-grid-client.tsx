@@ -3,7 +3,7 @@
 import { BetterFetchError } from "@better-fetch/fetch"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Eye, Pencil, Share2, Trash2 } from "lucide-react"
-import { useState } from "react"
+import { use, useState } from "react"
 
 import { PreviewFile } from "@/components/dashboard/preview-storage-item-dialog"
 import { RenameStorageItemDialog } from "@/components/dashboard/rename-storage-item-dialog"
@@ -26,12 +26,13 @@ import {
 } from "@workspace/validation/storage"
 
 type StorageItemGridClientProps = {
-  initialItems: StorageItem[]
+  itemsPromise: Promise<StorageItem[]>
 }
 
 export function StorageItemGridClient({
-  initialItems,
+  itemsPromise,
 }: StorageItemGridClientProps) {
+  const initialItems = use(itemsPromise)
   const [previewItem, setPreviewItem] = useState<StorageItem | null>(null)
   const [renameItem, setRenameItem] = useState<StorageItem | null>(null)
   const queryClient = useQueryClient()

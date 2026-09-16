@@ -22,7 +22,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
 import { Input } from "@workspace/ui/components/input"
@@ -248,11 +247,12 @@ export function StorageCreateMenu() {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger
+          className="w-57 mx-auto mt-4"
           render={
             <SidebarMenuButton
               tooltip="New"
               aria-label="New"
-              className="h-10 w-full cursor-pointer gap-3 rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-sm ring-inset transition-[background-color,scale] duration-150 hover:bg-primary/90 hover:text-primary-foreground active:scale-96"
+              className="h-10 w-full cursor-pointer gap-3 rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground transition-[background-color,scale] duration-150 ring-inset hover:bg-primary/90 hover:text-primary-foreground active:scale-96"
             />
           }
         >
@@ -283,9 +283,6 @@ export function StorageCreateMenu() {
           <DropdownMenuItem className="gap-3 px-2 py-2.5" disabled>
             <CloudUpload className="size-4 text-muted-foreground" />
             Folder upload
-            <DropdownMenuShortcut className="tracking-normal">
-              Coming soon
-            </DropdownMenuShortcut>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
