@@ -17,6 +17,7 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@workspace/ui/components/sidebar"
+import DataErrorBoundary from "./data-error-boundary"
 
 type DashboardSidebarProps = {
   className?: string
@@ -58,7 +59,9 @@ export function DashboardSidebar({ className }: DashboardSidebarProps) {
       </SidebarContent>
 
       <Suspense fallback={<StorageUsageFooterSkeleton />}>
-        <StorageUsageFooter />
+        <DataErrorBoundary title="Couldn't load trash">
+          <StorageUsageFooter />
+        </DataErrorBoundary>
       </Suspense>
       <SidebarRail />
     </Sidebar>

@@ -1,6 +1,7 @@
 import { Suspense } from "react"
 
 import { DashboardHeader } from "@/components/dashboard-header"
+import DataErrorBoundary from "@/components/data-error-boundary"
 import { StorageItemGridClient } from "@/components/dashboard/storage-item-grid-client"
 import { StorageItemGridSkeleton } from "@/components/storage-item-grid-skeleton"
 import { getServerApi } from "@/lib/api/server"
@@ -27,7 +28,12 @@ export default function Page() {
 
         <div className="mt-6">
           <Suspense fallback={<StorageItemGridSkeleton />}>
-            <StorageItemGridClient itemsPromise={itemsPromise} />
+            <DataErrorBoundary
+              title="Couldn't load your files"
+              description="Something went wrong while fetching your files. Check your connection and try again."
+            >
+              <StorageItemGridClient itemsPromise={itemsPromise} />
+            </DataErrorBoundary>
           </Suspense>
         </div>
       </div>

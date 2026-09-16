@@ -1,6 +1,7 @@
 import { Clock3 } from "lucide-react"
 import { Suspense } from "react"
 
+import DataErrorBoundary from "@/components/data-error-boundary"
 import { DashboardHeader } from "@/components/dashboard-header"
 import { StorageItemGridSkeleton } from "@/components/storage-item-grid-skeleton"
 import { EmptyTrashAction } from "@/components/trash/empty-trash-action"
@@ -43,7 +44,9 @@ export default function Page() {
               </Button>
             }
           >
-            <EmptyTrashAction itemsPromise={itemsPromise} />
+            <DataErrorBoundary title="Couldn't load trash">
+              <EmptyTrashAction itemsPromise={itemsPromise} />
+            </DataErrorBoundary>
           </Suspense>
         </div>
 
@@ -59,7 +62,12 @@ export default function Page() {
 
         <div className="mt-6">
           <Suspense fallback={<StorageItemGridSkeleton />}>
-            <TrashItemGridClient itemsPromise={itemsPromise} />
+            <DataErrorBoundary
+              title="Couldn't load your trash"
+              description="Something went wrong while fetching your trashed items. Check your connection and try again."
+            >
+              <TrashItemGridClient itemsPromise={itemsPromise} />
+            </DataErrorBoundary>
           </Suspense>
         </div>
       </div>
