@@ -33,8 +33,8 @@ import {
   completeUploadsInputSchema,
   createFolderInputSchema,
   createUploadUrlsInputSchema,
-  folderSchema,
   presignedUploadsSchema,
+  storageItemSchema,
   storageItemsSchema,
   type CreateFolderInput,
   type CreateUploadUrlsInput,
@@ -54,10 +54,16 @@ export function StorageCreateMenu() {
       clientApi("/api/storage/folders", {
         method: "POST",
         body: input,
-        output: folderSchema,
+        output: storageItemSchema,
       }),
     onSuccess: (folder) => {
-      void queryClient.invalidateQueries({ queryKey: storageItemsQueryKey })
+      queryClient.setQueryData<StorageItem[]>(
+        storageItemsQueryKey,
+        (items = []) => [
+          folder,
+          ...items.filter((item) => item.id !== folder.id),
+        ]
+      )
       setFolderName("")
       setErrorMessage(null)
       setIsFolderDialogOpen(false)
@@ -73,10 +79,7 @@ export function StorageCreateMenu() {
       }
 
       setErrorMessage(
-        getApiErrorMessage(
-          error,
-          "Failed to create folder. Please try again."
-        )
+        getApiErrorMessage(error, "Failed to create folder. Please try again.")
       )
     },
   })
@@ -249,7 +252,7 @@ export function StorageCreateMenu() {
             <SidebarMenuButton
               tooltip="New"
               aria-label="New"
-              className="h-10 w-full cursor-pointer gap-2 rounded-xl bg-primary px-3 text-sm font-semibold text-primary-foreground shadow-sm transition-[background-color,scale] duration-150 hover:bg-primary/90 hover:text-primary-foreground active:scale-96"
+              className="h-10 w-full cursor-pointer gap-2 rounded-full rounded-xl bg-primary px-3 text-sm font-semibold text-primary-foreground shadow-sm transition-[background-color,scale] duration-150 hover:bg-primary/90 hover:text-primary-foreground active:scale-96"
             />
           }
         >

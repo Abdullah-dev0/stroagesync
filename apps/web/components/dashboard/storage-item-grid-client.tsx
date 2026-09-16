@@ -44,7 +44,7 @@ export function StorageItemGridClient({
     initialData: initialItems,
   })
 
-  const trashItem = useMutation({
+  const { mutate, isPending } = useMutation({
     mutationFn: (item: StorageItem) =>
       clientApi(`/api/storage/items/${item.id}/trash`, {
         method: "PATCH",
@@ -99,6 +99,7 @@ export function StorageItemGridClient({
           <StorageItemCard
             key={item.id}
             item={item}
+            pending={isPending}
             onOpen={
               item.type === "file" ? () => setPreviewItem(item) : undefined
             }
@@ -128,8 +129,8 @@ export function StorageItemGridClient({
                 <DropdownMenuItem
                   variant="destructive"
                   className="cursor-pointer gap-2 px-2 py-2"
-                  disabled={trashItem.isPending}
-                  onClick={() => trashItem.mutate(item)}
+                  disabled={isPending}
+                  onClick={() => mutate(item)}
                 >
                   <Trash2 />
                   Move to trash

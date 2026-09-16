@@ -53,6 +53,12 @@ export const createFolder = async (
     .returning({
       id: storageItem.id,
       name: storageItem.name,
+      type: storageItem.type,
+      parentId: storageItem.parentId,
+      mimeType: storageItem.mimeType,
+      size: storageItem.size,
+      createdAt: storageItem.createdAt,
+      updatedAt: storageItem.updatedAt,
     })
 
   if (!newFolder) {

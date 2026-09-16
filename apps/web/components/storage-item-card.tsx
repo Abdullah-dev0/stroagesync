@@ -10,6 +10,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
+import { Spinner } from "@workspace/ui/components/spinner"
 import { cn } from "@workspace/ui/lib/utils"
 import type { StorageItem } from "@workspace/validation/storage"
 
@@ -18,6 +19,7 @@ type StorageItemCardProps = {
   actions: ReactNode
   muted?: boolean
   onOpen?: () => void
+  pending: boolean
 }
 
 export function StorageItemCard({
@@ -25,6 +27,7 @@ export function StorageItemCard({
   actions,
   muted = false,
   onOpen,
+  pending,
 }: StorageItemCardProps) {
   const Icon = item.type === "folder" ? Folder : File
 
@@ -76,7 +79,7 @@ export function StorageItemCard({
             />
           }
         >
-          <EllipsisVertical />
+          {pending ? <Spinner /> : <EllipsisVertical />}
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" sideOffset={6} className="w-52">
           {actions}
