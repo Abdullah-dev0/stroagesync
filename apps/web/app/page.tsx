@@ -1,9 +1,16 @@
-import React from "react"
+import type { Metadata } from "next"
 
-// will Design this later
-
-const page = () => {
-  return <div>page</div>
+export const metadata: Metadata = {
+  alternates: {
+    canonical: "/",
+  },
 }
 
-export default page
+export default function HomePage() {
+  return (
+    <main>
+      <h1>Storumi</h1>
+      <p>Secure cloud storage for the files that keep your work moving.</p>
+    </main>
+  )
+}

@@ -1,7 +1,15 @@
+import type { Metadata } from "next"
 import { FolderClosed } from "lucide-react"
 import Image from "next/image"
 
 import Link from "next/link"
+
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+  },
+}
 
 export default function AuthLayout({
   children,
@@ -18,12 +26,12 @@ export default function AuthLayout({
           <Link
             href="/"
             className="inline-flex items-center gap-2.5 rounded-lg font-semibold tracking-tight focus-visible:ring-2 focus-visible:ring-primary-foreground/70 focus-visible:outline-none"
-            aria-label="SyncNest home"
+            aria-label="Storumi home"
           >
             <span className="flex size-9 items-center justify-center rounded-xl bg-primary-foreground text-primary shadow-sm">
               <FolderClosed className="size-4.5" strokeWidth={2.4} />
             </span>
-            <span>SyncNest</span>
+            <span>Storumi</span>
           </Link>
         </div>
 

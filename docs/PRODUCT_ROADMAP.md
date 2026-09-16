@@ -1,4 +1,4 @@
-# SyncNest Product Roadmap
+# Storumi Product Roadmap
 
 > This is a living product-direction document, not a fixed implementation
 > contract. Priorities, designs, and technical choices will change as the
@@ -6,7 +6,7 @@
 
 ## Product vision
 
-SyncNest begins as a dependable cloud drive and grows into a flexible place
+Storumi begins as a dependable cloud drive and grows into a flexible place
 to store, receive, protect, share, and automate files.
 
 The first important user journey is:
@@ -169,12 +169,12 @@ architecture using established, reviewed cryptographic designs.
 Potential commands:
 
 ```text
-syncnest login
-syncnest ls
-syncnest upload build.zip
-syncnest download <file-id>
-syncnest share build.zip --expire 24h
-syncnest sync ./project
+storumi login
+storumi ls
+storumi upload build.zip
+storumi download <file-id>
+storumi share build.zip --expire 24h
+storumi sync ./project
 ```
 
 ### Webhooks

@@ -1,7 +1,13 @@
+import type { Metadata } from "next"
 import Link from "next/link"
 
 import { SignupForm } from "@/components/auth/signup-form"
 import { redirectIfAuthenticated } from "@/lib/redirect-if-authenticated"
+
+export const metadata: Metadata = {
+  title: "Create account",
+  description: "Create your Storumi account and start storing files securely.",
+}
 
 export default async function Page() {
   await redirectIfAuthenticated()

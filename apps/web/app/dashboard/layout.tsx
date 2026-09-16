@@ -1,6 +1,16 @@
+import type { Metadata } from "next"
+
 import { DashboardSidebar } from "@/components/dashboard/dashboard-sidebar"
 import { QueryProvider } from "@/providers/query-provider"
 import { SidebarProvider } from "@workspace/ui/components/sidebar"
+
+export const metadata: Metadata = {
+  title: "Dashboard",
+  robots: {
+    index: false,
+    follow: false,
+  },
+}
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (

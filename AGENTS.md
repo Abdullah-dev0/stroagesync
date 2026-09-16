@@ -24,6 +24,8 @@ requires them.
 
 ## Styling and UI
 
+- For any design, UI, or styling work, load and follow the `better-ui` skill at
+  `.agents/skills/better-ui/SKILL.md`.
 - Use Tailwind CSS for styling and follow the existing design tokens in
   `packages/ui/src/styles/globals.css`.
 - Do not use hard-coded colors in components. Use semantic Tailwind color

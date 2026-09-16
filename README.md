@@ -1,6 +1,6 @@
-# SyncNest
+# Storumi
 
-SyncNest is a pnpm and Turborepo monorepo containing a Next.js web app,
+Storumi is a pnpm and Turborepo monorepo containing a Next.js web app,
 an Express API, and shared UI packages.
 
 ## Getting started

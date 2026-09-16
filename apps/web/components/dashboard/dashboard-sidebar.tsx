@@ -31,15 +31,15 @@ export function DashboardSidebar({ className }: DashboardSidebarProps) {
             <SidebarMenuButton
               render={<Link href="/dashboard" />}
               size="lg"
-              tooltip="SyncNest"
-              aria-label="SyncNest dashboard"
+              tooltip="Storumi"
+              aria-label="Storumi dashboard"
               className="font-semibold tracking-tight"
             >
               <span className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
                 <FolderClosed className="size-4" strokeWidth={2.4} />
               </span>
               <span className="group-data-[collapsible=icon]:hidden">
-                SyncNest
+                Storumi
               </span>
             </SidebarMenuButton>
           </SidebarMenuItem>

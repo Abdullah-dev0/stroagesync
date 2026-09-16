@@ -22,7 +22,7 @@ export function DashboardHeader() {
 
       <div className="hidden items-center gap-2 font-semibold sm:flex md:hidden">
         <FolderClosed className="size-5 text-primary" />
-        SyncNest
+        Storumi
       </div>
 
       <div className="relative mr-auto max-w-lg flex-1">
@@ -32,8 +32,8 @@ export function DashboardHeader() {
         />
         <Input
           type="search"
-          aria-label="Search in SyncNest"
-          placeholder="Search in SyncNest"
+          aria-label="Search in Storumi"
+          placeholder="Search in Storumi"
           className="h-10 rounded-full pr-4 pl-9 shadow-none focus-visible:border-input focus-visible:bg-background focus-visible:ring-0 focus-visible:ring-offset-0"
         />
       </div>

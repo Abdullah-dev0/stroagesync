@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { CircleCheck, CircleX } from "lucide-react"
 import Link from "next/link"
 
@@ -9,6 +10,11 @@ type LoginPageProps = {
     signup?: string
     unauthorized?: string
   }>
+}
+
+export const metadata: Metadata = {
+  title: "Sign in",
+  description: "Sign in to your Storumi account.",
 }
 
 export default async function Page({ searchParams }: LoginPageProps) {
