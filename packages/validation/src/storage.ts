@@ -98,8 +98,15 @@ export const fileDownloadSchema = z.object({
   url: z.url(),
 })
 
+export const deleteStorageItemsResultSchema = z.object({
+  deletedIds: z.array(z.uuid()),
+})
+
 export type CreateFolderInput = z.infer<typeof createFolderInputSchema>
 export type CreateUploadUrlsInput = z.infer<typeof createUploadUrlsInputSchema>
+export type DeleteStorageItemsResult = z.infer<
+  typeof deleteStorageItemsResultSchema
+>
 export type FileDownload = z.infer<typeof fileDownloadSchema>
 export type FilePreview = z.infer<typeof filePreviewSchema>
 export type Folder = z.infer<typeof folderSchema>

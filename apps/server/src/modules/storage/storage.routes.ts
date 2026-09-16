@@ -3,6 +3,8 @@ import {
   completeUploads,
   createFolder,
   createUploadUrls,
+  deleteAllTrashedItems,
+  deleteTrashedItem,
   getFileDownload,
   getFilePreview,
   getStorageItems,
@@ -24,3 +26,5 @@ storageRouter.get("/items/:itemId/download", getFileDownload)
 storageRouter.patch("/items/:itemId", renameStorageItem)
 storageRouter.patch("/items/:itemId/trash", updateStorageItemTrash)
 storageRouter.get("/trash", getTrashedItems)
+storageRouter.delete("/items/:itemId", deleteTrashedItem)
+storageRouter.delete("/trash", deleteAllTrashedItems)

@@ -1,4 +1,5 @@
 import {
+  DeleteObjectCommand,
   GetObjectCommand,
   HeadObjectCommand,
   PutObjectCommand,
@@ -402,3 +403,52 @@ export const listTrashStorageItemsByOwnerId = async (ownerId: string) => {
     )
     .orderBy(desc(storageItem.updatedAt))
 }
+
+const deleteTrashedStorageItems = async (ownerId: string, itemId?: string) => {
+  const conditions = and(
+    eq(storageItem.ownerId, ownerId),
+    eq(storageItem.status, "ready"),
+    isNotNull(storageItem.deletedAt),
+    itemId ? eq(storageItem.id, itemId) : undefined
+  )
+
+  const trashedItems = await db
+    .select({
+      id: storageItem.id,
+      storageKey: storageItem.storageKey,
+    })
+    .from(storageItem)
+    .where(conditions)
+
+  if (itemId && trashedItems.length === 0) {
+    throw new AppError("Trashed item not found.", 404, "TRASHED_ITEM_NOT_FOUND")
+  }
+
+  await Promise.all(
+    trashedItems.map((item) => {
+      if (!item.storageKey) return
+
+      return r2Client.send(
+        new DeleteObjectCommand({
+          Bucket: env.r2BucketName,
+          Key: item.storageKey,
+        })
+      )
+    })
+  )
+
+  const deletedItems = await db
+    .delete(storageItem)
+    .where(conditions)
+    .returning({ id: storageItem.id })
+
+  return deletedItems.map((item) => item.id)
+}
+
+export const deleteTrashedStorageItemById = async (
+  itemId: string,
+  ownerId: string
+) => deleteTrashedStorageItems(ownerId, itemId)
+
+export const deleteAllTrashedStorageItems = async (ownerId: string) =>
+  deleteTrashedStorageItems(ownerId)

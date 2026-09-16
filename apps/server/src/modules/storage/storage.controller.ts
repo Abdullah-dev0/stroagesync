@@ -13,6 +13,8 @@ import {
   createFilePreview,
   createFolder as createFolderRecord,
   createPresignedUploads,
+  deleteAllTrashedStorageItems,
+  deleteTrashedStorageItemById,
   getStorageUsageByOwnerId,
   listStorageItemsByOwnerId,
   listTrashStorageItemsByOwnerId,
@@ -175,4 +177,28 @@ export const getTrashedItems: AuthenticatedHandler = async (req, res) => {
   )
 
   res.status(200).json(trashedItems)
+}
+
+export const deleteTrashedItem: AuthenticatedHandler = async (req, res) => {
+  const { itemId } = req.params
+
+  if (!itemId) {
+    throw new AppError("Item ID is required.", 400, "ITEM_ID_REQUIRED")
+  }
+
+  const deletedIds = await deleteTrashedStorageItemById(
+    itemId,
+    res.locals.auth.user.id
+  )
+
+  res.status(200).json({ deletedIds })
+}
+
+export const deleteAllTrashedItems: AuthenticatedHandler = async (
+  _req,
+  res
+) => {
+  const deletedIds = await deleteAllTrashedStorageItems(res.locals.auth.user.id)
+
+  res.status(200).json({ deletedIds })
 }
