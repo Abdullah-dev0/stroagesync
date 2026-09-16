@@ -45,7 +45,7 @@ export function StorageItemGridClient({
     initialData: initialItems,
   })
 
-  const { mutate, isPending } = useMutation({
+  const { mutate, isPending, variables } = useMutation({
     mutationFn: (item: StorageItem) =>
       clientApi(`/api/storage/items/${item.id}/trash`, {
         method: "PATCH",
@@ -100,7 +100,7 @@ export function StorageItemGridClient({
           <StorageItemCard
             key={item.id}
             item={item}
-            pending={isPending}
+            pending={isPending && variables?.id === item.id}
             onOpen={
               item.type === "file" ? () => setPreviewItem(item) : undefined
             }
