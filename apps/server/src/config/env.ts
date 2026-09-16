@@ -12,11 +12,18 @@ function requireEnvironmentVariable(name: string) {
   return value
 }
 
+function optionalEnvironmentVariable(name: string) {
+  return process.env[name]?.trim() || undefined
+}
+
 export const env = {
   port: Number(requireEnvironmentVariable("PORT")),
   clientOrigin: requireEnvironmentVariable("CLIENT_ORIGIN"),
   databaseUrl: requireEnvironmentVariable("DATABASE_URL"),
   betterAuthUrl: requireEnvironmentVariable("BETTER_AUTH_URL"),
+  betterAuthCookieDomain: optionalEnvironmentVariable(
+    "BETTER_AUTH_COOKIE_DOMAIN"
+  ),
   r2Endpoint: requireEnvironmentVariable("R2_ENDPOINT"),
   r2AccessKeyId: requireEnvironmentVariable("R2_ACCESS_KEY_ID"),
   r2SecretAccessKey: requireEnvironmentVariable("R2_SECRET_ACCESS_KEY"),

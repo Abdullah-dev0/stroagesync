@@ -6,6 +6,7 @@
       "env": [
         "BETTER_AUTH_SECRET",
         "BETTER_AUTH_URL",
+        "BETTER_AUTH_COOKIE_DOMAIN",
         "CLIENT_ORIGIN",
         "DATABASE_URL",
         "PORT",

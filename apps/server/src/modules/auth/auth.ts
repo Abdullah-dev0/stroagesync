@@ -15,6 +15,12 @@ export const auth = betterAuth({
   },
   advanced: {
     cookiePrefix: "auth-token",
+    crossSubDomainCookies: env.betterAuthCookieDomain
+      ? {
+          enabled: true,
+          domain: env.betterAuthCookieDomain,
+        }
+      : undefined,
   },
   session: {
     cookieCache: {
