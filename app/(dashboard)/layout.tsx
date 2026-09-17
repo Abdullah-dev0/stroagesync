@@ -1,9 +1,8 @@
 import type { Metadata } from "next"
 
 import { DashboardSidebar } from "@/components/shared/dashboard-sidebar"
-import { QueryProvider } from "@/providers/query-provider"
 import { SidebarProvider } from "@/components/ui/sidebar"
-import { requireSession } from "@/lib/auth/session"
+import { QueryProvider } from "@/providers/query-provider"
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -18,7 +17,6 @@ export default async function Layout({
 }: {
   children: React.ReactNode
 }) {
-  await requireSession()
   return (
     <QueryProvider>
       <SidebarProvider className="dashboard-theme">
