@@ -16,3 +16,5 @@ export class ExpectedResultError extends Error {
     this.name = "ExpectedResultError"
   }
 }
+
+export class UnauthorizedError extends Error {}

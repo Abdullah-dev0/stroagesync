@@ -5,9 +5,14 @@ import {
   storageItemsResponseSchema,
   storageUsageSchema,
 } from "@/lib/validations/storage"
+import { UnauthorizedError } from "@/lib/utils/result"
 
 async function fetchJson<T>(url: string, schema: ZodType<T>): Promise<T> {
   const response = await fetch(url, { cache: "no-store" })
+
+  if (response.status === 401) {
+    throw new UnauthorizedError()
+  }
 
   if (!response.ok) {
     throw new Error("Request failed.")
