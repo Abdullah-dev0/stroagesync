@@ -2,10 +2,10 @@ import Link from "next/link"
 import { FolderClosed } from "lucide-react"
 import { Suspense } from "react"
 
-import { DashboardNavigation } from "@/components/layouts/dashboard-navigation"
+import { DashboardNavigation } from "@/components/shared/dashboard-navigation"
 import { StorageCreateMenu } from "@/components/features/dashboard/storage-create-menu"
-import { StorageUsageFooter } from "@/components/layouts/storage-usage-footer"
-import { StorageUsageFooterSkeleton } from "@/components/layouts/storage-usage-footer-skeleton"
+import { StorageUsageFooter } from "@/components/shared/storage-usage-footer"
+import { StorageUsageFooterSkeleton } from "@/components/shared/storage-usage-footer-skeleton"
 import {
   Sidebar,
   SidebarHeader,

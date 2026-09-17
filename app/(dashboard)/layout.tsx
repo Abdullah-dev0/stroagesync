@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 
-import { DashboardSidebar } from "@/components/layouts/dashboard-sidebar"
+import { DashboardSidebar } from "@/components/shared/dashboard-sidebar"
 import { QueryProvider } from "@/providers/query-provider"
 import { SidebarProvider } from "@/components/ui/sidebar"
 import { requireSession } from "@/lib/auth/session"

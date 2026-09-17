@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
-import { dashboardNavigation } from "@/components/layouts/navigation"
+import { dashboardNavigation } from "@/components/shared/navigation"
 import {
   SidebarMenu,
   SidebarMenuButton,
@@ -26,7 +26,7 @@ export function DashboardNavigation() {
           return (
             <SidebarMenuItem
               key={item.label}
-              className={cn(isActive && "rounded-full bg-sidebar-active")}
+              className={cn(isActive && "bg-sidebar-active rounded-full")}
             >
               <SidebarMenuButton
                 render={<Link href={item.href} />}
@@ -38,7 +38,7 @@ export function DashboardNavigation() {
                   "group h-10 gap-3 rounded-full px-5 text-[16px] font-medium ring-inset",
                   "hover:text-current",
                   isActive
-                    ? "bg-sidebar-active text-foreground hover:bg-sidebar-active hover:text-foreground"
+                    ? "bg-sidebar-active hover:bg-sidebar-active text-foreground hover:text-foreground"
                     : "hover:bg-muted hover:text-foreground"
                 )}
               >

@@ -1,7 +1,7 @@
 import { Clock3 } from "lucide-react"
 import { Suspense } from "react"
 
-import { DashboardHeader } from "@/components/layouts/dashboard-header"
+import { DashboardHeader } from "@/components/shared/dashboard-header"
 import { StorageItemGridSkeleton } from "@/components/features/dashboard/storage-item-grid-skeleton"
 import { EmptyTrashAction } from "@/components/features/trash/empty-trash-action"
 import { TrashItemGridClient } from "@/components/features/trash/trash-item-grid-client"

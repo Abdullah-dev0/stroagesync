@@ -1,6 +1,6 @@
 import { Suspense } from "react"
 
-import { DashboardHeader } from "@/components/layouts/dashboard-header"
+import { DashboardHeader } from "@/components/shared/dashboard-header"
 import { StorageItemGridClient } from "@/components/features/dashboard/storage-item-grid-client"
 import { StorageItemGridSkeleton } from "@/components/features/dashboard/storage-item-grid-skeleton"
 import { getDriveItemsAction } from "@/lib/actions/storage"
