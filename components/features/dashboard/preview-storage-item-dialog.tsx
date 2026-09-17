@@ -16,6 +16,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { toast } from "@/components/ui/toast"
+import { ExpectedResultError } from "@/lib/utils/result"
 import type { StorageItem } from "@/lib/validations/storage"
 
 const PREVIEW_URL_CACHE_MS = 50_000
@@ -35,7 +36,7 @@ export function PreviewFile({
     queryKey: ["file-preview", item.id],
     queryFn: async () => {
       const result = await getFilePreviewAction(item.id)
-      if (!result.success) throw new Error(result.error)
+      if (!result.success) throw new ExpectedResultError(result.error)
       return result.data
     },
     enabled: isPreviewOpen && item.type === "file",
@@ -46,7 +47,7 @@ export function PreviewFile({
   const downloadFile = useMutation({
     mutationFn: async () => {
       const result = await getFileDownloadAction(item.id)
-      if (!result.success) throw new Error(result.error)
+      if (!result.success) throw new ExpectedResultError(result.error)
       return result.data
     },
     onSuccess: ({ url }) => {
@@ -57,8 +58,9 @@ export function PreviewFile({
         type: "error",
         title: "Download failed",
         description:
-          error.message ||
-          "This file could not be downloaded. Please try again.",
+          error instanceof ExpectedResultError
+            ? error.message
+            : "This file could not be downloaded. Please try again.",
       })
     },
   })
@@ -117,7 +119,7 @@ export function PreviewFile({
             <div className="grid max-w-sm gap-1 p-6 text-center">
               <p className="font-medium text-foreground">Preview unavailable</p>
               <p className="text-sm text-muted-foreground">
-                {previewFile.error instanceof Error
+                {previewFile.error instanceof ExpectedResultError
                   ? previewFile.error.message
                   : "This file could not be previewed. Please try again."}
               </p>

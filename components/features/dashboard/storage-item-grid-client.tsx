@@ -13,6 +13,7 @@ import {
   updateStorageItemTrashAction,
 } from "@/lib/actions/storage"
 import { storageItemsQueryKey, trashItemsQueryKey } from "@/lib/query-keys"
+import { ExpectedResultError } from "@/lib/utils/result"
 import {
   DropdownMenuItem,
   DropdownMenuSeparator,
@@ -46,7 +47,7 @@ export function StorageItemGridClient({
       const result = await updateStorageItemTrashAction(item.id, {
         trashed: true,
       } satisfies UpdateStorageItemTrashInput)
-      if (!result.success) throw new Error(result.error)
+      if (!result.success) throw new ExpectedResultError(result.error)
       return result.data
     },
     onSuccess: (trashedItem, item) => {
@@ -75,8 +76,9 @@ export function StorageItemGridClient({
         type: "error",
         title: "Move failed",
         description:
-          error.message ||
-          "Failed to move the item to trash. Please try again.",
+          error instanceof ExpectedResultError
+            ? error.message
+            : "Failed to move the item to trash. Please try again.",
       })
     },
   })

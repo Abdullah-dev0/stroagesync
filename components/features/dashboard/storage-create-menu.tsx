@@ -10,6 +10,7 @@ import {
   completeUploadsAction,
 } from "@/lib/actions/storage"
 import { storageItemsQueryKey } from "@/lib/query-keys"
+import { ExpectedResultError } from "@/lib/utils/result"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -50,7 +51,7 @@ export function StorageCreateMenu() {
   const createFolder = useMutation({
     mutationFn: async (input: CreateFolderInput) => {
       const result = await createFolderAction(input)
-      if (!result.success) throw new Error(result.error)
+      if (!result.success) throw new ExpectedResultError(result.error)
       return result.data
     },
     onSuccess: (folder) => {
@@ -72,7 +73,9 @@ export function StorageCreateMenu() {
     },
     onError: (error) => {
       setErrorMessage(
-        error.message || "Failed to create folder. Please try again."
+        error instanceof ExpectedResultError
+          ? error.message
+          : "Failed to create folder. Please try again."
       )
     },
   })
@@ -86,7 +89,7 @@ export function StorageCreateMenu() {
       uploadInput: CreateUploadUrlsInput
     }) => {
       const presign = await createUploadUrlsAction(uploadInput)
-      if (!presign.success) throw new Error(presign.error)
+      if (!presign.success) throw new ExpectedResultError(presign.error)
       const uploads = presign.data
 
       if (uploads.length !== files.length) {
@@ -118,7 +121,7 @@ export function StorageCreateMenu() {
       })
 
       const result = await completeUploadsAction(completionInput)
-      if (!result.success) throw new Error(result.error)
+      if (!result.success) throw new ExpectedResultError(result.error)
       return result.data
     },
     onMutate: ({ files }) => {
@@ -170,7 +173,9 @@ export function StorageCreateMenu() {
         type: "error",
         title: "Upload failed",
         description:
-          error.message || "We couldn't upload your files. Please try again.",
+          error instanceof ExpectedResultError
+            ? error.message
+            : "We couldn't upload your files. Please try again.",
         timeout: 5000,
         priority: "high",
       })

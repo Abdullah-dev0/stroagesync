@@ -6,6 +6,7 @@ import { use, useState } from "react"
 
 import { getTrashItemsAction, emptyTrashAction } from "@/lib/actions/storage"
 import { storageItemsQueryKey, trashItemsQueryKey } from "@/lib/query-keys"
+import { ExpectedResultError } from "@/lib/utils/result"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -37,7 +38,7 @@ export function EmptyTrashAction({ itemsPromise }: EmptyTrashActionProps) {
   const emptyTrash = useMutation({
     mutationFn: async () => {
       const result = await emptyTrashAction()
-      if (!result.success) throw new Error(result.error)
+      if (!result.success) throw new ExpectedResultError(result.error)
       return result.data
     },
     onSuccess: ({ deletedIds }) => {
@@ -61,7 +62,9 @@ export function EmptyTrashAction({ itemsPromise }: EmptyTrashActionProps) {
         type: "error",
         title: "Could not empty trash",
         description:
-          error.message || "Failed to empty the trash. Please try again.",
+          error instanceof ExpectedResultError
+            ? error.message
+            : "Failed to empty the trash. Please try again.",
       })
     },
   })

@@ -12,6 +12,7 @@ import {
   deleteTrashedItemAction,
 } from "@/lib/actions/storage"
 import { storageItemsQueryKey, trashItemsQueryKey } from "@/lib/query-keys"
+import { ExpectedResultError } from "@/lib/utils/result"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -53,7 +54,7 @@ export function TrashItemGridClient({
       const result = await updateStorageItemTrashAction(item.id, {
         trashed: false,
       } satisfies UpdateStorageItemTrashInput)
-      if (!result.success) throw new Error(result.error)
+      if (!result.success) throw new ExpectedResultError(result.error)
       return result.data
     },
     onSuccess: (restoredItem, item) => {
@@ -82,7 +83,9 @@ export function TrashItemGridClient({
         type: "error",
         title: "Restore failed",
         description:
-          error.message || "Failed to restore the item. Please try again.",
+          error instanceof ExpectedResultError
+            ? error.message
+            : "Failed to restore the item. Please try again.",
       })
     },
   })
@@ -90,7 +93,7 @@ export function TrashItemGridClient({
   const permanentlyDeleteItem = useMutation({
     mutationFn: async (item: StorageItem) => {
       const result = await deleteTrashedItemAction(item.id)
-      if (!result.success) throw new Error(result.error)
+      if (!result.success) throw new ExpectedResultError(result.error)
       return result.data
     },
     onSuccess: ({ deletedIds }, item) => {
@@ -122,8 +125,9 @@ export function TrashItemGridClient({
         type: "error",
         title: "Permanent deletion failed",
         description:
-          error.message ||
-          "Failed to delete the item permanently. Please try again.",
+          error instanceof ExpectedResultError
+            ? error.message
+            : "Failed to delete the item permanently. Please try again.",
       })
     },
   })

@@ -62,7 +62,7 @@ export const createFolder = async (
     })
 
   if (!newFolder) {
-    return err("Failed to create folder.")
+    throw new Error("Folder insert unexpectedly returned no row.")
   }
 
   return ok(newFolder)
@@ -212,24 +212,30 @@ export const completePendingUploads = async (
     return err("Upload not found.")
   }
 
-  for (const file of files) {
-    if (!file.storageKey || !file.mimeType || file.size === null) {
-      return err("Upload metadata is incomplete.")
-    }
+  const uploadedObjects = await Promise.all(
+    files.map(async (file) => {
+      if (!file.storageKey || !file.mimeType || file.size === null) {
+        throw new Error(`Upload ${file.id} has incomplete metadata.`)
+      }
 
-    const object = await r2Client.send(
-      new HeadObjectCommand({
-        Bucket: env.r2BucketName,
-        Key: file.storageKey,
-      })
-    )
+      const object = await r2Client.send(
+        new HeadObjectCommand({
+          Bucket: env.r2BucketName,
+          Key: file.storageKey,
+        })
+      )
 
-    if (
-      object.ContentLength !== file.size ||
-      object.ContentType !== file.mimeType
-    ) {
-      return err("Uploaded file does not match the expected metadata.")
-    }
+      return { file, object }
+    })
+  )
+
+  const hasMetadataMismatch = uploadedObjects.some(
+    ({ file, object }) =>
+      object.ContentLength !== file.size || object.ContentType !== file.mimeType
+  )
+
+  if (hasMetadataMismatch) {
+    return err("Uploaded file does not match the expected metadata.")
   }
 
   const completedFiles = await db

@@ -9,3 +9,10 @@ export function ok<T>(data: T): Result<T, never> {
 export function err<E = string>(error: E): Result<never, E> {
   return { success: false, error }
 }
+
+export class ExpectedResultError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = "ExpectedResultError"
+  }
+}

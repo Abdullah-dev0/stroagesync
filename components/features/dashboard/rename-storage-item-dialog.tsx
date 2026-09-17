@@ -6,6 +6,7 @@ import { useState, type SubmitEvent } from "react"
 
 import { renameStorageItemAction } from "@/lib/actions/storage"
 import { storageItemsQueryKey } from "@/lib/query-keys"
+import { ExpectedResultError } from "@/lib/utils/result"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -42,7 +43,7 @@ export function RenameStorageItemDialog({
   const renameItem = useMutation({
     mutationFn: async (input: RenameStorageItemInput) => {
       const result = await renameStorageItemAction(item.id, input)
-      if (!result.success) throw new Error(result.error)
+      if (!result.success) throw new ExpectedResultError(result.error)
       return result.data
     },
     onSuccess: (renamedItem) => {
@@ -62,7 +63,11 @@ export function RenameStorageItemDialog({
       })
     },
     onError: (error) => {
-      setErrorMessage(error.message || "Failed to rename the item.")
+      setErrorMessage(
+        error instanceof ExpectedResultError
+          ? error.message
+          : "Failed to rename the item. Please try again."
+      )
     },
   })
 
