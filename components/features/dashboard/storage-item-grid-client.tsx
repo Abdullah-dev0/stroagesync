@@ -34,6 +34,7 @@ export function StorageItemGridClient({
   const [previewItem, setPreviewItem] = useState<StorageItem | null>(null)
   const [renameItem, setRenameItem] = useState<StorageItem | null>(null)
   const queryClient = useQueryClient()
+
   const { data: items } = useQuery({
     queryKey: storageItemsQueryKey,
     queryFn: fetchDriveItems,

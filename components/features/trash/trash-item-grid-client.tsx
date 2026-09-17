@@ -103,7 +103,7 @@ export function TrashItemGridClient({
       if (!result.success) throw new ExpectedResultError(result.error)
       return result.data
     },
-    onSuccess: ({ deletedIds }, item) => {
+    onSuccess: async ({ deletedIds }, item) => {
       const deletedIdSet = new Set(deletedIds)
 
       queryClient.setQueryData<StorageItem[]>(
@@ -113,7 +113,6 @@ export function TrashItemGridClient({
             (currentItem) => !deletedIdSet.has(currentItem.id)
           )
       )
-      void queryClient.invalidateQueries({ queryKey: storageUsageQueryKey })
       queryClient.setQueryData<StorageItem[]>(
         storageItemsQueryKey,
         (currentItems) =>
@@ -121,6 +120,7 @@ export function TrashItemGridClient({
             (currentItem) => !deletedIdSet.has(currentItem.id)
           )
       )
+      await queryClient.invalidateQueries({ queryKey: storageUsageQueryKey })
       setDeleteItem(null)
       toast.add({
         type: "success",

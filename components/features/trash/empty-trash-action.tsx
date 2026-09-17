@@ -46,7 +46,7 @@ export function EmptyTrashAction({ itemsPromise }: EmptyTrashActionProps) {
       if (!result.success) throw new ExpectedResultError(result.error)
       return result.data
     },
-    onSuccess: ({ deletedIds }) => {
+    onSuccess: async ({ deletedIds }) => {
       const deletedIdSet = new Set(deletedIds)
 
       queryClient.setQueryData<StorageItem[]>(trashItemsQueryKey, [])
@@ -55,7 +55,7 @@ export function EmptyTrashAction({ itemsPromise }: EmptyTrashActionProps) {
         (currentItems) =>
           currentItems?.filter((item) => !deletedIdSet.has(item.id))
       )
-      void queryClient.invalidateQueries({ queryKey: storageUsageQueryKey })
+      await queryClient.invalidateQueries({ queryKey: storageUsageQueryKey })
       setIsDialogOpen(false)
       toast.add({
         type: "success",

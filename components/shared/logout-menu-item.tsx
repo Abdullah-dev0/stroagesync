@@ -1,8 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useQueryClient } from "@tanstack/react-query"
 import { LoaderCircle, LogOut } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { useState } from "react"
 
 import { authClient } from "@/lib/auth/client"
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
@@ -10,6 +11,7 @@ import { toast } from "@/components/ui/toast"
 
 export function LogoutMenuItem() {
   const [isSigningOut, setIsSigningOut] = useState(false)
+  const queryClient = useQueryClient()
   const router = useRouter()
 
   async function handleLogout() {
@@ -26,6 +28,7 @@ export function LogoutMenuItem() {
         return
       }
 
+      queryClient.clear()
       router.replace("/login")
       router.refresh()
     } finally {

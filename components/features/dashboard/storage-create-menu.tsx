@@ -140,7 +140,7 @@ export function StorageCreateMenu() {
 
       return { toastId }
     },
-    onSuccess: (uploadedFiles, _variables, mutationContext) => {
+    onSuccess: async (uploadedFiles, _variables, mutationContext) => {
       const uploadedFileIds = new Set(uploadedFiles.map(({ id }) => id))
 
       queryClient.setQueryData<StorageItem[]>(
@@ -153,7 +153,7 @@ export function StorageCreateMenu() {
               ]
             : items
       )
-      void queryClient.invalidateQueries({ queryKey: storageUsageQueryKey })
+      await queryClient.invalidateQueries({ queryKey: storageUsageQueryKey })
 
       toast.update(mutationContext.toastId, {
         type: "success",
