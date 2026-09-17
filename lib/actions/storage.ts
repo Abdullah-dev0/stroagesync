@@ -10,7 +10,6 @@ import {
 } from "@/lib/validations/storage"
 import { requireSession } from "@/lib/auth/session"
 import { revalidatePath } from "next/cache"
-import { AppError } from "@/lib/utils/app-error"
 import {
   serializeStorageItem,
   serializeStorageItems,
@@ -27,6 +26,16 @@ import {
   createFilePreview,
   createFileDownload,
 } from "@/lib/db/queries/storage"
+
+function getErrorMessage(error: unknown): string {
+  if (error instanceof z.ZodError) {
+    return error.issues[0]?.message ?? "Invalid input."
+  }
+  if (error instanceof Error) {
+    return error.message
+  }
+  return "An unexpected error occurred."
+}
 
 // --- Read actions ---
 
@@ -53,10 +62,7 @@ export async function getFilePreviewAction(itemId: unknown) {
     const id = z.uuid().parse(itemId)
     return { data: await createFilePreview(id, session.user.id) }
   } catch (error) {
-    if (error instanceof z.ZodError)
-      return { error: error.issues[0]?.message ?? "Invalid item ID." }
-    if (error instanceof AppError) return { error: error.message }
-    throw error
+    return { error: getErrorMessage(error) }
   }
 }
 
@@ -66,10 +72,7 @@ export async function getFileDownloadAction(itemId: unknown) {
     const id = z.uuid().parse(itemId)
     return { data: await createFileDownload(id, session.user.id) }
   } catch (error) {
-    if (error instanceof z.ZodError)
-      return { error: error.issues[0]?.message ?? "Invalid item ID." }
-    if (error instanceof AppError) return { error: error.message }
-    throw error
+    return { error: getErrorMessage(error) }
   }
 }
 
@@ -85,10 +88,7 @@ export async function createFolderAction(input: unknown) {
     revalidatePath("/dashboard", "layout")
     return { data: result }
   } catch (error) {
-    if (error instanceof z.ZodError)
-      return { error: error.issues[0]?.message ?? "Invalid input." }
-    if (error instanceof AppError) return { error: error.message }
-    throw error
+    return { error: getErrorMessage(error) }
   }
 }
 
@@ -100,10 +100,7 @@ export async function createUploadUrlsAction(input: unknown) {
     revalidatePath("/dashboard", "layout")
     return { data: result }
   } catch (error) {
-    if (error instanceof z.ZodError)
-      return { error: error.issues[0]?.message ?? "Invalid input." }
-    if (error instanceof AppError) return { error: error.message }
-    throw error
+    return { error: getErrorMessage(error) }
   }
 }
 
@@ -117,10 +114,7 @@ export async function completeUploadsAction(input: unknown) {
     revalidatePath("/dashboard", "layout")
     return { data: result }
   } catch (error) {
-    if (error instanceof z.ZodError)
-      return { error: error.issues[0]?.message ?? "Invalid input." }
-    if (error instanceof AppError) return { error: error.message }
-    throw error
+    return { error: getErrorMessage(error) }
   }
 }
 
@@ -135,10 +129,7 @@ export async function renameStorageItemAction(itemId: unknown, input: unknown) {
     revalidatePath("/dashboard", "layout")
     return { data: result }
   } catch (error) {
-    if (error instanceof z.ZodError)
-      return { error: error.issues[0]?.message ?? "Invalid input." }
-    if (error instanceof AppError) return { error: error.message }
-    throw error
+    return { error: getErrorMessage(error) }
   }
 }
 
@@ -156,10 +147,7 @@ export async function updateStorageItemTrashAction(
     revalidatePath("/dashboard", "layout")
     return { data: result }
   } catch (error) {
-    if (error instanceof z.ZodError)
-      return { error: error.issues[0]?.message ?? "Invalid input." }
-    if (error instanceof AppError) return { error: error.message }
-    throw error
+    return { error: getErrorMessage(error) }
   }
 }
 
@@ -173,10 +161,7 @@ export async function deleteTrashedItemAction(itemId: unknown) {
     revalidatePath("/dashboard", "layout")
     return { data: result }
   } catch (error) {
-    if (error instanceof z.ZodError)
-      return { error: error.issues[0]?.message ?? "Invalid input." }
-    if (error instanceof AppError) return { error: error.message }
-    throw error
+    return { error: getErrorMessage(error) }
   }
 }
 
@@ -189,9 +174,6 @@ export async function emptyTrashAction() {
     revalidatePath("/dashboard", "layout")
     return { data: result }
   } catch (error) {
-    if (error instanceof z.ZodError)
-      return { error: error.issues[0]?.message ?? "Invalid input." }
-    if (error instanceof AppError) return { error: error.message }
-    throw error
+    return { error: getErrorMessage(error) }
   }
 }

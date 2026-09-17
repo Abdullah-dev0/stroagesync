@@ -19,7 +19,6 @@ import { and, desc, eq, inArray, isNotNull, isNull, sum } from "drizzle-orm"
 import { env } from "@/lib/env"
 import { db } from "@/lib/db/client"
 import { storageItem } from "@/lib/db/schema"
-import { AppError } from "@/lib/utils/app-error"
 import { r2Client } from "@/lib/db/r2"
 
 const UPLOAD_URL_EXPIRES_IN_SECONDS = 5 * 60
@@ -71,7 +70,7 @@ export const createFolder = async (
   const validation = createFolderInputSchema.safeParse({ name, parentId })
 
   if (!validation.success) {
-    throw new AppError(validation.error.message, 400, "INVALID_FOLDER_INPUT")
+    throw new Error(validation.error.message)
   }
 
   const [newFolder] = await db
@@ -94,7 +93,7 @@ export const createFolder = async (
     })
 
   if (!newFolder) {
-    throw new AppError("Failed to create folder", 500, "FOLDER_CREATE_FAILED")
+    throw new Error("Failed to create folder")
   }
 
   return newFolder
@@ -168,7 +167,7 @@ export const updateStorageItemTrashById = async (
     })
 
   if (!updatedItem) {
-    throw new AppError("Storage item not found.", 404, "STORAGE_ITEM_NOT_FOUND")
+    throw new Error("Storage item not found.")
   }
 
   return updatedItem
@@ -241,17 +240,13 @@ export const completePendingUploads = async (
     )
 
   if (files.length !== fileIds.length) {
-    throw new AppError("Upload not found.", 404, "UPLOAD_NOT_FOUND")
+    throw new Error("Upload not found.")
   }
 
   await Promise.all(
     files.map(async (file) => {
       if (!file.storageKey || !file.mimeType || file.size === null) {
-        throw new AppError(
-          "Upload metadata is incomplete.",
-          500,
-          "INVALID_UPLOAD_METADATA"
-        )
+        throw new Error("Upload metadata is incomplete.")
       }
 
       const object = await r2Client.send(
@@ -265,11 +260,7 @@ export const completePendingUploads = async (
         object.ContentLength !== file.size ||
         object.ContentType !== file.mimeType
       ) {
-        throw new AppError(
-          "Uploaded file does not match the expected metadata.",
-          400,
-          "UPLOAD_VERIFICATION_FAILED"
-        )
+        throw new Error("Uploaded file does not match the expected metadata.")
       }
     })
   )
@@ -296,11 +287,7 @@ export const completePendingUploads = async (
     })
 
   if (completedFiles.length !== fileIds.length) {
-    throw new AppError(
-      "Upload expired before completion.",
-      409,
-      "UPLOAD_EXPIRED"
-    )
+    throw new Error("Upload expired before completion.")
   }
 
   return completedFiles
@@ -324,15 +311,11 @@ export const createFilePreview = async (itemId: string, ownerId: string) => {
     .limit(1)
 
   if (!file?.storageKey || !file.mimeType) {
-    throw new AppError("File not found.", 404, "FILE_NOT_FOUND")
+    throw new Error("File not found.")
   }
 
   if (!previewableMimeTypes.has(file.mimeType)) {
-    throw new AppError(
-      "This file type cannot be previewed.",
-      415,
-      "PREVIEW_NOT_SUPPORTED"
-    )
+    throw new Error("This file type cannot be previewed.")
   }
 
   const url = await getSignedUrl(
@@ -370,7 +353,7 @@ export const createFileDownload = async (itemId: string, ownerId: string) => {
     .limit(1)
 
   if (!file?.storageKey) {
-    throw new AppError("File not found.", 404, "FILE_NOT_FOUND")
+    throw new Error("File not found.")
   }
 
   const url = await getSignedUrl(
@@ -413,7 +396,7 @@ export const renameStorageItemById = async (
     })
 
   if (!renamedItem) {
-    throw new AppError("Storage item not found.", 404, "STORAGE_ITEM_NOT_FOUND")
+    throw new Error("Storage item not found.")
   }
 
   return renamedItem
@@ -459,7 +442,7 @@ const deleteTrashedStorageItems = async (ownerId: string, itemId?: string) => {
     .where(conditions)
 
   if (itemId && trashedItems.length === 0) {
-    throw new AppError("Trashed item not found.", 404, "TRASHED_ITEM_NOT_FOUND")
+    throw new Error("Trashed item not found.")
   }
 
   await Promise.all(

@@ -1,4 +1,3 @@
-import { getTrashItemsAction, updateStorageItemTrashAction, deleteTrashedItemAction } from "@/lib/actions/storage";
 "use client"
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
@@ -8,6 +7,7 @@ import { use, useState } from "react"
 import { StorageItemCard } from "@/components/features/dashboard/storage-item-card"
 import { TrashEmptyState } from "@/components/features/trash/trash-empty-state"
 import {
+  getTrashItemsAction,
   updateStorageItemTrashAction,
   deleteTrashedItemAction,
 } from "@/lib/actions/storage"
@@ -28,7 +28,6 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { toast } from "@/components/ui/toast"
 import {
-  storageItemsSchema,
   type StorageItem,
   type UpdateStorageItemTrashInput,
 } from "@/lib/validations/storage"

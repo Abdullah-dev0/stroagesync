@@ -10,6 +10,22 @@ Keep changes simple, focused, and consistent with the existing Next.js applicati
 add abstractions, dependencies, or defensive behavior unless the current task
 requires them.
 
+## Project Structure
+
+Follow the established folder structure for all new features and modifications:
+
+- `app/` — App Router routes. Route groups like `(auth)` and `(dashboard)` keep layouts modular without polluting URL paths.
+- `components/ui/` — Primitive and headless components (shadcn / base-ui).
+- `components/features/` — Feature-specific components grouped by domain (`auth/`, `dashboard/`, `trash/`).
+- `components/layouts/` — Layout-level components shared across routes (`dashboard-header.tsx`, `dashboard-sidebar.tsx`, etc.).
+- `lib/actions/` — Server Actions (`"use server"`). User-facing mutations and server data calls live here.
+- `lib/db/` — Database layer (`client.ts`, `r2.ts`, `schema/`, and reusable query functions in `queries/`).
+- `lib/auth/` — Better Auth configuration (`config.ts`), session helpers (`session.ts`), and client (`client.ts`).
+- `lib/validations/` — Zod schemas shared between client and server.
+- `lib/utils/` — Pure utility functions (`cn.ts`, `format.ts`, `site.ts`).
+- `lib/constants.ts` — Application-wide constants.
+
+
 ## React and Next.js Performance
 
 - When writing, reviewing, or refactoring React components or Next.js pages,

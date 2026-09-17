@@ -1,4 +1,3 @@
-import { getDriveItemsAction, updateStorageItemTrashAction } from "@/lib/actions/storage";
 "use client"
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
@@ -9,7 +8,10 @@ import { PreviewFile } from "@/components/features/dashboard/preview-storage-ite
 import { RenameStorageItemDialog } from "@/components/features/dashboard/rename-storage-item-dialog"
 import { StorageEmptyState } from "@/components/features/dashboard/storage-empty-state"
 import { StorageItemCard } from "@/components/features/dashboard/storage-item-card"
-import { updateStorageItemTrashAction } from "@/lib/actions/storage"
+import {
+  getDriveItemsAction,
+  updateStorageItemTrashAction,
+} from "@/lib/actions/storage"
 import { storageItemsQueryKey, trashItemsQueryKey } from "@/lib/query-keys"
 import {
   DropdownMenuItem,
@@ -18,7 +20,6 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { toast } from "@/components/ui/toast"
 import {
-  storageItemsSchema,
   type StorageItem,
   type UpdateStorageItemTrashInput,
 } from "@/lib/validations/storage"

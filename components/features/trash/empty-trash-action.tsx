@@ -1,11 +1,10 @@
-import { getTrashItemsAction, emptyTrashAction } from "@/lib/actions/storage";
 "use client"
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Trash2 } from "lucide-react"
 import { use, useState } from "react"
 
-import { emptyTrashAction } from "@/lib/actions/storage"
+import { getTrashItemsAction, emptyTrashAction } from "@/lib/actions/storage"
 import { storageItemsQueryKey, trashItemsQueryKey } from "@/lib/query-keys"
 import { Button } from "@/components/ui/button"
 import {
@@ -19,7 +18,7 @@ import {
 } from "@/components/ui/dialog"
 import { Spinner } from "@/components/ui/spinner"
 import { toast } from "@/components/ui/toast"
-import { storageItemsSchema, type StorageItem } from "@/lib/validations/storage"
+import type { StorageItem } from "@/lib/validations/storage"
 
 type EmptyTrashActionProps = {
   itemsPromise: Promise<StorageItem[]>
