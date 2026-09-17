@@ -9,8 +9,6 @@ import {
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner"
 import {
   createFolderInputSchema,
-  storageItemSchema,
-  storageItemsSchema,
   type CreateUploadUrlsInput,
   type PresignedUpload,
 } from "@/lib/validations/storage"
@@ -33,32 +31,6 @@ const previewableMimeTypes = new Set([
   "image/png",
   "image/webp",
 ])
-
-// --- Serialization helpers ---
-
-type StorageRecord = Awaited<
-  ReturnType<typeof listStorageItemsByOwnerId>
->[number]
-
-export function serializeStorageItem(item: StorageRecord) {
-  return storageItemSchema.parse({
-    ...item,
-    createdAt: item.createdAt.toISOString(),
-    updatedAt: item.updatedAt.toISOString(),
-  })
-}
-
-export function serializeStorageItems(
-  items: Awaited<ReturnType<typeof listStorageItemsByOwnerId>>
-) {
-  return storageItemsSchema.parse(
-    items.map((item) => ({
-      ...item,
-      createdAt: item.createdAt.toISOString(),
-      updatedAt: item.updatedAt.toISOString(),
-    }))
-  )
-}
 
 // --- Query functions ---
 

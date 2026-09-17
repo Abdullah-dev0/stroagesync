@@ -62,26 +62,16 @@ export const completeUploadsInputSchema = z.object({
     }),
 })
 
-const storageItemBaseSchema = z.object({
+export const storageItemSchema = z.object({
   id: z.uuid(),
   name: z.string(),
+  type: z.enum(["folder", "file"]),
   parentId: z.uuid().nullable(),
-  createdAt: z.iso.datetime(),
-  updatedAt: z.iso.datetime(),
+  mimeType: z.string().nullable(),
+  size: z.number().int().nonnegative().nullable(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
 })
-
-export const storageItemSchema = z.discriminatedUnion("type", [
-  storageItemBaseSchema.extend({
-    type: z.literal("folder"),
-    mimeType: z.null(),
-    size: z.null(),
-  }),
-  storageItemBaseSchema.extend({
-    type: z.literal("file"),
-    mimeType: z.string().min(1),
-    size: z.number().int().nonnegative(),
-  }),
-])
 
 export const storageItemsSchema = z.array(storageItemSchema)
 

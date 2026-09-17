@@ -7,12 +7,11 @@ import {
   completeUploadsInputSchema,
   renameStorageItemInputSchema,
   updateStorageItemTrashInputSchema,
+  type StorageItem,
 } from "@/lib/validations/storage"
 import { requireSession } from "@/lib/auth/session"
 import { revalidatePath } from "next/cache"
 import {
-  serializeStorageItem,
-  serializeStorageItems,
   createFolder,
   createPresignedUploads,
   completePendingUploads,
@@ -39,16 +38,14 @@ function getErrorMessage(error: unknown): string {
 
 // --- Read actions ---
 
-export async function getDriveItemsAction() {
+export async function getDriveItemsAction(): Promise<StorageItem[]> {
   const session = await requireSession()
-  return serializeStorageItems(await listStorageItemsByOwnerId(session.user.id))
+  return listStorageItemsByOwnerId(session.user.id)
 }
 
-export async function getTrashItemsAction() {
+export async function getTrashItemsAction(): Promise<StorageItem[]> {
   const session = await requireSession()
-  return serializeStorageItems(
-    await listTrashStorageItemsByOwnerId(session.user.id)
-  )
+  return listTrashStorageItemsByOwnerId(session.user.id)
 }
 
 export async function getStorageUsageAction() {
@@ -82,9 +79,7 @@ export async function createFolderAction(input: unknown) {
   const session = await requireSession()
   try {
     const data = createFolderInputSchema.parse(input)
-    const result = serializeStorageItem(
-      await createFolder(data.name, session.user.id, data.parentId)
-    )
+    const result = await createFolder(data.name, session.user.id, data.parentId)
     revalidatePath("/dashboard", "layout")
     return { data: result }
   } catch (error) {
@@ -108,9 +103,7 @@ export async function completeUploadsAction(input: unknown) {
   const session = await requireSession()
   try {
     const data = completeUploadsInputSchema.parse(input)
-    const result = serializeStorageItems(
-      await completePendingUploads(data.fileIds, session.user.id)
-    )
+    const result = await completePendingUploads(data.fileIds, session.user.id)
     revalidatePath("/dashboard", "layout")
     return { data: result }
   } catch (error) {
@@ -123,9 +116,7 @@ export async function renameStorageItemAction(itemId: unknown, input: unknown) {
   try {
     const id = z.uuid().parse(itemId)
     const data = renameStorageItemInputSchema.parse(input)
-    const result = serializeStorageItem(
-      await renameStorageItemById(id, data.name, session.user.id)
-    )
+    const result = await renameStorageItemById(id, data.name, session.user.id)
     revalidatePath("/dashboard", "layout")
     return { data: result }
   } catch (error) {
@@ -141,8 +132,10 @@ export async function updateStorageItemTrashAction(
   try {
     const id = z.uuid().parse(itemId)
     const data = updateStorageItemTrashInputSchema.parse(input)
-    const result = serializeStorageItem(
-      await updateStorageItemTrashById(id, session.user.id, data.trashed)
+    const result = await updateStorageItemTrashById(
+      id,
+      session.user.id,
+      data.trashed
     )
     revalidatePath("/dashboard", "layout")
     return { data: result }

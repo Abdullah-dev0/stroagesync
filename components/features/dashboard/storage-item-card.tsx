@@ -65,7 +65,7 @@ export function StorageItemCard({
         <p className="truncate text-xs text-muted-foreground">
           {item.type === "folder"
             ? "Folder"
-            : `${item.mimeType} · ${formatFileSize(item.size)}`}
+            : `${item.mimeType ?? "File"} · ${formatFileSize(item.size ?? 0)}`}
         </p>
       </div>
 
