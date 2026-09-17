@@ -1,8 +1,8 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 
-import { SignupForm } from "@/components/auth/signup-form"
-import { getSession } from "@/lib/server/session"
+import { SignupForm } from "@/components/features/auth/signup-form"
+import { getSession } from "@/lib/auth/session"
 import { redirect } from "next/navigation"
 
 export const metadata: Metadata = {

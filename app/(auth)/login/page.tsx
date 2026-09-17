@@ -2,8 +2,8 @@ import type { Metadata } from "next"
 import { CircleCheck, CircleX } from "lucide-react"
 import Link from "next/link"
 
-import { LoginForm } from "@/components/auth/login-form"
-import { getSession } from "@/lib/server/session"
+import { LoginForm } from "@/components/features/auth/login-form"
+import { getSession } from "@/lib/auth/session"
 import { redirect } from "next/navigation"
 
 type LoginPageProps = {
