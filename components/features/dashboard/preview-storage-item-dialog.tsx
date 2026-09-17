@@ -113,9 +113,7 @@ export function PreviewFile({
             <div className="grid max-w-sm gap-1 p-6 text-center">
               <p className="font-medium text-foreground">Preview unavailable</p>
               <p className="text-sm text-muted-foreground">
-                {previewFile.error instanceof ExpectedResultError
-                  ? previewFile.error.message
-                  : "This file could not be previewed. Please try again."}
+                This file could not be previewed. Please try again.
               </p>
             </div>
           )}
