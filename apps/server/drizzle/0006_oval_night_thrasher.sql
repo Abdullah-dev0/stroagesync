@@ -1,1 +1,0 @@
-ALTER TABLE "storage_item" DROP CONSTRAINT "storage_item_file_metadata_check";

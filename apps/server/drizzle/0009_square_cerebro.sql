@@ -1,1 +1,0 @@
-ALTER TABLE "storage_item" ADD COLUMN "deleted_at" timestamp;

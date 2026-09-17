@@ -6,7 +6,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 # Project Rules
 
-Keep changes simple, focused, and consistent with the existing monorepo. Do not
+Keep changes simple, focused, and consistent with the existing Next.js application. Do not
 add abstractions, dependencies, or defensive behavior unless the current task
 requires them.
 
@@ -28,18 +28,18 @@ requires them.
   `selectedFolder`.
 - Keep Next.js special filenames in their required lowercase form, such as
   `page.tsx`, `layout.tsx`, `loading.tsx`, and `route.ts`.
-- Apply these conventions consistently across the monorepo.
+- Apply these conventions consistently across the application.
 
 ## Styling and UI
 
 - For any design, UI, or styling work, load and follow the `better-ui` skill at
   `.agents/skills/better-ui/SKILL.md`.
 - Use Tailwind CSS for styling and follow the existing design tokens in
-  `packages/ui/src/styles/globals.css`.
+  `app/globals.css`.
 - Do not use hard-coded colors in components. Use semantic Tailwind color
   utilities backed by the existing design tokens instead.
-- Reuse components from `packages/ui` before creating app-specific duplicates.
-- Keep reusable UI primitives in `packages/ui`; keep feature-specific components
+- Reuse components from `components/ui` before creating app-specific duplicates.
+- Keep reusable UI primitives in `components/ui`; keep feature-specific components
   close to the app or route that uses them.
 - Use the existing `cn` utility for conditional class names.
 - Build responsive layouts mobile-first and support both light and dark themes.
@@ -103,8 +103,8 @@ requires them.
 - Do not log secrets, tokens, passwords, full authentication headers, or private
   file contents. Return safe error messages without leaking stack traces or
   internal details.
-- Keep security middleware such as Helmet and the existing CORS policy enabled.
-  Any relaxation must be narrow and justified by the task.
+- Preserve the security headers configured in `next.config.ts`. Keep browser
+  requests same-origin; any cross-origin access must be narrow and explicit.
 
 ## Verification
 

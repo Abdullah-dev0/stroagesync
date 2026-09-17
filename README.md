@@ -1,57 +1,73 @@
 # Storumi
 
-Storumi is a pnpm and Turborepo monorepo containing a Next.js web app,
-an Express API, and shared UI packages.
+A single Next.js application with Better Auth, Drizzle/PostgreSQL, and private R2 storage.
 
-## Getting started
+## Development
 
-Install dependencies from the repository root:
+Run `pnpm install`, copy `.env.example` to `.env.local`, and fill in the credentials.
+Run `pnpm dev` from the repository root. The website and API both use
+`http://localhost:3000`. Set `BETTER_AUTH_URL` and `SITE_URL` to the same origin.
 
-```bash
-pnpm install
-```
+The migration preserves the database schema and existing migration history.
+It does not require resetting the database. Existing users may need to sign in
+again when moving from domain cookies to the new host-only cookies.
 
-Copy `apps/server/.env.example` to `apps/server/.env.local` and provide the
-required database and authentication values. Then start all applications:
+## Structure
 
-```bash
-pnpm dev
-```
+- `app/`: pages, layouts, Server Actions, and Route Handlers.
+- `components/ui/`: shared UI primitives.
+- `lib/server/`: server-only authentication, storage service, database, and R2.
+- `lib/validation/`: shared input and response schemas.
+- `db/schema/` and `drizzle/`: database schema and migration history.
 
-- Web: `http://localhost:3000`
-- API: `http://localhost:4000`
+## Data access
 
-See [Frontend API requests](docs/API_CLIENT.md) for Better Fetch, TanStack Query,
-environment configuration, and error handling examples.
+Server Components call authenticated server-side data functions directly.
+Dashboard mutations call Server Actions, which authenticate and validate input
+before invoking the existing storage service. Expected errors are returned as
+serializable results; unexpected errors use a generic message.
 
-## Database
+React Query retains the dashboard's client cache and uses session-authenticated
+GET handlers for refetches:
 
-Generate migrations after changing the Drizzle schema:
+- `/api/v1/storage/items`
+- `/api/v1/storage/trash`
+- `/api/v1/storage/items/:itemId/preview`
+- `/api/v1/storage/items/:itemId/download`
 
-```bash
-pnpm --filter server db:generate
-```
+These routes currently require a Better Auth session. API-key authentication,
+external CRUD access, and Polar billing are future features, not enabled by this
+migration. Better Auth is mounted at `/api/auth/[...all]`.
 
-Apply the current schema directly to the configured database:
+Uploads continue directly from the browser to R2 using short-lived signed URLs.
+Keep the R2 bucket's CORS policy configured for the application origin.
 
-```bash
-pnpm --filter server db:push
-```
+## Commands
 
-## Adding components
+- `pnpm dev`: local development.
+- `pnpm typecheck`: generate route types and check TypeScript.
+- `pnpm lint`: ESLint.
+- `pnpm build`: production Next.js build.
+- `pnpm start`: serve the production build.
+- `pnpm db:generate`: generate migrations from schema changes.
+- `pnpm db:migrate`: apply existing migrations using `.env.local`.
+- `pnpm db:studio`: inspect the database.
 
-To add components to your app, run the following command at the root of your `web` app:
+Run database changes deliberately; they are not part of application startup.
 
-```bash
-pnpm dlx shadcn@latest add button -c apps/web
-```
+## Components
 
-This will place the ui components in the `packages/ui/src/components` directory.
+Run `pnpm dlx shadcn@latest add button` from the root.
+Import primitives with `@/components/ui/button`. Design tokens are in
+`app/globals.css`.
 
-## Using components
+## Deployment
 
-To use the components in your app, import them from the `ui` package.
+This migration consolidates the application into standard Next.js. Cloudflare
+adapter configuration and deployment are a separate step. Before deploying on
+Workers, configure the adapter, secrets, R2 access, and PostgreSQL connection
+lifecycle/pooling (for example through Hyperdrive), then verify in the Workers
+runtime. A successful local Next.js build alone does not verify Workers compatibility.
 
-```tsx
-import { Button } from "@workspace/ui/components/button"
-```
+The old Express and web Dockerfiles were removed because they depended on
+the removed workspace packages. They remain recoverable through Git history.
