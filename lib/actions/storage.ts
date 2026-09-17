@@ -79,7 +79,7 @@ export async function createFolderAction(input: unknown) {
   const session = await requireSession()
   try {
     const data = createFolderInputSchema.parse(input)
-    const result = await createFolder(data.name, session.user.id, data.parentId)
+    const result = await createFolder(data, session.user.id)
     revalidatePath("/dashboard", "layout")
     return { data: result }
   } catch (error) {

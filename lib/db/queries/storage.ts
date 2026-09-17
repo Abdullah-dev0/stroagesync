@@ -8,7 +8,7 @@ import {
 } from "@aws-sdk/client-s3"
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner"
 import {
-  createFolderInputSchema,
+  type CreateFolderInput,
   type CreateUploadUrlsInput,
   type PresignedUpload,
 } from "@/lib/validations/storage"
@@ -34,24 +34,18 @@ const previewableMimeTypes = new Set([
 
 // --- Query functions ---
 
+// The caller must validate the input with createFolderInputSchema first.
 export const createFolder = async (
-  name: string,
-  ownerId: string,
-  parentId: string | null
+  input: CreateFolderInput,
+  ownerId: string
 ) => {
-  const validation = createFolderInputSchema.safeParse({ name, parentId })
-
-  if (!validation.success) {
-    throw new Error(validation.error.message)
-  }
-
   const [newFolder] = await db
     .insert(storageItem)
     .values({
-      name: name.trim(),
+      name: input.name,
       type: "folder",
       ownerId,
-      parentId,
+      parentId: input.parentId,
     })
     .returning({
       id: storageItem.id,
