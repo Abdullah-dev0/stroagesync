@@ -4,14 +4,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Eye, Pencil, Share2, Trash2 } from "lucide-react"
 import { use, useState } from "react"
 
+import { fetchDriveItems } from "@/lib/api/storage"
 import { PreviewFile } from "@/components/features/dashboard/preview-storage-item-dialog"
 import { RenameStorageItemDialog } from "@/components/features/dashboard/rename-storage-item-dialog"
 import { StorageEmptyState } from "@/components/features/dashboard/storage-empty-state"
 import { StorageItemCard } from "@/components/features/dashboard/storage-item-card"
-import {
-  getDriveItemsAction,
-  updateStorageItemTrashAction,
-} from "@/lib/actions/storage"
+import { updateStorageItemTrashAction } from "@/lib/actions/storage"
 import { storageItemsQueryKey, trashItemsQueryKey } from "@/lib/query-keys"
 import { ExpectedResultError } from "@/lib/utils/result"
 import {
@@ -38,7 +36,7 @@ export function StorageItemGridClient({
   const queryClient = useQueryClient()
   const { data: items } = useQuery({
     queryKey: storageItemsQueryKey,
-    queryFn: () => getDriveItemsAction(),
+    queryFn: fetchDriveItems,
     initialData: initialItems,
   })
 
@@ -58,12 +56,15 @@ export function StorageItemGridClient({
       )
       queryClient.setQueryData<StorageItem[]>(
         trashItemsQueryKey,
-        (currentItems = []) => [
-          trashedItem,
-          ...currentItems.filter(
-            (currentItem) => currentItem.id !== trashedItem.id
-          ),
-        ]
+        (currentItems) =>
+          currentItems
+            ? [
+                trashedItem,
+                ...currentItems.filter(
+                  (currentItem) => currentItem.id !== trashedItem.id
+                ),
+              ]
+            : currentItems
       )
       toast.add({
         type: "success",

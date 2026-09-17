@@ -3,10 +3,8 @@
 import { useMutation, useQuery } from "@tanstack/react-query"
 import { Download, FileText, LoaderCircle, X } from "lucide-react"
 
-import {
-  getFileDownloadAction,
-  getFilePreviewAction,
-} from "@/lib/actions/storage"
+import { fetchFilePreview } from "@/lib/api/storage"
+import { getFileDownloadAction } from "@/lib/actions/storage"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -34,11 +32,7 @@ export function PreviewFile({
 }: PreviewFileProps) {
   const previewFile = useQuery({
     queryKey: ["file-preview", item.id],
-    queryFn: async () => {
-      const result = await getFilePreviewAction(item.id)
-      if (!result.success) throw new ExpectedResultError(result.error)
-      return result.data
-    },
+    queryFn: () => fetchFilePreview(item.id),
     enabled: isPreviewOpen && item.type === "file",
     staleTime: PREVIEW_URL_CACHE_MS,
     gcTime: PREVIEW_URL_CACHE_MS,

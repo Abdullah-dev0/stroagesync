@@ -9,7 +9,10 @@ import {
   createUploadUrlsAction,
   completeUploadsAction,
 } from "@/lib/actions/storage"
-import { storageItemsQueryKey } from "@/lib/query-keys"
+import {
+  storageItemsQueryKey,
+  storageUsageQueryKey,
+} from "@/lib/query-keys"
 import { ExpectedResultError } from "@/lib/utils/result"
 import { Button } from "@/components/ui/button"
 import {
@@ -57,10 +60,10 @@ export function StorageCreateMenu() {
     onSuccess: (folder) => {
       queryClient.setQueryData<StorageItem[]>(
         storageItemsQueryKey,
-        (items = []) => [
-          folder,
-          ...items.filter((item) => item.id !== folder.id),
-        ]
+        (items) =>
+          items
+            ? [folder, ...items.filter((item) => item.id !== folder.id)]
+            : items
       )
       setFolderName("")
       setErrorMessage(null)
@@ -142,11 +145,15 @@ export function StorageCreateMenu() {
 
       queryClient.setQueryData<StorageItem[]>(
         storageItemsQueryKey,
-        (items = []) => [
-          ...uploadedFiles,
-          ...items.filter(({ id }) => !uploadedFileIds.has(id)),
-        ]
+        (items) =>
+          items
+            ? [
+                ...uploadedFiles,
+                ...items.filter(({ id }) => !uploadedFileIds.has(id)),
+              ]
+            : items
       )
+      void queryClient.invalidateQueries({ queryKey: storageUsageQueryKey })
 
       toast.update(mutationContext.toastId, {
         type: "success",

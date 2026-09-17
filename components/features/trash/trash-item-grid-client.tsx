@@ -4,14 +4,18 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { LoaderCircle, RotateCcw, Trash2 } from "lucide-react"
 import { use, useState } from "react"
 
+import { fetchTrashItems } from "@/lib/api/storage"
 import { StorageItemCard } from "@/components/features/dashboard/storage-item-card"
 import { TrashEmptyState } from "@/components/features/trash/trash-empty-state"
 import {
-  getTrashItemsAction,
   updateStorageItemTrashAction,
   deleteTrashedItemAction,
 } from "@/lib/actions/storage"
-import { storageItemsQueryKey, trashItemsQueryKey } from "@/lib/query-keys"
+import {
+  storageItemsQueryKey,
+  storageUsageQueryKey,
+  trashItemsQueryKey,
+} from "@/lib/query-keys"
 import { ExpectedResultError } from "@/lib/utils/result"
 import { Button } from "@/components/ui/button"
 import {
@@ -45,7 +49,7 @@ export function TrashItemGridClient({
   const queryClient = useQueryClient()
   const { data: items } = useQuery({
     queryKey: trashItemsQueryKey,
-    queryFn: () => getTrashItemsAction(),
+    queryFn: fetchTrashItems,
     initialData: initialItems,
   })
 
@@ -65,12 +69,15 @@ export function TrashItemGridClient({
       )
       queryClient.setQueryData<StorageItem[]>(
         storageItemsQueryKey,
-        (currentItems = []) => [
-          restoredItem,
-          ...currentItems.filter(
-            (currentItem) => currentItem.id !== restoredItem.id
-          ),
-        ]
+        (currentItems) =>
+          currentItems
+            ? [
+                restoredItem,
+                ...currentItems.filter(
+                  (currentItem) => currentItem.id !== restoredItem.id
+                ),
+              ]
+            : currentItems
       )
       toast.add({
         type: "success",
@@ -101,15 +108,16 @@ export function TrashItemGridClient({
 
       queryClient.setQueryData<StorageItem[]>(
         trashItemsQueryKey,
-        (currentItems = []) =>
-          currentItems.filter(
+        (currentItems) =>
+          currentItems?.filter(
             (currentItem) => !deletedIdSet.has(currentItem.id)
           )
       )
+      void queryClient.invalidateQueries({ queryKey: storageUsageQueryKey })
       queryClient.setQueryData<StorageItem[]>(
         storageItemsQueryKey,
-        (currentItems = []) =>
-          currentItems.filter(
+        (currentItems) =>
+          currentItems?.filter(
             (currentItem) => !deletedIdSet.has(currentItem.id)
           )
       )

@@ -4,8 +4,13 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Trash2 } from "lucide-react"
 import { use, useState } from "react"
 
-import { getTrashItemsAction, emptyTrashAction } from "@/lib/actions/storage"
-import { storageItemsQueryKey, trashItemsQueryKey } from "@/lib/query-keys"
+import { fetchTrashItems } from "@/lib/api/storage"
+import { emptyTrashAction } from "@/lib/actions/storage"
+import {
+  storageItemsQueryKey,
+  storageUsageQueryKey,
+  trashItemsQueryKey,
+} from "@/lib/query-keys"
 import { ExpectedResultError } from "@/lib/utils/result"
 import { Button } from "@/components/ui/button"
 import {
@@ -31,7 +36,7 @@ export function EmptyTrashAction({ itemsPromise }: EmptyTrashActionProps) {
   const queryClient = useQueryClient()
   const { data: items } = useQuery({
     queryKey: trashItemsQueryKey,
-    queryFn: () => getTrashItemsAction(),
+    queryFn: fetchTrashItems,
     initialData: initialItems,
   })
 
@@ -47,9 +52,10 @@ export function EmptyTrashAction({ itemsPromise }: EmptyTrashActionProps) {
       queryClient.setQueryData<StorageItem[]>(trashItemsQueryKey, [])
       queryClient.setQueryData<StorageItem[]>(
         storageItemsQueryKey,
-        (currentItems = []) =>
-          currentItems.filter((item) => !deletedIdSet.has(item.id))
+        (currentItems) =>
+          currentItems?.filter((item) => !deletedIdSet.has(item.id))
       )
+      void queryClient.invalidateQueries({ queryKey: storageUsageQueryKey })
       setIsDialogOpen(false)
       toast.add({
         type: "success",

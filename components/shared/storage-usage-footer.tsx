@@ -1,8 +1,13 @@
+"use client"
+
+import { useQuery } from "@tanstack/react-query"
 import Link from "next/link"
 import { HardDrive } from "lucide-react"
+import { use } from "react"
 
 import { STORAGE_LIMIT_BYTES } from "@/lib/constants"
-import { getStorageUsage } from "@/lib/db/queries/storage"
+import { fetchStorageUsage } from "@/lib/api/storage"
+import { storageUsageQueryKey } from "@/lib/query-keys"
 import { formatFileSize } from "@/lib/utils/format"
 import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
@@ -12,9 +17,20 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import type { StorageUsage } from "@/lib/validations/storage"
 
-export async function StorageUsageFooter() {
-  const { usedBytes } = await getStorageUsage()
+type StorageUsageFooterProps = {
+  usagePromise: Promise<StorageUsage>
+}
+
+export function StorageUsageFooter({ usagePromise }: StorageUsageFooterProps) {
+  const initialUsage = use(usagePromise)
+  const { data: usage } = useQuery({
+    queryKey: storageUsageQueryKey,
+    queryFn: fetchStorageUsage,
+    initialData: initialUsage,
+  })
+  const { usedBytes } = usage
   const usedStorage = formatFileSize(usedBytes)
   const totalStorage = formatFileSize(STORAGE_LIMIT_BYTES)
   const percentage = Math.min((usedBytes / STORAGE_LIMIT_BYTES) * 100, 100)

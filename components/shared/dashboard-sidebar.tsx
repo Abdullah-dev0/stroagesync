@@ -6,6 +6,7 @@ import { DashboardNavigation } from "@/components/shared/dashboard-navigation"
 import { StorageCreateMenu } from "@/components/features/dashboard/storage-create-menu"
 import { StorageUsageFooter } from "@/components/shared/storage-usage-footer"
 import { StorageUsageFooterSkeleton } from "@/components/shared/storage-usage-footer-skeleton"
+import { getStorageUsage } from "@/lib/db/queries/storage"
 import {
   Sidebar,
   SidebarHeader,
@@ -23,6 +24,8 @@ type DashboardSidebarProps = {
 }
 
 export function DashboardSidebar({ className }: DashboardSidebarProps) {
+  const usagePromise = getStorageUsage()
+
   return (
     <Sidebar collapsible="icon" className={className}>
       <SidebarHeader>
@@ -58,7 +61,7 @@ export function DashboardSidebar({ className }: DashboardSidebarProps) {
       </SidebarContent>
 
       <Suspense fallback={<StorageUsageFooterSkeleton />}>
-        <StorageUsageFooter />
+        <StorageUsageFooter usagePromise={usagePromise} />
       </Suspense>
       <SidebarRail />
     </Sidebar>

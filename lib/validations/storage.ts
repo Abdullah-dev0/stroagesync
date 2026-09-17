@@ -75,6 +75,13 @@ export const storageItemSchema = z.object({
 
 export const storageItemsSchema = z.array(storageItemSchema)
 
+export const storageItemsResponseSchema = z.array(
+  storageItemSchema.extend({
+    createdAt: z.coerce.date(),
+    updatedAt: z.coerce.date(),
+  })
+)
+
 export const storageUsageSchema = z.object({
   usedBytes: z.number().int().nonnegative(),
 })
