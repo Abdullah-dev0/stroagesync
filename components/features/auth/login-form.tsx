@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import Link from "next/link"
 import { Eye, EyeOff, LoaderCircle } from "lucide-react"
@@ -33,6 +33,11 @@ export function LoginForm() {
     },
   })
   const { isSubmitting } = form.formState
+
+  useEffect(() => {
+    // Let Better Auth clear expired session cookies through a browser response.
+    void authClient.getSession({ query: { disableCookieCache: true } })
+  }, [])
 
   const onSubmit: SubmitHandler<LoginInput> = async (formData: LoginInput) => {
     const { email, password } = formData
