@@ -1,10 +1,10 @@
 "use client"
 
-import { useEffect, useState } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
-import Link from "next/link"
 import { Eye, EyeOff, LoaderCircle } from "lucide-react"
-import { Controller, type SubmitHandler, useForm } from "react-hook-form"
+import Link from "next/link"
+import { useState } from "react"
+import { Controller, useForm, type SubmitHandler } from "react-hook-form"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -14,10 +14,10 @@ import {
   FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { loginSchema, type LoginInput } from "@/lib/validations/auth"
-import { authClient } from "@/lib/auth/client"
-import { useRouter } from "next/navigation"
 import { toast } from "@/components/ui/toast"
+import { authClient } from "@/lib/auth/client"
+import { loginSchema, type LoginInput } from "@/lib/validations/auth"
+import { useRouter } from "next/navigation"
 
 const inputClassName =
   "h-11 rounded-xl px-3.5 shadow-sm hover:border-input focus-visible:border-primary focus-visible:ring-ring/20"
@@ -33,11 +33,6 @@ export function LoginForm() {
     },
   })
   const { isSubmitting } = form.formState
-
-  useEffect(() => {
-    // Let Better Auth clear expired session cookies through a browser response.
-    void authClient.getSession({ query: { disableCookieCache: true } })
-  }, [])
 
   const onSubmit: SubmitHandler<LoginInput> = async (formData: LoginInput) => {
     const { email, password } = formData

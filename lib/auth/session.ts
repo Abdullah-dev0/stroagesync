@@ -11,6 +11,9 @@ export const getSession = cache(async () =>
 
 export async function requireSession() {
   const session = await getSession()
-  if (!session) redirect("/login")
+  if (!session) {
+    await auth.api.signOut({ headers: await headers() }).catch(() => {})
+    redirect("/login?unauthorized=true") // do this after the signOut call, not inside a try/catch
+  }
   return session
 }
