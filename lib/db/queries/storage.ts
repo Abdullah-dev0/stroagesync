@@ -11,6 +11,7 @@ import {
   type CreateFolderInput,
   type CreateUploadUrlsInput,
   type PresignedUpload,
+  type StorageItem,
 } from "@/lib/validations/storage"
 import { randomUUID } from "crypto"
 import { and, desc, eq, inArray, isNotNull, isNull, sum } from "drizzle-orm"
@@ -18,6 +19,8 @@ import { env } from "@/lib/env"
 import { db } from "@/lib/db/client"
 import { storageItem } from "@/lib/db/schema"
 import { r2Client } from "@/lib/db/r2"
+import { requireSession } from "@/lib/auth/session"
+import { ActionError } from "@/lib/utils/errors"
 
 const UPLOAD_URL_EXPIRES_IN_SECONDS = 5 * 60
 const PREVIEW_URL_EXPIRES_IN_SECONDS = 60
@@ -59,7 +62,7 @@ export const createFolder = async (
     })
 
   if (!newFolder) {
-    throw new Error("Failed to create folder")
+    throw new ActionError("Failed to create folder.")
   }
 
   return newFolder
@@ -133,7 +136,7 @@ export const updateStorageItemTrashById = async (
     })
 
   if (!updatedItem) {
-    throw new Error("Storage item not found.")
+    throw new ActionError("Storage item not found.")
   }
 
   return updatedItem
@@ -206,13 +209,13 @@ export const completePendingUploads = async (
     )
 
   if (files.length !== fileIds.length) {
-    throw new Error("Upload not found.")
+    throw new ActionError("Upload not found.")
   }
 
   await Promise.all(
     files.map(async (file) => {
       if (!file.storageKey || !file.mimeType || file.size === null) {
-        throw new Error("Upload metadata is incomplete.")
+        throw new ActionError("Upload metadata is incomplete.")
       }
 
       const object = await r2Client.send(
@@ -226,7 +229,7 @@ export const completePendingUploads = async (
         object.ContentLength !== file.size ||
         object.ContentType !== file.mimeType
       ) {
-        throw new Error("Uploaded file does not match the expected metadata.")
+        throw new ActionError("Uploaded file does not match the expected metadata.")
       }
     })
   )
@@ -253,7 +256,7 @@ export const completePendingUploads = async (
     })
 
   if (completedFiles.length !== fileIds.length) {
-    throw new Error("Upload expired before completion.")
+    throw new ActionError("Upload expired before completion.")
   }
 
   return completedFiles
@@ -277,11 +280,11 @@ export const createFilePreview = async (itemId: string, ownerId: string) => {
     .limit(1)
 
   if (!file?.storageKey || !file.mimeType) {
-    throw new Error("File not found.")
+    throw new ActionError("File not found.")
   }
 
   if (!previewableMimeTypes.has(file.mimeType)) {
-    throw new Error("This file type cannot be previewed.")
+    throw new ActionError("This file type cannot be previewed.")
   }
 
   const url = await getSignedUrl(
@@ -319,7 +322,7 @@ export const createFileDownload = async (itemId: string, ownerId: string) => {
     .limit(1)
 
   if (!file?.storageKey) {
-    throw new Error("File not found.")
+    throw new ActionError("File not found.")
   }
 
   const url = await getSignedUrl(
@@ -362,7 +365,7 @@ export const renameStorageItemById = async (
     })
 
   if (!renamedItem) {
-    throw new Error("Storage item not found.")
+    throw new ActionError("Storage item not found.")
   }
 
   return renamedItem
@@ -408,7 +411,7 @@ const deleteTrashedStorageItems = async (ownerId: string, itemId?: string) => {
     .where(conditions)
 
   if (itemId && trashedItems.length === 0) {
-    throw new Error("Trashed item not found.")
+    throw new ActionError("Trashed item not found.")
   }
 
   await Promise.all(
@@ -439,3 +442,19 @@ export const deleteTrashedStorageItemById = async (
 
 export const deleteAllTrashedStorageItems = async (ownerId: string) =>
   deleteTrashedStorageItems(ownerId)
+
+export async function getDriveItems(): Promise<StorageItem[]> {
+  const session = await requireSession()
+  return listStorageItemsByOwnerId(session.user.id)
+}
+
+export async function getTrashItems(): Promise<StorageItem[]> {
+  const session = await requireSession()
+  return listTrashStorageItemsByOwnerId(session.user.id)
+}
+
+export async function getStorageUsage() {
+  const session = await requireSession()
+  return getStorageUsageByOwnerId(session.user.id)
+}
+

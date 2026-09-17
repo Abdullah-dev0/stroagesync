@@ -19,38 +19,36 @@ import {
   updateStorageItemTrashById,
   deleteTrashedStorageItemById,
   deleteAllTrashedStorageItems,
-  listStorageItemsByOwnerId,
-  listTrashStorageItemsByOwnerId,
-  getStorageUsageByOwnerId,
+  getDriveItems,
+  getTrashItems,
+  getStorageUsage,
   createFilePreview,
   createFileDownload,
 } from "@/lib/db/queries/storage"
+import { ActionError } from "@/lib/utils/errors"
 
-function getErrorMessage(error: unknown): string {
+function handleActionError(error: unknown): { error: string } {
   if (error instanceof z.ZodError) {
-    return error.issues[0]?.message ?? "Invalid input."
+    return { error: error.issues[0]?.message ?? "Invalid input." }
   }
-  if (error instanceof Error) {
-    return error.message
+  if (error instanceof ActionError) {
+    return { error: error.message }
   }
-  return "An unexpected error occurred."
+  throw error
 }
 
-// --- Read actions ---
+// --- Read actions (for client components / TanStack Query) ---
 
 export async function getDriveItemsAction(): Promise<StorageItem[]> {
-  const session = await requireSession()
-  return listStorageItemsByOwnerId(session.user.id)
+  return getDriveItems()
 }
 
 export async function getTrashItemsAction(): Promise<StorageItem[]> {
-  const session = await requireSession()
-  return listTrashStorageItemsByOwnerId(session.user.id)
+  return getTrashItems()
 }
 
 export async function getStorageUsageAction() {
-  const session = await requireSession()
-  return getStorageUsageByOwnerId(session.user.id)
+  return getStorageUsage()
 }
 
 export async function getFilePreviewAction(itemId: unknown) {
@@ -59,7 +57,7 @@ export async function getFilePreviewAction(itemId: unknown) {
     const id = z.uuid().parse(itemId)
     return { data: await createFilePreview(id, session.user.id) }
   } catch (error) {
-    return { error: getErrorMessage(error) }
+    return handleActionError(error)
   }
 }
 
@@ -69,7 +67,7 @@ export async function getFileDownloadAction(itemId: unknown) {
     const id = z.uuid().parse(itemId)
     return { data: await createFileDownload(id, session.user.id) }
   } catch (error) {
-    return { error: getErrorMessage(error) }
+    return handleActionError(error)
   }
 }
 
@@ -83,7 +81,7 @@ export async function createFolderAction(input: unknown) {
     revalidatePath("/dashboard", "layout")
     return { data: result }
   } catch (error) {
-    return { error: getErrorMessage(error) }
+    return handleActionError(error)
   }
 }
 
@@ -95,7 +93,7 @@ export async function createUploadUrlsAction(input: unknown) {
     revalidatePath("/dashboard", "layout")
     return { data: result }
   } catch (error) {
-    return { error: getErrorMessage(error) }
+    return handleActionError(error)
   }
 }
 
@@ -107,7 +105,7 @@ export async function completeUploadsAction(input: unknown) {
     revalidatePath("/dashboard", "layout")
     return { data: result }
   } catch (error) {
-    return { error: getErrorMessage(error) }
+    return handleActionError(error)
   }
 }
 
@@ -120,7 +118,7 @@ export async function renameStorageItemAction(itemId: unknown, input: unknown) {
     revalidatePath("/dashboard", "layout")
     return { data: result }
   } catch (error) {
-    return { error: getErrorMessage(error) }
+    return handleActionError(error)
   }
 }
 
@@ -140,7 +138,7 @@ export async function updateStorageItemTrashAction(
     revalidatePath("/dashboard", "layout")
     return { data: result }
   } catch (error) {
-    return { error: getErrorMessage(error) }
+    return handleActionError(error)
   }
 }
 
@@ -154,7 +152,7 @@ export async function deleteTrashedItemAction(itemId: unknown) {
     revalidatePath("/dashboard", "layout")
     return { data: result }
   } catch (error) {
-    return { error: getErrorMessage(error) }
+    return handleActionError(error)
   }
 }
 
@@ -167,6 +165,6 @@ export async function emptyTrashAction() {
     revalidatePath("/dashboard", "layout")
     return { data: result }
   } catch (error) {
-    return { error: getErrorMessage(error) }
+    return handleActionError(error)
   }
 }

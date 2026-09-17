@@ -2,7 +2,7 @@ import Link from "next/link"
 import { HardDrive } from "lucide-react"
 
 import { STORAGE_LIMIT_BYTES } from "@/lib/constants"
-import { getStorageUsageAction } from "@/lib/actions/storage"
+import { getStorageUsage } from "@/lib/db/queries/storage"
 import { formatFileSize } from "@/lib/utils/format"
 import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/sidebar"
 
 export async function StorageUsageFooter() {
-  const { usedBytes } = await getStorageUsageAction()
+  const { usedBytes } = await getStorageUsage()
   const usedStorage = formatFileSize(usedBytes)
   const totalStorage = formatFileSize(STORAGE_LIMIT_BYTES)
   const percentage = Math.min((usedBytes / STORAGE_LIMIT_BYTES) * 100, 100)

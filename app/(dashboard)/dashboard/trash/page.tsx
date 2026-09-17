@@ -5,12 +5,12 @@ import { DashboardHeader } from "@/components/shared/dashboard-header"
 import { StorageItemGridSkeleton } from "@/components/features/dashboard/storage-item-grid-skeleton"
 import { EmptyTrashAction } from "@/components/features/trash/empty-trash-action"
 import { TrashItemGridClient } from "@/components/features/trash/trash-item-grid-client"
-import { getTrashItemsAction } from "@/lib/actions/storage"
+import { getTrashItems } from "@/lib/db/queries/storage"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 
 export default function Page() {
-  const itemsPromise = getTrashItemsAction()
+  const itemsPromise = getTrashItems()
 
   return (
     <div className="w-full">

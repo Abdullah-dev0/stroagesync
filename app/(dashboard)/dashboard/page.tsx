@@ -3,10 +3,10 @@ import { Suspense } from "react"
 import { DashboardHeader } from "@/components/shared/dashboard-header"
 import { StorageItemGridClient } from "@/components/features/dashboard/storage-item-grid-client"
 import { StorageItemGridSkeleton } from "@/components/features/dashboard/storage-item-grid-skeleton"
-import { getDriveItemsAction } from "@/lib/actions/storage"
+import { getDriveItems } from "@/lib/db/queries/storage"
 
 export default function Page() {
-  const itemsPromise = getDriveItemsAction()
+  const itemsPromise = getDriveItems()
 
   return (
     <div className="w-full">
