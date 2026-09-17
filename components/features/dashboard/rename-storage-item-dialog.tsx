@@ -42,7 +42,7 @@ export function RenameStorageItemDialog({
   const renameItem = useMutation({
     mutationFn: async (input: RenameStorageItemInput) => {
       const result = await renameStorageItemAction(item.id, input)
-      if ("error" in result) throw new Error(result.error)
+      if (!result.success) throw new Error(result.error)
       return result.data
     },
     onSuccess: (renamedItem) => {

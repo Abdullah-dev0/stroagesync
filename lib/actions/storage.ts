@@ -7,6 +7,7 @@ import {
   completeUploadsInputSchema,
   renameStorageItemInputSchema,
   updateStorageItemTrashInputSchema,
+  type PresignedUpload,
   type StorageItem,
 } from "@/lib/validations/storage"
 import { requireSession } from "@/lib/auth/session"
@@ -25,17 +26,7 @@ import {
   createFilePreview,
   createFileDownload,
 } from "@/lib/db/queries/storage"
-import { ActionError } from "@/lib/utils/errors"
-
-function handleActionError(error: unknown): { error: string } {
-  if (error instanceof z.ZodError) {
-    return { error: error.issues[0]?.message ?? "Invalid input." }
-  }
-  if (error instanceof ActionError) {
-    return { error: error.message }
-  }
-  throw error
-}
+import { type Result, ok, err } from "@/lib/utils/result"
 
 // --- Read actions (for client components / TanStack Query) ---
 
@@ -51,120 +42,188 @@ export async function getStorageUsageAction() {
   return getStorageUsage()
 }
 
-export async function getFilePreviewAction(itemId: unknown) {
+export async function getFilePreviewAction(
+  itemId: unknown
+): Promise<Result<{ url: string; mimeType: string }>> {
   const session = await requireSession()
-  try {
-    const id = z.uuid().parse(itemId)
-    return { data: await createFilePreview(id, session.user.id) }
-  } catch (error) {
-    return handleActionError(error)
+  const parsedId = z.uuid().safeParse(itemId)
+
+  if (!parsedId.success) {
+    return err("Invalid item ID.")
   }
+
+  const result = await createFilePreview(parsedId.data, session.user.id)
+
+  if (!result.success) {
+    return err(result.error)
+  }
+
+  return ok(result.data)
 }
 
-export async function getFileDownloadAction(itemId: unknown) {
+export async function getFileDownloadAction(
+  itemId: unknown
+): Promise<Result<{ url: string }>> {
   const session = await requireSession()
-  try {
-    const id = z.uuid().parse(itemId)
-    return { data: await createFileDownload(id, session.user.id) }
-  } catch (error) {
-    return handleActionError(error)
+  const parsedId = z.uuid().safeParse(itemId)
+
+  if (!parsedId.success) {
+    return err("Invalid item ID.")
   }
+
+  const result = await createFileDownload(parsedId.data, session.user.id)
+
+  if (!result.success) {
+    return err(result.error)
+  }
+
+  return ok(result.data)
 }
 
 // --- Write actions ---
 
-export async function createFolderAction(input: unknown) {
+export async function createFolderAction(
+  input: unknown
+): Promise<Result<StorageItem>> {
   const session = await requireSession()
-  try {
-    const data = createFolderInputSchema.parse(input)
-    const result = await createFolder(data, session.user.id)
-    revalidatePath("/dashboard", "layout")
-    return { data: result }
-  } catch (error) {
-    return handleActionError(error)
+  const parsed = createFolderInputSchema.safeParse(input)
+  if (!parsed.success) {
+    return err(parsed.error.issues[0]?.message ?? "Invalid input.")
   }
+
+  const result = await createFolder(parsed.data, session.user.id)
+  if (!result.success) {
+    return err(result.error)
+  }
+
+  revalidatePath("/dashboard", "layout")
+  return ok(result.data)
 }
 
-export async function createUploadUrlsAction(input: unknown) {
+export async function createUploadUrlsAction(
+  input: unknown
+): Promise<Result<PresignedUpload[]>> {
   const session = await requireSession()
-  try {
-    const data = createUploadUrlsInputSchema.parse(input)
-    const result = await createPresignedUploads(data.files, session.user.id)
-    revalidatePath("/dashboard", "layout")
-    return { data: result }
-  } catch (error) {
-    return handleActionError(error)
+  const parsed = createUploadUrlsInputSchema.safeParse(input)
+  if (!parsed.success) {
+    return err(parsed.error.issues[0]?.message ?? "Invalid input.")
   }
+
+  const result = await createPresignedUploads(
+    parsed.data.files,
+    session.user.id
+  )
+  revalidatePath("/dashboard", "layout")
+  return ok(result)
 }
 
-export async function completeUploadsAction(input: unknown) {
+export async function completeUploadsAction(
+  input: unknown
+): Promise<Result<StorageItem[]>> {
   const session = await requireSession()
-  try {
-    const data = completeUploadsInputSchema.parse(input)
-    const result = await completePendingUploads(data.fileIds, session.user.id)
-    revalidatePath("/dashboard", "layout")
-    return { data: result }
-  } catch (error) {
-    return handleActionError(error)
+  const parsed = completeUploadsInputSchema.safeParse(input)
+  if (!parsed.success) {
+    return err(parsed.error.issues[0]?.message ?? "Invalid input.")
   }
+
+  const result = await completePendingUploads(
+    parsed.data.fileIds,
+    session.user.id
+  )
+  if (!result.success) {
+    return err(result.error)
+  }
+
+  revalidatePath("/dashboard", "layout")
+  return ok(result.data)
 }
 
-export async function renameStorageItemAction(itemId: unknown, input: unknown) {
+export async function renameStorageItemAction(
+  itemId: unknown,
+  input: unknown
+): Promise<Result<StorageItem>> {
   const session = await requireSession()
-  try {
-    const id = z.uuid().parse(itemId)
-    const data = renameStorageItemInputSchema.parse(input)
-    const result = await renameStorageItemById(id, data.name, session.user.id)
-    revalidatePath("/dashboard", "layout")
-    return { data: result }
-  } catch (error) {
-    return handleActionError(error)
+  const parsedId = z.uuid().safeParse(itemId)
+  if (!parsedId.success) {
+    return err("Invalid item ID.")
   }
+
+  const parsedInput = renameStorageItemInputSchema.safeParse(input)
+  if (!parsedInput.success) {
+    return err(parsedInput.error.issues[0]?.message ?? "Invalid input.")
+  }
+
+  const result = await renameStorageItemById(
+    parsedId.data,
+    parsedInput.data.name,
+    session.user.id
+  )
+  if (!result.success) {
+    return err(result.error)
+  }
+
+  revalidatePath("/dashboard", "layout")
+  return ok(result.data)
 }
 
 export async function updateStorageItemTrashAction(
   itemId: unknown,
   input: unknown
-) {
+): Promise<Result<StorageItem>> {
   const session = await requireSession()
-  try {
-    const id = z.uuid().parse(itemId)
-    const data = updateStorageItemTrashInputSchema.parse(input)
-    const result = await updateStorageItemTrashById(
-      id,
-      session.user.id,
-      data.trashed
-    )
-    revalidatePath("/dashboard", "layout")
-    return { data: result }
-  } catch (error) {
-    return handleActionError(error)
+  const parsedId = z.uuid().safeParse(itemId)
+  if (!parsedId.success) {
+    return err("Invalid item ID.")
   }
+
+  const parsedInput = updateStorageItemTrashInputSchema.safeParse(input)
+  if (!parsedInput.success) {
+    return err(parsedInput.error.issues[0]?.message ?? "Invalid input.")
+  }
+
+  const result = await updateStorageItemTrashById(
+    parsedId.data,
+    session.user.id,
+    parsedInput.data.trashed
+  )
+  if (!result.success) {
+    return err(result.error)
+  }
+
+  revalidatePath("/dashboard", "layout")
+  return ok(result.data)
 }
 
-export async function deleteTrashedItemAction(itemId: unknown) {
+export async function deleteTrashedItemAction(
+  itemId: unknown
+): Promise<Result<{ deletedIds: string[] }>> {
   const session = await requireSession()
-  try {
-    const id = z.uuid().parse(itemId)
-    const result = {
-      deletedIds: await deleteTrashedStorageItemById(id, session.user.id),
-    }
-    revalidatePath("/dashboard", "layout")
-    return { data: result }
-  } catch (error) {
-    return handleActionError(error)
+  const parsedId = z.uuid().safeParse(itemId)
+  if (!parsedId.success) {
+    return err("Invalid item ID.")
   }
+
+  const result = await deleteTrashedStorageItemById(
+    parsedId.data,
+    session.user.id
+  )
+  if (!result.success) {
+    return err(result.error)
+  }
+
+  revalidatePath("/dashboard", "layout")
+  return ok({ deletedIds: result.data })
 }
 
-export async function emptyTrashAction() {
+export async function emptyTrashAction(): Promise<
+  Result<{ deletedIds: string[] }>
+> {
   const session = await requireSession()
-  try {
-    const result = {
-      deletedIds: await deleteAllTrashedStorageItems(session.user.id),
-    }
-    revalidatePath("/dashboard", "layout")
-    return { data: result }
-  } catch (error) {
-    return handleActionError(error)
+  const result = await deleteAllTrashedStorageItems(session.user.id)
+  if (!result.success) {
+    return err(result.error)
   }
+
+  revalidatePath("/dashboard", "layout")
+  return ok({ deletedIds: result.data })
 }

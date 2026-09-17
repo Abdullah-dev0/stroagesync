@@ -53,7 +53,7 @@ export function TrashItemGridClient({
       const result = await updateStorageItemTrashAction(item.id, {
         trashed: false,
       } satisfies UpdateStorageItemTrashInput)
-      if ("error" in result) throw new Error(result.error)
+      if (!result.success) throw new Error(result.error)
       return result.data
     },
     onSuccess: (restoredItem, item) => {
@@ -90,7 +90,7 @@ export function TrashItemGridClient({
   const permanentlyDeleteItem = useMutation({
     mutationFn: async (item: StorageItem) => {
       const result = await deleteTrashedItemAction(item.id)
-      if ("error" in result) throw new Error(result.error)
+      if (!result.success) throw new Error(result.error)
       return result.data
     },
     onSuccess: ({ deletedIds }, item) => {

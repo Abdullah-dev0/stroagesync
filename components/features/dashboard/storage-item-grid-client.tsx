@@ -46,7 +46,7 @@ export function StorageItemGridClient({
       const result = await updateStorageItemTrashAction(item.id, {
         trashed: true,
       } satisfies UpdateStorageItemTrashInput)
-      if ("error" in result) throw new Error(result.error)
+      if (!result.success) throw new Error(result.error)
       return result.data
     },
     onSuccess: (trashedItem, item) => {

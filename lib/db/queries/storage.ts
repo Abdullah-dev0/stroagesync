@@ -20,7 +20,7 @@ import { db } from "@/lib/db/client"
 import { storageItem } from "@/lib/db/schema"
 import { r2Client } from "@/lib/db/r2"
 import { requireSession } from "@/lib/auth/session"
-import { ActionError } from "@/lib/utils/errors"
+import { type Result, ok, err } from "@/lib/utils/result"
 
 const UPLOAD_URL_EXPIRES_IN_SECONDS = 5 * 60
 const PREVIEW_URL_EXPIRES_IN_SECONDS = 60
@@ -41,7 +41,7 @@ const previewableMimeTypes = new Set([
 export const createFolder = async (
   input: CreateFolderInput,
   ownerId: string
-) => {
+): Promise<Result<StorageItem>> => {
   const [newFolder] = await db
     .insert(storageItem)
     .values({
@@ -62,10 +62,10 @@ export const createFolder = async (
     })
 
   if (!newFolder) {
-    throw new ActionError("Failed to create folder.")
+    return err("Failed to create folder.")
   }
 
-  return newFolder
+  return ok(newFolder)
 }
 
 export const listStorageItemsByOwnerId = async (ownerId: string) => {
@@ -110,7 +110,7 @@ export const updateStorageItemTrashById = async (
   itemId: string,
   ownerId: string,
   trashed: boolean
-) => {
+): Promise<Result<StorageItem>> => {
   const [updatedItem] = await db
     .update(storageItem)
     .set({
@@ -136,10 +136,10 @@ export const updateStorageItemTrashById = async (
     })
 
   if (!updatedItem) {
-    throw new ActionError("Storage item not found.")
+    return err("Storage item not found.")
   }
 
-  return updatedItem
+  return ok(updatedItem)
 }
 
 export const createPresignedUploads = async (
@@ -190,7 +190,7 @@ export const createPresignedUploads = async (
 export const completePendingUploads = async (
   fileIds: string[],
   ownerId: string
-) => {
+): Promise<Result<StorageItem[]>> => {
   const files = await db
     .select({
       id: storageItem.id,
@@ -209,30 +209,28 @@ export const completePendingUploads = async (
     )
 
   if (files.length !== fileIds.length) {
-    throw new ActionError("Upload not found.")
+    return err("Upload not found.")
   }
 
-  await Promise.all(
-    files.map(async (file) => {
-      if (!file.storageKey || !file.mimeType || file.size === null) {
-        throw new ActionError("Upload metadata is incomplete.")
-      }
+  for (const file of files) {
+    if (!file.storageKey || !file.mimeType || file.size === null) {
+      return err("Upload metadata is incomplete.")
+    }
 
-      const object = await r2Client.send(
-        new HeadObjectCommand({
-          Bucket: env.r2BucketName,
-          Key: file.storageKey,
-        })
-      )
+    const object = await r2Client.send(
+      new HeadObjectCommand({
+        Bucket: env.r2BucketName,
+        Key: file.storageKey,
+      })
+    )
 
-      if (
-        object.ContentLength !== file.size ||
-        object.ContentType !== file.mimeType
-      ) {
-        throw new ActionError("Uploaded file does not match the expected metadata.")
-      }
-    })
-  )
+    if (
+      object.ContentLength !== file.size ||
+      object.ContentType !== file.mimeType
+    ) {
+      return err("Uploaded file does not match the expected metadata.")
+    }
+  }
 
   const completedFiles = await db
     .update(storageItem)
@@ -256,13 +254,16 @@ export const completePendingUploads = async (
     })
 
   if (completedFiles.length !== fileIds.length) {
-    throw new ActionError("Upload expired before completion.")
+    return err("Upload expired before completion.")
   }
 
-  return completedFiles
+  return ok(completedFiles)
 }
 
-export const createFilePreview = async (itemId: string, ownerId: string) => {
+export const createFilePreview = async (
+  itemId: string,
+  ownerId: string
+): Promise<Result<{ url: string; mimeType: string }>> => {
   const [file] = await db
     .select({
       storageKey: storageItem.storageKey,
@@ -280,11 +281,11 @@ export const createFilePreview = async (itemId: string, ownerId: string) => {
     .limit(1)
 
   if (!file?.storageKey || !file.mimeType) {
-    throw new ActionError("File not found.")
+    return err("File not found.")
   }
 
   if (!previewableMimeTypes.has(file.mimeType)) {
-    throw new ActionError("This file type cannot be previewed.")
+    return err("This file type cannot be previewed.")
   }
 
   const url = await getSignedUrl(
@@ -298,13 +299,16 @@ export const createFilePreview = async (itemId: string, ownerId: string) => {
     { expiresIn: PREVIEW_URL_EXPIRES_IN_SECONDS }
   )
 
-  return {
+  return ok({
     url,
     mimeType: file.mimeType,
-  }
+  })
 }
 
-export const createFileDownload = async (itemId: string, ownerId: string) => {
+export const createFileDownload = async (
+  itemId: string,
+  ownerId: string
+): Promise<Result<{ url: string }>> => {
   const [file] = await db
     .select({
       name: storageItem.name,
@@ -322,7 +326,7 @@ export const createFileDownload = async (itemId: string, ownerId: string) => {
     .limit(1)
 
   if (!file?.storageKey) {
-    throw new ActionError("File not found.")
+    return err("File not found.")
   }
 
   const url = await getSignedUrl(
@@ -335,14 +339,14 @@ export const createFileDownload = async (itemId: string, ownerId: string) => {
     { expiresIn: DOWNLOAD_URL_EXPIRES_IN_SECONDS }
   )
 
-  return { url }
+  return ok({ url })
 }
 
 export const renameStorageItemById = async (
   itemId: string,
   name: string,
   ownerId: string
-) => {
+): Promise<Result<StorageItem>> => {
   const [renamedItem] = await db
     .update(storageItem)
     .set({ name, updatedAt: new Date() })
@@ -365,10 +369,10 @@ export const renameStorageItemById = async (
     })
 
   if (!renamedItem) {
-    throw new ActionError("Storage item not found.")
+    return err("Storage item not found.")
   }
 
-  return renamedItem
+  return ok(renamedItem)
 }
 
 export const listTrashStorageItemsByOwnerId = async (ownerId: string) => {
@@ -394,7 +398,10 @@ export const listTrashStorageItemsByOwnerId = async (ownerId: string) => {
     .orderBy(desc(storageItem.updatedAt))
 }
 
-const deleteTrashedStorageItems = async (ownerId: string, itemId?: string) => {
+const deleteTrashedStorageItems = async (
+  ownerId: string,
+  itemId?: string
+): Promise<Result<string[]>> => {
   const conditions = and(
     eq(storageItem.ownerId, ownerId),
     eq(storageItem.status, "ready"),
@@ -411,7 +418,7 @@ const deleteTrashedStorageItems = async (ownerId: string, itemId?: string) => {
     .where(conditions)
 
   if (itemId && trashedItems.length === 0) {
-    throw new ActionError("Trashed item not found.")
+    return err("Trashed item not found.")
   }
 
   await Promise.all(
@@ -432,7 +439,7 @@ const deleteTrashedStorageItems = async (ownerId: string, itemId?: string) => {
     .where(conditions)
     .returning({ id: storageItem.id })
 
-  return deletedItems.map((item) => item.id)
+  return ok(deletedItems.map((item) => item.id))
 }
 
 export const deleteTrashedStorageItemById = async (

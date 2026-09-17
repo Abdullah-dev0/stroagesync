@@ -37,7 +37,7 @@ export function EmptyTrashAction({ itemsPromise }: EmptyTrashActionProps) {
   const emptyTrash = useMutation({
     mutationFn: async () => {
       const result = await emptyTrashAction()
-      if ("error" in result) throw new Error(result.error)
+      if (!result.success) throw new Error(result.error)
       return result.data
     },
     onSuccess: ({ deletedIds }) => {

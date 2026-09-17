@@ -35,7 +35,7 @@ export function PreviewFile({
     queryKey: ["file-preview", item.id],
     queryFn: async () => {
       const result = await getFilePreviewAction(item.id)
-      if ("error" in result) throw new Error(result.error)
+      if (!result.success) throw new Error(result.error)
       return result.data
     },
     enabled: isPreviewOpen && item.type === "file",
@@ -46,17 +46,19 @@ export function PreviewFile({
   const downloadFile = useMutation({
     mutationFn: async () => {
       const result = await getFileDownloadAction(item.id)
-      if ("error" in result) throw new Error(result.error)
+      if (!result.success) throw new Error(result.error)
       return result.data
     },
     onSuccess: ({ url }) => {
       window.location.assign(url)
     },
-    onError: () => {
+    onError: (error) => {
       toast.add({
         type: "error",
         title: "Download failed",
-        description: "This file could not be downloaded. Please try again.",
+        description:
+          error.message ||
+          "This file could not be downloaded. Please try again.",
       })
     },
   })
@@ -115,7 +117,9 @@ export function PreviewFile({
             <div className="grid max-w-sm gap-1 p-6 text-center">
               <p className="font-medium text-foreground">Preview unavailable</p>
               <p className="text-sm text-muted-foreground">
-                {"This file could not be previewed. Please try again."}
+                {previewFile.error instanceof Error
+                  ? previewFile.error.message
+                  : "This file could not be previewed. Please try again."}
               </p>
             </div>
           )}

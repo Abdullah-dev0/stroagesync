@@ -50,7 +50,7 @@ export function StorageCreateMenu() {
   const createFolder = useMutation({
     mutationFn: async (input: CreateFolderInput) => {
       const result = await createFolderAction(input)
-      if ("error" in result) throw new Error(result.error)
+      if (!result.success) throw new Error(result.error)
       return result.data
     },
     onSuccess: (folder) => {
@@ -86,7 +86,7 @@ export function StorageCreateMenu() {
       uploadInput: CreateUploadUrlsInput
     }) => {
       const presign = await createUploadUrlsAction(uploadInput)
-      if ("error" in presign) throw new Error(presign.error)
+      if (!presign.success) throw new Error(presign.error)
       const uploads = presign.data
 
       if (uploads.length !== files.length) {
@@ -118,7 +118,7 @@ export function StorageCreateMenu() {
       })
 
       const result = await completeUploadsAction(completionInput)
-      if ("error" in result) throw new Error(result.error)
+      if (!result.success) throw new Error(result.error)
       return result.data
     },
     onMutate: ({ files }) => {
