@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Eye, Pencil, Share2, Trash2 } from "lucide-react"
-import { use, useState } from "react"
+import { use, useState, type ReactNode } from "react"
 
 import { fetchDriveItems } from "@/lib/api/storage"
 import { PreviewFile } from "@/components/features/dashboard/preview-storage-item-dialog"
@@ -22,22 +22,32 @@ import {
   type StorageItem,
   type UpdateStorageItemTrashInput,
 } from "@/lib/validations/storage"
+import { useRouter } from "next/navigation"
 
 type StorageItemGridClientProps = {
+  emptyState?: ReactNode
+  folderId?: string
   itemsPromise: Promise<StorageItem[]>
 }
 
 export function StorageItemGridClient({
+  emptyState,
+  folderId,
   itemsPromise,
 }: StorageItemGridClientProps) {
   const initialItems = use(itemsPromise)
   const [previewItem, setPreviewItem] = useState<StorageItem | null>(null)
   const [renameItem, setRenameItem] = useState<StorageItem | null>(null)
+  const router = useRouter()
+
   const queryClient = useQueryClient()
+  const queryKey = folderId
+    ? ([...storageItemsQueryKey, folderId] as const)
+    : storageItemsQueryKey
 
   const { data: items } = useQuery({
-    queryKey: storageItemsQueryKey,
-    queryFn: fetchDriveItems,
+    queryKey,
+    queryFn: folderId ? () => Promise.resolve(initialItems) : fetchDriveItems,
     initialData: initialItems,
   })
 
@@ -51,7 +61,7 @@ export function StorageItemGridClient({
     },
     onSuccess: (trashedItem, item) => {
       queryClient.setQueryData<StorageItem[]>(
-        storageItemsQueryKey,
+        queryKey,
         (currentItems = []) =>
           currentItems.filter((currentItem) => currentItem.id !== item.id)
       )
@@ -86,7 +96,7 @@ export function StorageItemGridClient({
   })
 
   if (items.length === 0) {
-    return <StorageEmptyState />
+    return emptyState ?? <StorageEmptyState />
   }
 
   return (
@@ -98,12 +108,19 @@ export function StorageItemGridClient({
             item={item}
             pending={isPending && variables?.id === item.id}
             onOpen={
-              item.type === "file" ? () => setPreviewItem(item) : undefined
+              item.type === "file"
+                ? () => setPreviewItem(item)
+                : () => router.push(`/dashboard/folder/${item.id}`)
             }
             actions={
               <>
                 {item.type === "folder" && (
-                  <DropdownMenuItem className="cursor-pointer gap-2 px-2 py-2">
+                  <DropdownMenuItem
+                    className="cursor-pointer gap-2 px-2 py-2"
+                    onClick={() =>
+                      router.push(`/dashboard/folder/${item.id}`)
+                    }
+                  >
                     <Eye />
                     Open
                   </DropdownMenuItem>

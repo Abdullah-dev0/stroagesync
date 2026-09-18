@@ -9,10 +9,7 @@ import {
   createUploadUrlsAction,
   completeUploadsAction,
 } from "@/lib/actions/storage"
-import {
-  storageItemsQueryKey,
-  storageUsageQueryKey,
-} from "@/lib/query-keys"
+import { storageItemsQueryKey, storageUsageQueryKey } from "@/lib/query-keys"
 import { ExpectedResultError } from "@/lib/utils/result"
 import { Button } from "@/components/ui/button"
 import {
@@ -43,12 +40,16 @@ import {
   type StorageItem,
 } from "@/lib/validations/storage"
 import { cn } from "cn"
+import { useParams } from "next/navigation"
 
 export function StorageCreateMenu() {
   const [isFolderDialogOpen, setIsFolderDialogOpen] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [folderName, setFolderName] = useState("")
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const params = useParams()
+  const parentId = params.id
+  console.log(parentId)
   const queryClient = useQueryClient()
 
   const createFolder = useMutation({
@@ -58,12 +59,10 @@ export function StorageCreateMenu() {
       return result.data
     },
     onSuccess: (folder) => {
-      queryClient.setQueryData<StorageItem[]>(
-        storageItemsQueryKey,
-        (items) =>
-          items
-            ? [folder, ...items.filter((item) => item.id !== folder.id)]
-            : items
+      queryClient.setQueryData<StorageItem[]>(storageItemsQueryKey, (items) =>
+        items
+          ? [folder, ...items.filter((item) => item.id !== folder.id)]
+          : items
       )
       setFolderName("")
       setErrorMessage(null)
@@ -143,15 +142,13 @@ export function StorageCreateMenu() {
     onSuccess: async (uploadedFiles, _variables, mutationContext) => {
       const uploadedFileIds = new Set(uploadedFiles.map(({ id }) => id))
 
-      queryClient.setQueryData<StorageItem[]>(
-        storageItemsQueryKey,
-        (items) =>
-          items
-            ? [
-                ...uploadedFiles,
-                ...items.filter(({ id }) => !uploadedFileIds.has(id)),
-              ]
-            : items
+      queryClient.setQueryData<StorageItem[]>(storageItemsQueryKey, (items) =>
+        items
+          ? [
+              ...uploadedFiles,
+              ...items.filter(({ id }) => !uploadedFileIds.has(id)),
+            ]
+          : items
       )
       await queryClient.invalidateQueries({ queryKey: storageUsageQueryKey })
 

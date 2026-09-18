@@ -1,20 +1,18 @@
 import { Clock3 } from "lucide-react"
 import { Suspense } from "react"
 
-import { DashboardHeader } from "@/components/shared/dashboard-header"
 import { StorageItemGridSkeleton } from "@/components/features/dashboard/storage-item-grid-skeleton"
 import { EmptyTrashAction } from "@/components/features/trash/empty-trash-action"
 import { TrashItemGridClient } from "@/components/features/trash/trash-item-grid-client"
-import { getTrashItems } from "@/lib/db/queries/storage"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
+import { getTrashItems } from "@/lib/db/queries/storage"
 
 export default function Page() {
   const itemsPromise = getTrashItems()
 
   return (
     <div className="w-full">
-      <DashboardHeader />
       <div className="w-full p-4 sm:p-7">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>

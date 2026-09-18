@@ -1,6 +1,5 @@
 import { Suspense } from "react"
 
-import { DashboardHeader } from "@/components/shared/dashboard-header"
 import { StorageItemGridClient } from "@/components/features/dashboard/storage-item-grid-client"
 import { StorageItemGridSkeleton } from "@/components/features/dashboard/storage-item-grid-skeleton"
 import { getDriveItems } from "@/lib/db/queries/storage"
@@ -10,7 +9,6 @@ export default function Page() {
 
   return (
     <div className="w-full">
-      <DashboardHeader />
       <div className="w-full p-4 sm:p-7">
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">
           My Drive
