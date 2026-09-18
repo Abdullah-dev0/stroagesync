@@ -55,6 +55,9 @@ Follow the established folder structure for all new features and modifications:
 - Do not use hard-coded colors in components. Use semantic Tailwind color
   utilities backed by the existing design tokens instead.
 - Reuse components from `components/ui` before creating app-specific duplicates.
+- Always show skeleton placeholders while async content is loading, including
+  user/session UI. Reuse `components/ui/skeleton` and match the loaded content's
+  shape and size to avoid layout shifts. Replace skeletons with content when ready.
 - Keep reusable UI primitives in `components/ui`; keep feature-specific components
   close to the app or route that uses them.
 - Use the existing `cn` utility for conditional class names.
