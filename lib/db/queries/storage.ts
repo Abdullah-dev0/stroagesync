@@ -85,6 +85,7 @@ export const listStorageItemsByOwnerId = async (ownerId: string) => {
     .where(
       and(
         eq(storageItem.ownerId, ownerId),
+        isNull(storageItem.parentId),
         eq(storageItem.status, "ready"),
         isNull(storageItem.deletedAt)
       )

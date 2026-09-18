@@ -1,4 +1,4 @@
-import { ChevronRight, HardDrive } from "lucide-react"
+import { ChevronRight } from "lucide-react"
 import Link from "next/link"
 
 import type { Folder } from "@/lib/validations/storage"
@@ -15,17 +15,6 @@ export function FolderBreadcrumbs({
   return (
     <nav aria-label="Breadcrumb">
       <ol className="flex items-center gap-1.5 text-sm">
-        {/* Root — My Drive */}
-        <li className="flex items-center gap-1.5">
-          <Link
-            href="/dashboard"
-            className="flex items-center gap-1.5 rounded-md px-1.5 py-1 text-muted-foreground transition-colors duration-150 hover:bg-accent hover:text-foreground"
-          >
-            <HardDrive className="size-3.5" aria-hidden="true" />
-            <span className="max-sm:sr-only">My Drive</span>
-          </Link>
-        </li>
-
         {/* Ancestor folders */}
         {ancestors.map((ancestor) => (
           <li key={ancestor.id} className="hidden items-center gap-1.5 sm:flex">
