@@ -12,7 +12,7 @@ import {
   type CreateUploadUrlsInput,
 } from "@/lib/validations/storage"
 import { randomUUID } from "crypto"
-import { and, desc, eq, inArray, isNotNull, isNull, sum } from "drizzle-orm"
+import { and, desc, eq, inArray, isNotNull, isNull, sql, sum } from "drizzle-orm"
 import { env } from "@/lib/env"
 import { getDbAsync } from "@/lib/db/client"
 import { storageItem } from "@/lib/db/schema"
@@ -540,4 +540,48 @@ export async function getFolderContent(id: string) {
   }
 
   return ok(result.data)
+}
+
+/**
+ * Returns the ordered list of ancestor folders for a given folder id,
+ * from the root down to the immediate parent (excluding the folder itself).
+ * Uses a recursive CTE so it works at any depth in a single round-trip.
+ */
+export async function getFolderAncestors(
+  id: string
+): Promise<Array<{ id: string; name: string }>> {
+  const session = await requireSession()
+  const db = await getDbAsync()
+
+  // Walk parentId upward with a recursive CTE, collecting ancestors depth-first.
+  // The final SELECT orders them from root down to immediate parent.
+  const rows = await db.execute<{ id: string; name: string }>(sql`
+    WITH RECURSIVE ancestors AS (
+      SELECT si.id, si.name, si.parent_id, 1 AS depth
+      FROM storage_item si
+      INNER JOIN storage_item child
+        ON child.parent_id = si.id
+       AND child.id        = ${id}
+       AND child.owner_id  = ${session.user.id}
+      WHERE si.type       = 'folder'
+        AND si.status     = 'ready'
+        AND si.deleted_at IS NULL
+        AND si.owner_id   = ${session.user.id}
+
+      UNION ALL
+
+      SELECT si.id, si.name, si.parent_id, a.depth + 1
+      FROM storage_item si
+      INNER JOIN ancestors a ON si.id = a.parent_id
+      WHERE si.type       = 'folder'
+        AND si.status     = 'ready'
+        AND si.deleted_at IS NULL
+        AND si.owner_id   = ${session.user.id}
+    )
+    SELECT id, name
+    FROM ancestors
+    ORDER BY depth DESC
+  `)
+
+  return rows.rows
 }
