@@ -6,10 +6,6 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 # Project Rules
 
-Keep changes simple, focused, and consistent with the existing Next.js application. Do not
-add abstractions, dependencies, or defensive behavior unless the current task
-requires them.
-
 ## Project Structure
 
 Follow the established folder structure for all new features and modifications:
