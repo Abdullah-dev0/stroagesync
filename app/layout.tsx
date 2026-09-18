@@ -14,6 +14,8 @@ const fontMono = Geist_Mono({
   variable: "--font-mono",
 })
 
+const themeScript = `try{var theme=localStorage.getItem("theme");var dark=theme==="dark"||(theme!=="light"&&window.matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",dark);document.documentElement.style.colorScheme=dark?"dark":"light"}catch{}`
+
 export const metadata: Metadata = {
   metadataBase: siteUrl,
   title: {
@@ -78,6 +80,9 @@ export default function RootLayout({
         geist.variable
       )}
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body>
         <ThemeProvider>
           {children}
