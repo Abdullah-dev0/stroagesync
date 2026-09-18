@@ -25,11 +25,13 @@ type StorageUsageFooterProps = {
 
 export function StorageUsageFooter({ usagePromise }: StorageUsageFooterProps) {
   const initialUsage = use(usagePromise)
+
   const { data: usage } = useQuery({
     queryKey: storageUsageQueryKey,
     queryFn: fetchStorageUsage,
     initialData: initialUsage,
   })
+
   const { usedBytes } = usage
   const usedStorage = formatFileSize(usedBytes)
   const totalStorage = formatFileSize(STORAGE_LIMIT_BYTES)
