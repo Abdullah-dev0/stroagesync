@@ -1,9 +1,10 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
+import { useQuery } from "@tanstack/react-query"
 import { Eye, EyeOff, LoaderCircle } from "lucide-react"
 import Link from "next/link"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Controller, useForm, type SubmitHandler } from "react-hook-form"
 
 import { Button } from "@/components/ui/button"
@@ -18,6 +19,7 @@ import { toast } from "@/components/ui/toast"
 import { authClient } from "@/lib/auth/client"
 import { loginSchema, type LoginInput } from "@/lib/validations/auth"
 import { useRouter } from "next/navigation"
+import { Skeleton } from "@/components/ui/skeleton"
 
 const inputClassName =
   "h-11 rounded-xl px-3.5 shadow-sm hover:border-input focus-visible:border-primary focus-visible:ring-ring/20"
@@ -25,6 +27,21 @@ const inputClassName =
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)
   const router = useRouter()
+  const session = useQuery({
+    queryKey: ["login-session"],
+    queryFn: async () => {
+      const { data, error } = await authClient.getSession({
+        query: { disableCookieCache: true },
+      })
+      if (error)
+        throw new Error(error.message || "Unable to check your session.")
+      return data
+    },
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: false,
+  })
+
   const form = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -33,6 +50,22 @@ export function LoginForm() {
     },
   })
   const { isSubmitting } = form.formState
+
+  useEffect(() => {
+    if (session.isSuccess && !session.isFetching && session.data) {
+      router.replace("/dashboard")
+    }
+  }, [router, session.data, session.isFetching, session.isSuccess])
+
+  useEffect(() => {
+    if (session.isError) {
+      toast.add({
+        type: "error",
+        description:
+          "Unable to check your session. Please sign in to continue.",
+      })
+    }
+  }, [session.isError])
 
   const onSubmit: SubmitHandler<LoginInput> = async (formData: LoginInput) => {
     const { email, password } = formData
@@ -50,6 +83,37 @@ export function LoginForm() {
     }
 
     router.push("/dashboard")
+  }
+
+  if (
+    session.isPending ||
+    session.isFetching ||
+    (session.isSuccess && session.data)
+  ) {
+    return (
+      <div role="status">
+        <div
+          aria-hidden="true"
+          className="space-y-5 **:data-[slot=skeleton]:motion-reduce:animate-none"
+        >
+          <FieldGroup>
+            <div className="space-y-3">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-11 w-full rounded-xl" />
+            </div>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-4">
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-4 w-28" />
+              </div>
+              <Skeleton className="h-11 w-full rounded-xl" />
+            </div>
+          </FieldGroup>
+          <Skeleton className="h-11 w-full rounded-xl" />
+          <Skeleton className="mx-auto h-5 w-56 max-w-full" />
+        </div>
+      </div>
+    )
   }
 
   return (

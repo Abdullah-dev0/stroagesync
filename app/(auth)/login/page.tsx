@@ -3,8 +3,7 @@ import type { Metadata } from "next"
 import Link from "next/link"
 
 import { LoginForm } from "@/components/features/auth/login-form"
-import { redirect } from "next/navigation"
-import { getSession } from "@/lib/auth/session"
+import { QueryProvider } from "@/providers/query-provider"
 
 type LoginPageProps = {
   searchParams: Promise<{
@@ -19,8 +18,6 @@ export const metadata: Metadata = {
 }
 
 export default async function Page({ searchParams }: LoginPageProps) {
-  if (await getSession()) redirect("/dashboard")
-
   const signup = (await searchParams).signup
   const unauthorized = (await searchParams).unauthorized === "true"
   const signupSucceeded = signup === "success"
@@ -71,7 +68,9 @@ export default async function Page({ searchParams }: LoginPageProps) {
         </div>
       )}
 
-      <LoginForm />
+      <QueryProvider>
+        <LoginForm />
+      </QueryProvider>
     </>
   )
 }

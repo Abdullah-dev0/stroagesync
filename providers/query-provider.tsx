@@ -9,7 +9,6 @@ import { useRouter } from "next/navigation"
 import type { ReactNode } from "react"
 
 import { UnauthorizedError } from "@/lib/utils/result"
-import { authClient } from "@/lib/auth/client"
 
 function makeQueryClient(onUnauthorized: () => void) {
   return new QueryClient({
@@ -41,10 +40,9 @@ function getQueryClient(onUnauthorized: () => void) {
 export function QueryProvider({ children }: { children: ReactNode }) {
   const router = useRouter()
 
-  async function handleUnauthorized() {
+  function handleUnauthorized() {
     browserQueryClient?.clear()
-    await authClient.signOut()
-    router.replace("/login")
+    router.replace("/login?unauthorized=true")
   }
 
   return (
