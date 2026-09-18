@@ -16,7 +16,7 @@ import {
 import { randomUUID } from "crypto"
 import { and, desc, eq, inArray, isNotNull, isNull, sum } from "drizzle-orm"
 import { env } from "@/lib/env"
-import { db } from "@/lib/db/client"
+import { getDbAsync } from "@/lib/db/client"
 import { storageItem } from "@/lib/db/schema"
 import { r2Client } from "@/lib/db/r2"
 import { requireSession } from "@/lib/auth/session"
@@ -42,6 +42,7 @@ export const createFolder = async (
   input: CreateFolderInput,
   ownerId: string
 ): Promise<Result<StorageItem>> => {
+  const db = await getDbAsync()
   const [newFolder] = await db
     .insert(storageItem)
     .values({
@@ -69,6 +70,7 @@ export const createFolder = async (
 }
 
 export const listStorageItemsByOwnerId = async (ownerId: string) => {
+  const db = await getDbAsync()
   return db
     .select({
       id: storageItem.id,
@@ -92,6 +94,7 @@ export const listStorageItemsByOwnerId = async (ownerId: string) => {
 }
 
 export const getStorageUsageByOwnerId = async (ownerId: string) => {
+  const db = await getDbAsync()
   const [usage] = await db
     .select({ usedBytes: sum(storageItem.size) })
     .from(storageItem)
@@ -111,6 +114,7 @@ export const updateStorageItemTrashById = async (
   ownerId: string,
   trashed: boolean
 ): Promise<Result<StorageItem>> => {
+  const db = await getDbAsync()
   const [updatedItem] = await db
     .update(storageItem)
     .set({
@@ -146,6 +150,7 @@ export const createPresignedUploads = async (
   files: CreateUploadUrlsInput["files"],
   ownerId: string
 ): Promise<PresignedUpload[]> => {
+  const db = await getDbAsync()
   const uploads = await Promise.all(
     files.map(async (file) => {
       const fileId = randomUUID()
@@ -191,6 +196,7 @@ export const completePendingUploads = async (
   fileIds: string[],
   ownerId: string
 ): Promise<Result<StorageItem[]>> => {
+  const db = await getDbAsync()
   const files = await db
     .select({
       id: storageItem.id,
@@ -270,6 +276,7 @@ export const createFilePreview = async (
   itemId: string,
   ownerId: string
 ): Promise<Result<{ url: string; mimeType: string }>> => {
+  const db = await getDbAsync()
   const [file] = await db
     .select({
       storageKey: storageItem.storageKey,
@@ -315,6 +322,7 @@ export const createFileDownload = async (
   itemId: string,
   ownerId: string
 ): Promise<Result<{ url: string }>> => {
+  const db = await getDbAsync()
   const [file] = await db
     .select({
       name: storageItem.name,
@@ -353,6 +361,7 @@ export const renameStorageItemById = async (
   name: string,
   ownerId: string
 ): Promise<Result<StorageItem>> => {
+  const db = await getDbAsync()
   const [renamedItem] = await db
     .update(storageItem)
     .set({ name, updatedAt: new Date() })
@@ -382,6 +391,7 @@ export const renameStorageItemById = async (
 }
 
 export const listTrashStorageItemsByOwnerId = async (ownerId: string) => {
+  const db = await getDbAsync()
   return await db
     .select({
       id: storageItem.id,
@@ -408,6 +418,7 @@ const deleteTrashedStorageItems = async (
   ownerId: string,
   itemId?: string
 ): Promise<Result<string[]>> => {
+  const db = await getDbAsync()
   const conditions = and(
     eq(storageItem.ownerId, ownerId),
     eq(storageItem.status, "ready"),

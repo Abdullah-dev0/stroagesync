@@ -1,27 +1,17 @@
-import { CircleCheck, CircleX } from "lucide-react"
 import type { Metadata } from "next"
 import Link from "next/link"
+import { Suspense } from "react"
 
 import { LoginForm } from "@/components/features/auth/login-form"
+import { LoginStatus } from "@/components/features/auth/login-status"
 import { QueryProvider } from "@/providers/query-provider"
-
-type LoginPageProps = {
-  searchParams: Promise<{
-    signup?: string
-    unauthorized?: string
-  }>
-}
 
 export const metadata: Metadata = {
   title: "Sign in",
   description: "Sign in to your Storumi account.",
 }
 
-export default async function Page({ searchParams }: LoginPageProps) {
-  const signup = (await searchParams).signup
-  const unauthorized = (await searchParams).unauthorized === "true"
-  const signupSucceeded = signup === "success"
-
+export default function Page() {
   return (
     <>
       <div className="mb-12 flex items-center justify-between lg:hidden">
@@ -42,31 +32,9 @@ export default async function Page({ searchParams }: LoginPageProps) {
         </p>
       </div>
 
-      {signupSucceeded && (
-        <div
-          role="status"
-          className="mb-5 flex items-start gap-3 rounded-xl border border-primary/20 bg-primary/10 p-4 text-sm text-foreground"
-        >
-          <CircleCheck
-            className="mt-0.5 size-4.5 shrink-0 text-primary"
-            aria-hidden="true"
-          />
-          <p>Your account was created successfully. Sign in to continue.</p>
-        </div>
-      )}
-
-      {unauthorized && (
-        <div
-          role="status"
-          className="mb-5 flex items-start gap-3 rounded-xl border border-primary/20 bg-primary/10 p-4 text-sm text-foreground"
-        >
-          <CircleX
-            className="mt-0.5 size-4.5 shrink-0 text-primary"
-            aria-hidden="true"
-          />
-          <p>Your session expired. Sign in again to continue.</p>
-        </div>
-      )}
+      <Suspense fallback={null}>
+        <LoginStatus />
+      </Suspense>
 
       <QueryProvider>
         <LoginForm />

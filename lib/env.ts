@@ -11,7 +11,6 @@ function requireEnvironmentVariable(name: string) {
 }
 
 export const env = {
-  databaseUrl: requireEnvironmentVariable("DATABASE_URL"),
   betterAuthUrl: requireEnvironmentVariable("BETTER_AUTH_URL"),
   r2Endpoint: requireEnvironmentVariable("R2_ENDPOINT"),
   r2AccessKeyId: requireEnvironmentVariable("R2_ACCESS_KEY_ID"),

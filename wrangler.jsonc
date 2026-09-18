@@ -1,0 +1,25 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "storumi",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-09-18",
+  "compatibility_flags": [
+    "nodejs_compat",
+    "global_fetch_strictly_public",
+  ],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS",
+  },
+  "observability": {
+    "enabled": true,
+  },
+  "workers_dev": true,
+  "vars": {},
+  "hyperdrive": [
+    {
+      "binding": "HYPERDRIVE",
+      "id": "57b61536ad324b98aec7a48cae1345d1",
+    },
+  ],
+}
