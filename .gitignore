@@ -21,7 +21,6 @@ out/
 # cloudflare
 .dev.vars*
 .wrangler/
-cloudflare-env.d.ts
 
 # production
 build
