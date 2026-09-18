@@ -9,7 +9,10 @@ import {
   createUploadUrlsAction,
   completeUploadsAction,
 } from "@/lib/actions/storage"
-import { storageItemsQueryKey, storageUsageQueryKey } from "@/lib/query-keys"
+import {
+  storageItemsByParentQueryKey,
+  storageUsageQueryKey,
+} from "@/lib/query-keys"
 import { ExpectedResultError } from "@/lib/utils/result"
 import { Button } from "@/components/ui/button"
 import {
@@ -47,10 +50,10 @@ export function StorageCreateMenu() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [folderName, setFolderName] = useState("")
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const params = useParams()
-  const parentId = params.id
-  console.log(parentId)
+  const params = useParams<{ id?: string }>()
+  const parentId = params.id ?? null
   const queryClient = useQueryClient()
+  const itemsQueryKey = storageItemsByParentQueryKey(parentId)
 
   const createFolder = useMutation({
     mutationFn: async (input: CreateFolderInput) => {
@@ -59,7 +62,7 @@ export function StorageCreateMenu() {
       return result.data
     },
     onSuccess: (folder) => {
-      queryClient.setQueryData<StorageItem[]>(storageItemsQueryKey, (items) =>
+      queryClient.setQueryData<StorageItem[]>(itemsQueryKey, (items) =>
         items
           ? [folder, ...items.filter((item) => item.id !== folder.id)]
           : items
@@ -142,7 +145,7 @@ export function StorageCreateMenu() {
     onSuccess: async (uploadedFiles, _variables, mutationContext) => {
       const uploadedFileIds = new Set(uploadedFiles.map(({ id }) => id))
 
-      queryClient.setQueryData<StorageItem[]>(storageItemsQueryKey, (items) =>
+      queryClient.setQueryData<StorageItem[]>(itemsQueryKey, (items) =>
         items
           ? [
               ...uploadedFiles,
@@ -191,7 +194,7 @@ export function StorageCreateMenu() {
 
     const input = createFolderInputSchema.safeParse({
       name: folderName,
-      parentId: null,
+      parentId: parentId,
     })
 
     if (!input.success) {

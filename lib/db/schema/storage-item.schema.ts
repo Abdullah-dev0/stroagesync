@@ -9,6 +9,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core"
 import { user } from "./auth.schema"
+import { relations } from "drizzle-orm"
 
 export const storageItemType = pgEnum("storage_item_type", ["file", "folder"])
 export const storageItemStatus = pgEnum("storage_item_status", [
@@ -44,3 +45,15 @@ export const storageItem = pgTable(
     index("storage_item_owner_parent_idx").on(table.ownerId, table.parentId),
   ]
 )
+
+export const storageItemRelations = relations(storageItem, ({ one, many }) => ({
+  parent: one(storageItem, {
+    fields: [storageItem.parentId],
+    references: [storageItem.id],
+    relationName: "folderChildren",
+  }),
+
+  children: many(storageItem, {
+    relationName: "folderChildren",
+  }),
+}))

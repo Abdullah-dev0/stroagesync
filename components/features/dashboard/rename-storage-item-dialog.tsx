@@ -5,7 +5,7 @@ import { LoaderCircle } from "lucide-react"
 import { useState, type SubmitEvent } from "react"
 
 import { renameStorageItemAction } from "@/lib/actions/storage"
-import { storageItemsQueryKey } from "@/lib/query-keys"
+import { storageItemsByParentQueryKey } from "@/lib/query-keys"
 import { ExpectedResultError } from "@/lib/utils/result"
 import { Button } from "@/components/ui/button"
 import {
@@ -48,7 +48,7 @@ export function RenameStorageItemDialog({
     },
     onSuccess: (renamedItem) => {
       queryClient.setQueryData<StorageItem[]>(
-        storageItemsQueryKey,
+        storageItemsByParentQueryKey(renamedItem.parentId),
         (items = []) =>
           items.map((currentItem) =>
             currentItem.id === renamedItem.id ? renamedItem : currentItem

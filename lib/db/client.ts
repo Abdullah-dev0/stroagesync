@@ -1,4 +1,5 @@
 import "server-only"
+import * as dbSchema from "@/lib/db/schema"
 
 import { getCloudflareContext } from "@opennextjs/cloudflare"
 import { drizzle } from "drizzle-orm/node-postgres"
@@ -12,5 +13,5 @@ export const getDbAsync = cache(async () => {
     connectionString,
     maxUses: 1,
   })
-  return drizzle({ client: pool })
+  return drizzle({ client: pool, schema: dbSchema })
 })

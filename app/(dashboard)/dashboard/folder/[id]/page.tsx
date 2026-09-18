@@ -1,30 +1,42 @@
 import { Folder } from "lucide-react"
-import { use } from "react"
+import { notFound } from "next/navigation"
+import { Suspense } from "react"
 
 import { StorageItemGridClient } from "@/components/features/dashboard/storage-item-grid-client"
+import { StorageItemGridSkeleton } from "@/components/features/dashboard/storage-item-grid-skeleton"
 import { FolderBreadcrumbs } from "@/components/features/folder/folder-breadcrumbs"
 import { FolderEmptyState } from "@/components/features/folder/folder-empty-state"
-import type { StorageItem } from "@/lib/validations/storage"
+import { Skeleton } from "@/components/ui/skeleton"
+import { getFolderContent } from "@/lib/db/queries/storage"
 
-export default function Page({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params)
+type FolderPageProps = {
+  params: Promise<{ id: string }>
+}
 
-  // TODO: Wire up to real data
-  // const { folderResult, items, breadcrumbs } = await getFolderItems(id)
-  // if (!folderResult.success) notFound()
+export default function Page({ params }: FolderPageProps) {
+  return (
+    <Suspense fallback={<FolderPageSkeleton />}>
+      <FolderPageContent params={params} />
+    </Suspense>
+  )
+}
 
-  // Placeholder data for design — remove when wiring up
-  const folder = { id, name: "Design Assets" }
-  const ancestors = [{ id: "parent-1", name: "Projects" }]
-  const itemsPromise = Promise.resolve<StorageItem[]>([])
+async function FolderPageContent({ params }: FolderPageProps) {
+  const { id } = await params
+  const result = await getFolderContent(id)
+
+  if (!result.success) {
+    notFound()
+  }
+
+  const folder = result.data
+  const itemsPromise = Promise.resolve(folder.children)
 
   return (
     <div className="w-full">
       <div className="w-full p-4 sm:p-7">
-        {/* Breadcrumb navigation */}
-        <FolderBreadcrumbs ancestors={ancestors} currentFolder={folder} />
+        <FolderBreadcrumbs ancestors={[]} currentFolder={folder} />
 
-        {/* Folder header */}
         <div className="mt-4 flex items-center gap-3">
           <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
             <Folder className="size-4.5 text-primary" aria-hidden="true" />
@@ -34,7 +46,6 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
           </h1>
         </div>
 
-        {/* Content grid */}
         <div className="mt-6">
           <StorageItemGridClient
             folderId={id}
@@ -42,6 +53,21 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
             emptyState={<FolderEmptyState />}
           />
         </div>
+      </div>
+    </div>
+  )
+}
+
+function FolderPageSkeleton() {
+  return (
+    <div className="w-full p-4 sm:p-7">
+      <Skeleton className="h-7 w-40" />
+      <div className="mt-4 flex items-center gap-3">
+        <Skeleton className="size-9 rounded-lg" />
+        <Skeleton className="h-8 w-52" />
+      </div>
+      <div className="mt-6">
+        <StorageItemGridSkeleton />
       </div>
     </div>
   )

@@ -10,8 +10,6 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner"
 import {
   type CreateFolderInput,
   type CreateUploadUrlsInput,
-  type PresignedUpload,
-  type StorageItem,
 } from "@/lib/validations/storage"
 import { randomUUID } from "crypto"
 import { and, desc, eq, inArray, isNotNull, isNull, sum } from "drizzle-orm"
@@ -20,7 +18,8 @@ import { getDbAsync } from "@/lib/db/client"
 import { storageItem } from "@/lib/db/schema"
 import { r2Client } from "@/lib/db/r2"
 import { requireSession } from "@/lib/auth/session"
-import { type Result, ok, err } from "@/lib/utils/result"
+import { ok, err } from "@/lib/utils/result"
+import z from "zod"
 
 const UPLOAD_URL_EXPIRES_IN_SECONDS = 5 * 60
 const PREVIEW_URL_EXPIRES_IN_SECONDS = 60
@@ -41,7 +40,7 @@ const previewableMimeTypes = new Set([
 export const createFolder = async (
   input: CreateFolderInput,
   ownerId: string
-): Promise<Result<StorageItem>> => {
+) => {
   const db = await getDbAsync()
   const [newFolder] = await db
     .insert(storageItem)
@@ -113,7 +112,7 @@ export const updateStorageItemTrashById = async (
   itemId: string,
   ownerId: string,
   trashed: boolean
-): Promise<Result<StorageItem>> => {
+) => {
   const db = await getDbAsync()
   const [updatedItem] = await db
     .update(storageItem)
@@ -149,7 +148,7 @@ export const updateStorageItemTrashById = async (
 export const createPresignedUploads = async (
   files: CreateUploadUrlsInput["files"],
   ownerId: string
-): Promise<PresignedUpload[]> => {
+) => {
   const db = await getDbAsync()
   const uploads = await Promise.all(
     files.map(async (file) => {
@@ -195,7 +194,7 @@ export const createPresignedUploads = async (
 export const completePendingUploads = async (
   fileIds: string[],
   ownerId: string
-): Promise<Result<StorageItem[]>> => {
+) => {
   const db = await getDbAsync()
   const files = await db
     .select({
@@ -272,10 +271,7 @@ export const completePendingUploads = async (
   return ok(completedFiles)
 }
 
-export const createFilePreview = async (
-  itemId: string,
-  ownerId: string
-): Promise<Result<{ url: string; mimeType: string }>> => {
+export const createFilePreview = async (itemId: string, ownerId: string) => {
   const db = await getDbAsync()
   const [file] = await db
     .select({
@@ -318,10 +314,7 @@ export const createFilePreview = async (
   })
 }
 
-export const createFileDownload = async (
-  itemId: string,
-  ownerId: string
-): Promise<Result<{ url: string }>> => {
+export const createFileDownload = async (itemId: string, ownerId: string) => {
   const db = await getDbAsync()
   const [file] = await db
     .select({
@@ -360,7 +353,7 @@ export const renameStorageItemById = async (
   itemId: string,
   name: string,
   ownerId: string
-): Promise<Result<StorageItem>> => {
+) => {
   const db = await getDbAsync()
   const [renamedItem] = await db
     .update(storageItem)
@@ -414,10 +407,7 @@ export const listTrashStorageItemsByOwnerId = async (ownerId: string) => {
     .orderBy(desc(storageItem.updatedAt))
 }
 
-const deleteTrashedStorageItems = async (
-  ownerId: string,
-  itemId?: string
-): Promise<Result<string[]>> => {
+const deleteTrashedStorageItems = async (ownerId: string, itemId?: string) => {
   const db = await getDbAsync()
   const conditions = and(
     eq(storageItem.ownerId, ownerId),
@@ -467,12 +457,12 @@ export const deleteTrashedStorageItemById = async (
 export const deleteAllTrashedStorageItems = async (ownerId: string) =>
   deleteTrashedStorageItems(ownerId)
 
-export async function getDriveItems(): Promise<StorageItem[]> {
+export async function getDriveItems() {
   const session = await requireSession()
   return listStorageItemsByOwnerId(session.user.id)
 }
 
-export async function getTrashItems(): Promise<StorageItem[]> {
+export async function getTrashItems() {
   const session = await requireSession()
   return listTrashStorageItemsByOwnerId(session.user.id)
 }
@@ -482,3 +472,71 @@ export async function getStorageUsage() {
   return getStorageUsageByOwnerId(session.user.id)
 }
 
+export async function getFolderContentItems(id: string, ownerId: string) {
+  const db = await getDbAsync()
+
+  const data = await db.query.storageItem.findFirst({
+    columns: {
+      id: true,
+      name: true,
+      parentId: true,
+    },
+
+    where: (folder, { and, eq, isNull }) =>
+      and(
+        eq(folder.id, id),
+        eq(folder.ownerId, ownerId),
+        eq(folder.type, "folder"),
+        eq(folder.status, "ready"),
+        isNull(folder.deletedAt)
+      ),
+
+    with: {
+      children: {
+        columns: {
+          id: true,
+          name: true,
+          type: true,
+          parentId: true,
+          mimeType: true,
+          size: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+
+        where: (child, { and, eq, isNull }) =>
+          and(
+            eq(child.ownerId, ownerId),
+            eq(child.status, "ready"),
+            isNull(child.deletedAt)
+          ),
+
+        orderBy: (child, { desc }) => [desc(child.updatedAt)],
+      },
+    },
+  })
+
+  if (!data) {
+    return err("Folder not found.")
+  }
+
+  return ok(data)
+}
+
+export async function getFolderContent(id: string) {
+  const session = await requireSession()
+
+  const parsedId = z.uuid().safeParse(id)
+
+  if (!parsedId.success) {
+    return err("Invalid item ID.")
+  }
+
+  const result = await getFolderContentItems(id, session.user.id)
+
+  if (!result.success) {
+    return err(result.error)
+  }
+
+  return ok(result.data)
+}

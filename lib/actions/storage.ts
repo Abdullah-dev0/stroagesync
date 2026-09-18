@@ -1,33 +1,29 @@
 "use server"
 
-import { z } from "zod"
-import {
-  createFolderInputSchema,
-  createUploadUrlsInputSchema,
-  completeUploadsInputSchema,
-  renameStorageItemInputSchema,
-  updateStorageItemTrashInputSchema,
-  type PresignedUpload,
-  type StorageItem,
-} from "@/lib/validations/storage"
 import { requireSession } from "@/lib/auth/session"
 import {
+  completePendingUploads,
+  createFileDownload,
   createFolder,
   createPresignedUploads,
-  completePendingUploads,
-  renameStorageItemById,
-  updateStorageItemTrashById,
-  deleteTrashedStorageItemById,
   deleteAllTrashedStorageItems,
-  createFileDownload,
+  deleteTrashedStorageItemById,
+  renameStorageItemById,
+  updateStorageItemTrashById
 } from "@/lib/db/queries/storage"
-import { type Result, ok, err } from "@/lib/utils/result"
+import { err, ok } from "@/lib/utils/result"
+import {
+  completeUploadsInputSchema,
+  createFolderInputSchema,
+  createUploadUrlsInputSchema,
+  renameStorageItemInputSchema,
+  updateStorageItemTrashInputSchema,
+} from "@/lib/validations/storage"
+import { z } from "zod"
 
 // --- Read actions for user-triggered interactions ---
 
-export async function getFileDownloadAction(
-  itemId: unknown
-): Promise<Result<{ url: string }>> {
+export async function getFileDownloadAction(itemId: unknown) {
   const session = await requireSession()
   const parsedId = z.uuid().safeParse(itemId)
 
@@ -46,9 +42,7 @@ export async function getFileDownloadAction(
 
 // --- Write actions ---
 
-export async function createFolderAction(
-  input: unknown
-): Promise<Result<StorageItem>> {
+export async function createFolderAction(input: unknown) {
   const session = await requireSession()
   const parsed = createFolderInputSchema.safeParse(input)
   if (!parsed.success) {
@@ -63,9 +57,7 @@ export async function createFolderAction(
   return ok(result.data)
 }
 
-export async function createUploadUrlsAction(
-  input: unknown
-): Promise<Result<PresignedUpload[]>> {
+export async function createUploadUrlsAction(input: unknown) {
   const session = await requireSession()
   const parsed = createUploadUrlsInputSchema.safeParse(input)
   if (!parsed.success) {
@@ -79,9 +71,7 @@ export async function createUploadUrlsAction(
   return ok(result)
 }
 
-export async function completeUploadsAction(
-  input: unknown
-): Promise<Result<StorageItem[]>> {
+export async function completeUploadsAction(input: unknown) {
   const session = await requireSession()
   const parsed = completeUploadsInputSchema.safeParse(input)
   if (!parsed.success) {
@@ -99,10 +89,7 @@ export async function completeUploadsAction(
   return ok(result.data)
 }
 
-export async function renameStorageItemAction(
-  itemId: unknown,
-  input: unknown
-): Promise<Result<StorageItem>> {
+export async function renameStorageItemAction(itemId: unknown, input: unknown) {
   const session = await requireSession()
   const parsedId = z.uuid().safeParse(itemId)
   if (!parsedId.success) {
@@ -129,7 +116,7 @@ export async function renameStorageItemAction(
 export async function updateStorageItemTrashAction(
   itemId: unknown,
   input: unknown
-): Promise<Result<StorageItem>> {
+) {
   const session = await requireSession()
   const parsedId = z.uuid().safeParse(itemId)
   if (!parsedId.success) {
@@ -153,11 +140,11 @@ export async function updateStorageItemTrashAction(
   return ok(result.data)
 }
 
-export async function deleteTrashedItemAction(
-  itemId: unknown
-): Promise<Result<{ deletedIds: string[] }>> {
+export async function deleteTrashedItemAction(itemId: string) {
   const session = await requireSession()
+
   const parsedId = z.uuid().safeParse(itemId)
+
   if (!parsedId.success) {
     return err("Invalid item ID.")
   }
@@ -173,9 +160,7 @@ export async function deleteTrashedItemAction(
   return ok({ deletedIds: result.data })
 }
 
-export async function emptyTrashAction(): Promise<
-  Result<{ deletedIds: string[] }>
-> {
+export async function emptyTrashAction() {
   const session = await requireSession()
   const result = await deleteAllTrashedStorageItems(session.user.id)
   if (!result.success) {

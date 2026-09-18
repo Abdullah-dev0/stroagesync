@@ -10,7 +10,10 @@ import { RenameStorageItemDialog } from "@/components/features/dashboard/rename-
 import { StorageEmptyState } from "@/components/features/dashboard/storage-empty-state"
 import { StorageItemCard } from "@/components/features/dashboard/storage-item-card"
 import { updateStorageItemTrashAction } from "@/lib/actions/storage"
-import { storageItemsQueryKey, trashItemsQueryKey } from "@/lib/query-keys"
+import {
+  storageItemsByParentQueryKey,
+  trashItemsQueryKey,
+} from "@/lib/query-keys"
 import { ExpectedResultError } from "@/lib/utils/result"
 import {
   DropdownMenuItem,
@@ -41,9 +44,7 @@ export function StorageItemGridClient({
   const router = useRouter()
 
   const queryClient = useQueryClient()
-  const queryKey = folderId
-    ? ([...storageItemsQueryKey, folderId] as const)
-    : storageItemsQueryKey
+  const queryKey = storageItemsByParentQueryKey(folderId ?? null)
 
   const { data: items } = useQuery({
     queryKey,
