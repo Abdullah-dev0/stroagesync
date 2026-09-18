@@ -19,15 +19,11 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 
-type DashboardSidebarProps = {
-  className?: string
-}
-
-export function DashboardSidebar({ className }: DashboardSidebarProps) {
+export function DashboardSidebar() {
   const usagePromise = getStorageUsage()
 
   return (
-    <Sidebar collapsible="icon" className={className}>
+    <Sidebar collapsible="icon">
       <SidebarHeader>
         <SidebarMenu className="gap-3">
           <SidebarMenuItem>

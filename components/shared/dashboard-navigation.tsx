@@ -26,20 +26,24 @@ export function DashboardNavigation() {
           return (
             <SidebarMenuItem
               key={item.label}
-              className={cn(isActive && "bg-sidebar-active rounded-full")}
+              className={cn(
+                isActive && "bg-sidebar-active rounded-full",
+                item.disabled && "opacity-90"
+              )}
             >
               <SidebarMenuButton
-                render={<Link href={item.href} />}
-                tooltip={item.label}
+                render={item.disabled ? undefined : <Link href={item.href} />}
+                tooltip={item.disabled ? "Coming soon" : item.label}
                 aria-label={item.label}
                 aria-current={isActive ? "page" : undefined}
-                isActive={isActive}
+                aria-disabled={item.disabled || undefined}
+                isActive={item.disabled ? false : isActive}
                 className={cn(
                   "group h-10 gap-3 rounded-full px-5 text-[16px] font-medium ring-inset",
                   "hover:text-current",
                   isActive
                     ? "bg-sidebar-active hover:bg-sidebar-active text-foreground hover:text-foreground"
-                    : "hover:bg-muted hover:text-foreground"
+                    : !item.disabled && "hover:bg-muted hover:text-foreground"
                 )}
               >
                 <Icon
@@ -51,9 +55,15 @@ export function DashboardNavigation() {
                   )}
                 />
 
-                <span className="group-data-[collapsible=icon]:hidden">
+                <span className="truncate group-data-[collapsible=icon]:hidden">
                   {item.label}
                 </span>
+
+                {item.disabled && (
+                  <span className="ml-auto text-[9px] font-semibold tracking-[0.18em] text-muted-foreground/80 uppercase">
+                    Soon
+                  </span>
+                )}
               </SidebarMenuButton>
             </SidebarMenuItem>
           )
