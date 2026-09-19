@@ -35,6 +35,7 @@ export function FolderBreadcrumbs({
             />
             <Link
               href={`/dashboard/folder/${ancestor.id}`}
+              prefetch={true}
               className="max-w-32 truncate rounded-md px-1.5 py-1 text-muted-foreground transition-colors duration-150 hover:bg-accent hover:text-foreground"
             >
               {ancestor.name}

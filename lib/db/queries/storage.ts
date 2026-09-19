@@ -7,12 +7,22 @@ import {
   PutObjectCommand,
 } from "@aws-sdk/client-s3"
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner"
+import { cacheLife } from "next/cache"
 import {
   type CreateFolderInput,
   type CreateUploadUrlsInput,
 } from "@/lib/validations/storage"
 import { randomUUID } from "crypto"
-import { and, desc, eq, inArray, isNotNull, isNull, sql, sum } from "drizzle-orm"
+import {
+  and,
+  desc,
+  eq,
+  inArray,
+  isNotNull,
+  isNull,
+  sql,
+  sum,
+} from "drizzle-orm"
 import { env } from "@/lib/env"
 import { getDbAsync } from "@/lib/db/client"
 import { storageItem } from "@/lib/db/schema"
@@ -459,16 +469,25 @@ export const deleteAllTrashedStorageItems = async (ownerId: string) =>
   deleteTrashedStorageItems(ownerId)
 
 export async function getDriveItems() {
+  "use cache: private"
+  cacheLife({ stale: 300 })
+
   const session = await requireSession()
   return listStorageItemsByOwnerId(session.user.id)
 }
 
 export async function getTrashItems() {
+  "use cache: private"
+  cacheLife({ stale: 300 })
+
   const session = await requireSession()
   return listTrashStorageItemsByOwnerId(session.user.id)
 }
 
 export async function getStorageUsage() {
+  "use cache: private"
+  cacheLife({ stale: 300 })
+
   const session = await requireSession()
   return getStorageUsageByOwnerId(session.user.id)
 }
@@ -525,6 +544,9 @@ export async function getFolderContentItems(id: string, ownerId: string) {
 }
 
 export async function getFolderContent(id: string) {
+  "use cache: private"
+  cacheLife({ stale: 300 })
+
   const session = await requireSession()
 
   const parsedId = z.uuid().safeParse(id)
@@ -550,6 +572,9 @@ export async function getFolderContent(id: string) {
 export async function getFolderAncestors(
   id: string
 ): Promise<Array<{ id: string; name: string }>> {
+  "use cache: private"
+  cacheLife({ stale: 300 })
+
   const session = await requireSession()
   const db = await getDbAsync()
 

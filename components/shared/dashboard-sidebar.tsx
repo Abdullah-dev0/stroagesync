@@ -6,6 +6,7 @@ import { DashboardNavigation } from "@/components/shared/dashboard-navigation"
 import { StorageCreateMenu } from "@/components/features/dashboard/storage-create-menu"
 import { StorageUsageFooter } from "@/components/shared/storage-usage-footer"
 import { StorageUsageFooterSkeleton } from "@/components/shared/storage-usage-footer-skeleton"
+import { Skeleton } from "@/components/ui/skeleton"
 import { getStorageUsage } from "@/lib/db/queries/storage"
 import {
   Sidebar,
@@ -43,7 +44,13 @@ export function DashboardSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <StorageCreateMenu />
+            <Suspense
+              fallback={
+                <Skeleton className="mx-auto mt-4 h-10 w-57 rounded-xl group-data-[collapsible=icon]:size-8" />
+              }
+            >
+              <StorageCreateMenu />
+            </Suspense>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
