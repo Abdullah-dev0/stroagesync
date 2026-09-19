@@ -63,11 +63,9 @@ Import primitives with `@/components/ui/button`. Design tokens are in
 
 ## Deployment
 
-This migration consolidates the application into standard Next.js. Cloudflare
-adapter configuration and deployment are a separate step. Before deploying on
-Workers, configure the adapter, secrets, R2 access, and PostgreSQL connection
-lifecycle/pooling (for example through Hyperdrive), then verify in the Workers
-runtime. A successful local Next.js build alone does not verify Workers compatibility.
+This project is a standard Next.js app. Configure your production environment with
+`DATABASE_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `SITE_URL`, and your
+object-storage credentials before deploying.
 
 The old Express and web Dockerfiles were removed because they depended on
 the removed workspace packages. They remain recoverable through Git history.
