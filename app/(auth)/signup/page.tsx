@@ -1,7 +1,9 @@
 import type { Metadata } from "next"
 import Link from "next/link"
+import { Suspense } from "react"
 
 import { SignupForm } from "@/components/features/auth/signup-form"
+import { Skeleton } from "@/components/ui/skeleton"
 import { getSession } from "@/lib/auth/session"
 import { redirect } from "next/navigation"
 
@@ -10,7 +12,15 @@ export const metadata: Metadata = {
   description: "Create your Storumi account and start storing files securely.",
 }
 
-export default async function Page() {
+export default function Page() {
+  return (
+    <Suspense fallback={<SignupPageSkeleton />}>
+      <SignupPageContent />
+    </Suspense>
+  )
+}
+
+async function SignupPageContent() {
   if (await getSession()) redirect("/dashboard")
 
   return (
@@ -35,5 +45,33 @@ export default async function Page() {
 
       <SignupForm />
     </>
+  )
+}
+
+function SignupPageSkeleton() {
+  return (
+    <div role="status">
+      <span className="sr-only">Checking your account...</span>
+      <div
+        aria-hidden="true"
+        className="**:data-[slot=skeleton]:motion-reduce:animate-none"
+      >
+        <Skeleton className="mb-12 h-5 w-20 lg:hidden" />
+        <div className="mb-9 space-y-2">
+          <Skeleton className="h-9 w-64 max-w-full" />
+          <Skeleton className="h-5 w-80 max-w-full" />
+        </div>
+        <div className="space-y-5">
+          {Array.from({ length: 3 }, (_, index) => (
+            <div key={index} className="space-y-3">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-11 w-full rounded-xl" />
+            </div>
+          ))}
+          <Skeleton className="h-11 w-full rounded-xl" />
+          <Skeleton className="mx-auto h-5 w-56 max-w-full" />
+        </div>
+      </div>
+    </div>
   )
 }

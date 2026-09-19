@@ -1,3 +1,5 @@
 import "server-only"
 
-export const siteUrl = new URL(process.env.SITE_URL ?? "http://localhost:3000")
+export const siteUrl = (process.env.SITE_URL ?? "http://localhost:3000").trim()
+
+export const siteUrlObject = new URL(siteUrl)

@@ -17,7 +17,7 @@ const fontMono = Geist_Mono({
 const themeScript = `try{var theme=localStorage.getItem("theme");var dark=theme==="dark"||(theme!=="light"&&window.matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",dark);document.documentElement.style.colorScheme=dark?"dark":"light"}catch{}`
 
 export const metadata: Metadata = {
-  metadataBase: siteUrl,
+  metadataBase: new URL(siteUrl),
   title: {
     default: "Storumi — Secure Cloud Storage for Your Files",
     template: "%s | Storumi",
