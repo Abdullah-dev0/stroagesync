@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next"
 
-import { siteUrl } from "@/lib/utils/site"
+import { siteUrl, siteUrlObject } from "@/lib/utils/site"
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -10,6 +10,6 @@ export default function robots(): MetadataRoute.Robots {
       disallow: ["/api", "/dashboard", "/login", "/signup"],
     },
     sitemap: new URL("/sitemap.xml", siteUrl).href,
-    host: siteUrl.origin,
+    host: siteUrlObject.origin,
   }
 }

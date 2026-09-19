@@ -5,7 +5,7 @@ import { siteUrl } from "@/lib/utils/site"
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
     {
-      url: siteUrl.href,
+      url: new URL(siteUrl).href,
       changeFrequency: "weekly",
       priority: 1,
     },
