@@ -42,3 +42,7 @@ export function getQueryClient(onUnauthorized?: () => void) {
   browserQueryClient ??= makeQueryClient(onUnauthorized)
   return browserQueryClient
 }
+
+export function clearBrowserQueryClient() {
+  browserQueryClient?.clear()
+}
