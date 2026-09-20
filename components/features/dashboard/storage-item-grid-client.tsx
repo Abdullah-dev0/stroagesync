@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Eye, Pencil, Share2, Trash2 } from "lucide-react"
+import Link from "next/link"
 import { useState, type ReactNode } from "react"
 
 import { fetchDriveItems } from "@/lib/api/storage"
@@ -26,7 +27,6 @@ import {
   type StorageItem,
   type UpdateStorageItemTrashInput,
 } from "@/lib/validations/storage"
-import { useRouter } from "next/navigation"
 
 type StorageItemGridClientProps = {
   emptyState?: ReactNode
@@ -39,8 +39,6 @@ export function StorageItemGridClient({
 }: StorageItemGridClientProps) {
   const [previewItem, setPreviewItem] = useState<StorageItem | null>(null)
   const [renameItem, setRenameItem] = useState<StorageItem | null>(null)
-  const router = useRouter()
-
   const queryClient = useQueryClient()
   const queryKey = storageItemsByParentQueryKey(folderId ?? null)
 
@@ -107,17 +105,22 @@ export function StorageItemGridClient({
             key={item.id}
             item={item}
             pending={isPending && variables?.id === item.id}
+            href={
+              item.type === "folder"
+                ? `/dashboard/folder/${item.id}`
+                : undefined
+            }
             onOpen={
-              item.type === "file"
-                ? () => setPreviewItem(item)
-                : () => router.push(`/dashboard/folder/${item.id}`)
+              item.type === "file" ? () => setPreviewItem(item) : undefined
             }
             actions={
               <>
                 {item.type === "folder" && (
                   <DropdownMenuItem
+                    render={
+                      <Link href={`/dashboard/folder/${item.id}`} />
+                    }
                     className="cursor-pointer gap-2 px-2 py-2"
-                    onClick={() => router.push(`/dashboard/folder/${item.id}`)}
                   >
                     <Eye />
                     Open
