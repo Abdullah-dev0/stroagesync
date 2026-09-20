@@ -26,12 +26,17 @@ import { Spinner } from "@/components/ui/spinner"
 import { toast } from "@/components/ui/toast"
 import type { StorageItem } from "@/lib/validations/storage"
 
-export function EmptyTrashAction() {
+export function EmptyTrashAction({
+  initialItems,
+}: {
+  initialItems: StorageItem[]
+}) {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const queryClient = useQueryClient()
-  const { data: items = [] } = useQuery({
+  const { data: items = initialItems } = useQuery({
     queryKey: trashItemsQueryKey,
     queryFn: fetchTrashItems,
+    initialData: initialItems,
   })
 
   const emptyTrash = useMutation({
