@@ -112,6 +112,11 @@ export function StorageItemGridClient({
                 ? () => setPreviewItem(item)
                 : () => router.push(`/dashboard/folder/${item.id}`)
             }
+            onPrefetch={
+              item.type === "folder"
+                ? () => router.prefetch(`/dashboard/folder/${item.id}`)
+                : undefined
+            }
             actions={
               <>
                 {item.type === "folder" && (
