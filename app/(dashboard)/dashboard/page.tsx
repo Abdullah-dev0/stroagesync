@@ -1,4 +1,7 @@
-import { StorageItemGridClient } from "@/components/features/dashboard/storage-item-grid-client"
+import { Suspense } from "react"
+
+import { DriveItemsServer } from "@/components/features/dashboard/drive-items-server"
+import { StorageItemGridSkeleton } from "@/components/features/dashboard/storage-item-grid-skeleton"
 
 export default function Page() {
   return (
@@ -9,7 +12,9 @@ export default function Page() {
         </h1>
 
         <div className="mt-6">
-          <StorageItemGridClient />
+          <Suspense fallback={<StorageItemGridSkeleton />}>
+            <DriveItemsServer />
+          </Suspense>
         </div>
       </div>
     </div>

@@ -31,11 +31,13 @@ import { useRouter } from "next/navigation"
 type StorageItemGridClientProps = {
   emptyState?: ReactNode
   folderId?: string
+  initialData?: StorageItem[]
 }
 
 export function StorageItemGridClient({
   emptyState,
   folderId,
+  initialData,
 }: StorageItemGridClientProps) {
   const [previewItem, setPreviewItem] = useState<StorageItem | null>(null)
   const [renameItem, setRenameItem] = useState<StorageItem | null>(null)
@@ -47,6 +49,7 @@ export function StorageItemGridClient({
   const { data: items, isPending: isQueryPending } = useQuery({
     queryKey,
     queryFn: () => fetchDriveItems(folderId ?? null),
+    initialData,
   })
 
   const { mutate, isPending, variables } = useMutation({

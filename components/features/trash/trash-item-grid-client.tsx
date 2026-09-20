@@ -38,12 +38,17 @@ import {
   type UpdateStorageItemTrashInput,
 } from "@/lib/validations/storage"
 
-export function TrashItemGridClient() {
+type TrashItemGridClientProps = {
+  initialData?: StorageItem[]
+}
+
+export function TrashItemGridClient({ initialData }: TrashItemGridClientProps = {}) {
   const [deleteItem, setDeleteItem] = useState<StorageItem | null>(null)
   const queryClient = useQueryClient()
   const { data: items, isPending: isQueryPending } = useQuery({
     queryKey: trashItemsQueryKey,
     queryFn: fetchTrashItems,
+    initialData,
   })
 
   const restoreItem = useMutation({

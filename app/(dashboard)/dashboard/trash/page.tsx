@@ -1,7 +1,9 @@
 import { Clock3 } from "lucide-react"
+import { Suspense } from "react"
 
+import { StorageItemGridSkeleton } from "@/components/features/dashboard/storage-item-grid-skeleton"
 import { EmptyTrashAction } from "@/components/features/trash/empty-trash-action"
-import { TrashItemGridClient } from "@/components/features/trash/trash-item-grid-client"
+import { TrashItemsServer } from "@/components/features/trash/trash-items-server"
 
 export default function Page() {
   return (
@@ -31,7 +33,9 @@ export default function Page() {
         </div>
 
         <div className="mt-6">
-          <TrashItemGridClient />
+          <Suspense fallback={<StorageItemGridSkeleton />}>
+            <TrashItemsServer />
+          </Suspense>
         </div>
       </div>
     </div>
