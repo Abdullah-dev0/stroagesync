@@ -19,10 +19,7 @@ export async function getDriveItems(parentId: string | null = null) {
   return getDriveItemsForOwner(session.user.id, parentId)
 }
 
-async function getDriveItemsForOwner(
-  ownerId: string,
-  parentId: string | null
-) {
+async function getDriveItemsForOwner(ownerId: string, parentId: string | null) {
   "use cache"
 
   cacheTag(storageTags.items(ownerId, parentId))
