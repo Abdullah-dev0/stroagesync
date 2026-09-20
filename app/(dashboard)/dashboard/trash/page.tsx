@@ -1,14 +1,26 @@
 import { Clock3 } from "lucide-react"
-import { dehydrate, HydrationBoundary, noop, QueryClient } from "@tanstack/react-query"
+import {
+  dehydrate,
+  HydrationBoundary,
+  noop,
+  QueryClient,
+} from "@tanstack/react-query"
 
 import { EmptyTrashAction } from "@/components/features/trash/empty-trash-action"
 import { TrashItemGridClient } from "@/components/features/trash/trash-item-grid-client"
-import { Suspense } from "react"
-import { StorageItemGridSkeleton } from "@/components/features/dashboard/storage-item-grid-skeleton"
 import { getTrashItems } from "@/lib/services/storage"
 import { trashItemsQueryKey } from "@/lib/query-keys"
 
-export default function Page() {
+export default async function Page() {
+  const queryClient = new QueryClient()
+
+  await queryClient
+    .query({
+      queryKey: trashItemsQueryKey,
+      queryFn: getTrashItems,
+    })
+    .catch(noop)
+
   return (
     <div className="w-full">
       <div className="w-full p-4 sm:p-7">
@@ -36,28 +48,11 @@ export default function Page() {
         </div>
 
         <div className="mt-6">
-          <Suspense fallback={<StorageItemGridSkeleton />}>
-            <TrashItemsStream />
-          </Suspense>
+          <HydrationBoundary state={dehydrate(queryClient)}>
+            <TrashItemGridClient />
+          </HydrationBoundary>
         </div>
       </div>
     </div>
-  )
-}
-
-async function TrashItemsStream() {
-  const queryClient = new QueryClient()
-
-  await queryClient
-    .query({
-      queryKey: trashItemsQueryKey,
-      queryFn: getTrashItems,
-    })
-    .catch(noop)
-
-  return (
-    <HydrationBoundary state={dehydrate(queryClient)}>
-      <TrashItemGridClient />
-    </HydrationBoundary>
   )
 }
