@@ -117,9 +117,7 @@ export function StorageItemGridClient({
               <>
                 {item.type === "folder" && (
                   <DropdownMenuItem
-                    render={
-                      <Link href={`/dashboard/folder/${item.id}`} />
-                    }
+                    render={<Link href={`/dashboard/folder/${item.id}`} />}
                     className="cursor-pointer gap-2 px-2 py-2"
                   >
                     <Eye />

@@ -38,9 +38,7 @@ type DashboardNavigationItemProps = {
   isActive?: boolean
 }
 
-function ActiveDashboardNavigationItem({
-  item,
-}: DashboardNavigationItemProps) {
+function ActiveDashboardNavigationItem({ item }: DashboardNavigationItemProps) {
   const pathname = usePathname()
   const isActive =
     pathname === item.href ||
@@ -63,11 +61,14 @@ function DashboardNavigationItem({
       )}
     >
       <SidebarMenuButton
-        render={item.disabled ? undefined : <Link href={item.href} prefetch={true} />}
+        render={
+          item.disabled ? undefined : <Link href={item.href} prefetch={true} />
+        }
         tooltip={item.disabled ? "Coming soon" : item.label}
         aria-label={item.label}
         aria-current={isActive ? "page" : undefined}
         aria-disabled={item.disabled || undefined}
+        onClick={(e) => isActive && e.preventDefault()}
         isActive={item.disabled ? false : isActive}
         className={cn(
           "group h-10 gap-3 rounded-full px-5 text-[16px] font-medium ring-inset",
