@@ -9,7 +9,6 @@ import { PreviewFile } from "@/components/features/dashboard/preview-storage-ite
 import { RenameStorageItemDialog } from "@/components/features/dashboard/rename-storage-item-dialog"
 import { StorageEmptyState } from "@/components/features/dashboard/storage-empty-state"
 import { StorageItemCard } from "@/components/features/dashboard/storage-item-card"
-import { StorageItemGridSkeleton } from "@/components/features/dashboard/storage-item-grid-skeleton"
 import { updateStorageItemTrashAction } from "@/lib/actions/storage"
 import {
   storageItemsByParentQueryKey,
@@ -31,11 +30,13 @@ import { useRouter } from "next/navigation"
 type StorageItemGridClientProps = {
   emptyState?: ReactNode
   folderId?: string
+  initialItems: StorageItem[]
 }
 
 export function StorageItemGridClient({
   emptyState,
   folderId,
+  initialItems,
 }: StorageItemGridClientProps) {
   const [previewItem, setPreviewItem] = useState<StorageItem | null>(null)
   const [renameItem, setRenameItem] = useState<StorageItem | null>(null)
@@ -44,9 +45,10 @@ export function StorageItemGridClient({
   const queryClient = useQueryClient()
   const queryKey = storageItemsByParentQueryKey(folderId ?? null)
 
-  const { data: items, isPending: isQueryPending } = useQuery({
+  const { data: items = initialItems } = useQuery({
     queryKey,
     queryFn: () => fetchDriveItems(folderId ?? null),
+    initialData: initialItems,
   })
 
   const { mutate, isPending, variables } = useMutation({
@@ -91,11 +93,7 @@ export function StorageItemGridClient({
     },
   })
 
-  if (isQueryPending) {
-    return <StorageItemGridSkeleton />
-  }
-
-  if (!items || items.length === 0) {
+  if (items.length === 0) {
     return emptyState ?? <StorageEmptyState />
   }
 
