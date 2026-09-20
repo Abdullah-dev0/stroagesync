@@ -63,7 +63,7 @@ function DashboardNavigationItem({
       )}
     >
       <SidebarMenuButton
-        render={item.disabled ? undefined : <Link href={item.href} />}
+        render={item.disabled ? undefined : <Link href={item.href} prefetch={true} />}
         tooltip={item.disabled ? "Coming soon" : item.label}
         aria-label={item.label}
         aria-current={isActive ? "page" : undefined}

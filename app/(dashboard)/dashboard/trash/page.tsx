@@ -1,11 +1,22 @@
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query"
 import { Clock3 } from "lucide-react"
-import { Suspense } from "react"
 
-import { StorageItemGridSkeleton } from "@/components/features/dashboard/storage-item-grid-skeleton"
 import { EmptyTrashAction } from "@/components/features/trash/empty-trash-action"
-import { TrashItemsServer } from "@/components/features/trash/trash-items-server"
+import { TrashItemGridClient } from "@/components/features/trash/trash-item-grid-client"
+import { getTrashItems } from "@/lib/data/storage-data"
+import { getQueryClient } from "@/lib/get-query-client"
+import { trashItemsQueryKey } from "@/lib/query-keys"
 
 export default function Page() {
+  const queryClient = getQueryClient()
+
+  void queryClient
+    .query({
+      queryKey: trashItemsQueryKey,
+      queryFn: () => getTrashItems(),
+    })
+    .catch(() => {})
+
   return (
     <div className="w-full">
       <div className="w-full p-4 sm:p-7">
@@ -33,9 +44,9 @@ export default function Page() {
         </div>
 
         <div className="mt-6">
-          <Suspense fallback={<StorageItemGridSkeleton />}>
-            <TrashItemsServer />
-          </Suspense>
+          <HydrationBoundary state={dehydrate(queryClient)}>
+            <TrashItemGridClient />
+          </HydrationBoundary>
         </div>
       </div>
     </div>

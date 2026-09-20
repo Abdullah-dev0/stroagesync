@@ -25,7 +25,7 @@ export function DashboardSidebar() {
         <SidebarMenu className="gap-3">
           <SidebarMenuItem>
             <SidebarMenuButton
-              render={<Link href="/dashboard" />}
+              render={<Link href="/dashboard" prefetch={true} />}
               size="lg"
               tooltip="Storumi"
               aria-label="Storumi dashboard"
