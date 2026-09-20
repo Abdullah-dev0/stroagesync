@@ -6,7 +6,6 @@ import { useState } from "react"
 
 import { fetchTrashItems } from "@/lib/api/storage"
 import { StorageItemCard } from "@/components/features/dashboard/storage-item-card"
-import { StorageItemGridSkeleton } from "@/components/features/dashboard/storage-item-grid-skeleton"
 import { TrashEmptyState } from "@/components/features/trash/trash-empty-state"
 import {
   updateStorageItemTrashAction,
@@ -38,12 +37,17 @@ import {
   type UpdateStorageItemTrashInput,
 } from "@/lib/validations/storage"
 
-export function TrashItemGridClient() {
+export function TrashItemGridClient({
+  initialItems,
+}: {
+  initialItems: StorageItem[]
+}) {
   const [deleteItem, setDeleteItem] = useState<StorageItem | null>(null)
   const queryClient = useQueryClient()
-  const { data: items, isPending: isQueryPending } = useQuery({
+  const { data: items = initialItems } = useQuery({
     queryKey: trashItemsQueryKey,
     queryFn: fetchTrashItems,
+    initialData: initialItems,
   })
 
   const restoreItem = useMutation({
@@ -133,13 +137,9 @@ export function TrashItemGridClient() {
     },
   })
 
-  if (isQueryPending) {
-    return <StorageItemGridSkeleton />
-  }
-
   return (
     <>
-      {!items || items.length === 0 ? (
+      {items.length === 0 ? (
         <TrashEmptyState />
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
