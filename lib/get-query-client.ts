@@ -1,14 +1,29 @@
-import { QueryClient, defaultShouldDehydrateQuery } from "@tanstack/react-query"
-import { cache } from "react"
+import {
+  defaultShouldDehydrateQuery,
+  environmentManager,
+  QueryCache,
+  QueryClient,
+} from "@tanstack/react-query"
 
-function makeQueryClient() {
+import { UnauthorizedError } from "@/lib/utils/result"
+
+function makeQueryClient(onUnauthorized?: () => void) {
   return new QueryClient({
+    queryCache: new QueryCache({
+      onError: (error) => {
+        if (error instanceof UnauthorizedError) onUnauthorized?.()
+      },
+    }),
     defaultOptions: {
       queries: {
         staleTime: 5 * 60 * 1000,
+        retry: false,
+      },
+      mutations: {
+        retry: false,
       },
       dehydrate: {
-        // Include pending queries in dehydration so streaming works with Next.js App Router
+        // Include pending queries so Next.js can stream server-prefetched data.
         shouldDehydrateQuery: (query) =>
           defaultShouldDehydrateQuery(query) ||
           query.state.status === "pending",
@@ -17,17 +32,17 @@ function makeQueryClient() {
   })
 }
 
-// Server: React.cache ensures a single QueryClient per request across layout, page, and components
-const getQueryClientServer = cache(makeQueryClient)
+let browserQueryClient: QueryClient | undefined
 
-let browserQueryClient: QueryClient | undefined = undefined
-
-export function getQueryClient() {
-  if (typeof window === "undefined") {
-    return getQueryClientServer()
-  } else {
-    // Browser: reuse the existing query client
-    if (!browserQueryClient) browserQueryClient = makeQueryClient()
-    return browserQueryClient
+export function getQueryClient(onUnauthorized?: () => void) {
+  if (environmentManager.isServer()) {
+    return makeQueryClient()
   }
+
+  browserQueryClient ??= makeQueryClient(onUnauthorized)
+  return browserQueryClient
+}
+
+export function clearBrowserQueryClient() {
+  browserQueryClient?.clear()
 }

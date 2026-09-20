@@ -1,52 +1,24 @@
 "use client"
 
-import {
-  QueryCache,
-  QueryClient,
-  QueryClientProvider,
-} from "@tanstack/react-query"
+import { QueryClientProvider } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
 import type { ReactNode } from "react"
 
-import { UnauthorizedError } from "@/lib/utils/result"
-
-function makeQueryClient(onUnauthorized: () => void) {
-  return new QueryClient({
-    queryCache: new QueryCache({
-      onError: (error) => {
-        if (error instanceof UnauthorizedError) onUnauthorized()
-      },
-    }),
-    defaultOptions: {
-      queries: {
-        staleTime: 5 * 60 * 1000,
-        retry: false,
-      },
-      mutations: { retry: false },
-    },
-  })
-}
-
-let browserQueryClient: QueryClient | undefined
-
-function getQueryClient(onUnauthorized: () => void) {
-  if (typeof window === "undefined") return makeQueryClient(onUnauthorized)
-
-  // Keep the browser cache stable even if the initial render suspends.
-  browserQueryClient ??= makeQueryClient(onUnauthorized)
-  return browserQueryClient
-}
+import {
+  clearBrowserQueryClient,
+  getQueryClient,
+} from "@/lib/get-query-client"
 
 export function QueryProvider({ children }: { children: ReactNode }) {
   const router = useRouter()
 
-  function handleUnauthorized() {
-    browserQueryClient?.clear()
+  const queryClient = getQueryClient(() => {
+    clearBrowserQueryClient()
     router.replace("/login?unauthorized=true")
-  }
+  })
 
   return (
-    <QueryClientProvider client={getQueryClient(handleUnauthorized)}>
+    <QueryClientProvider client={queryClient}>
       {children}
     </QueryClientProvider>
   )
