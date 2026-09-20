@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/providers/theme-provider"
 import { siteUrl } from "@/lib/utils/site"
 import { cn } from "@/lib/utils/cn"
 import { Toaster } from "@/components/ui/toast"
+import NetworkStatus from "@/lib/utils/NetworkStatus"
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" })
 
@@ -85,6 +86,7 @@ export default function RootLayout({
       </head>
       <body>
         <ThemeProvider>
+          <NetworkStatus />
           {children}
           <Toaster />
         </ThemeProvider>
