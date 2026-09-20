@@ -4,10 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
 import type { ReactNode } from "react"
 
-import {
-  clearBrowserQueryClient,
-  getQueryClient,
-} from "@/lib/get-query-client"
+import { clearBrowserQueryClient, getQueryClient } from "@/lib/get-query-client"
 
 export function QueryProvider({ children }: { children: ReactNode }) {
   const router = useRouter()
@@ -18,8 +15,6 @@ export function QueryProvider({ children }: { children: ReactNode }) {
   })
 
   return (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   )
 }
