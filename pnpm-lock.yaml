@@ -4,11 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-patchedDependencies:
-  '@opennextjs/cloudflare':
-    hash: afbfdd8dc6c15fe46f56220cc52e515bd4dffc1a8491085fa143032fd5c74a9f
-    path: patches/@opennextjs__cloudflare.patch
-
 importers:
 
   .:
