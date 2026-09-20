@@ -1,6 +1,8 @@
 "use server"
 
+import { updateTag } from "next/cache"
 import { requireSession } from "@/lib/auth/session"
+import { storageTags } from "@/lib/cache/storage"
 import {
   completePendingUploads,
   createFileDownload,
@@ -9,7 +11,7 @@ import {
   deleteAllTrashedStorageItems,
   deleteTrashedStorageItemById,
   renameStorageItemById,
-  updateStorageItemTrashById
+  updateStorageItemTrashById,
 } from "@/lib/db/queries/storage"
 import { err, ok } from "@/lib/utils/result"
 import {
@@ -20,6 +22,10 @@ import {
   updateStorageItemTrashInputSchema,
 } from "@/lib/validations/storage"
 import { z } from "zod"
+
+function updateItemsTag(ownerId: string, parentId: string | null) {
+  updateTag(storageTags.items(ownerId, parentId))
+}
 
 // --- Read actions for user-triggered interactions ---
 
@@ -54,6 +60,7 @@ export async function createFolderAction(input: unknown) {
     return err(result.error)
   }
 
+  updateItemsTag(session.user.id, result.data.parentId)
   return ok(result.data)
 }
 
@@ -86,6 +93,11 @@ export async function completeUploadsAction(input: unknown) {
     return err(result.error)
   }
 
+  for (const file of result.data) {
+    updateItemsTag(session.user.id, file.parentId)
+  }
+  updateTag(storageTags.usage(session.user.id))
+
   return ok(result.data)
 }
 
@@ -108,6 +120,11 @@ export async function renameStorageItemAction(itemId: unknown, input: unknown) {
   )
   if (!result.success) {
     return err(result.error)
+  }
+
+  updateItemsTag(session.user.id, result.data.parentId)
+  if (result.data.type === "folder") {
+    updateTag(storageTags.folder(session.user.id, result.data.id))
   }
 
   return ok(result.data)
@@ -137,6 +154,12 @@ export async function updateStorageItemTrashAction(
     return err(result.error)
   }
 
+  updateItemsTag(session.user.id, result.data.parentId)
+  updateTag(storageTags.trash(session.user.id))
+  if (result.data.type === "folder") {
+    updateTag(storageTags.folder(session.user.id, result.data.id))
+  }
+
   return ok(result.data)
 }
 
@@ -157,6 +180,9 @@ export async function deleteTrashedItemAction(itemId: string) {
     return err(result.error)
   }
 
+  updateTag(storageTags.trash(session.user.id))
+  updateTag(storageTags.usage(session.user.id))
+
   return ok({ deletedIds: result.data })
 }
 
@@ -166,6 +192,9 @@ export async function emptyTrashAction() {
   if (!result.success) {
     return err(result.error)
   }
+
+  updateTag(storageTags.trash(session.user.id))
+  updateTag(storageTags.usage(session.user.id))
 
   return ok({ deletedIds: result.data })
 }
