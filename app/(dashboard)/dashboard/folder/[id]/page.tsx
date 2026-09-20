@@ -1,5 +1,5 @@
 import { Suspense } from "react"
-import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query"
+import { dehydrate, HydrationBoundary, noop, QueryClient } from "@tanstack/react-query"
 import { FolderPageClient } from "@/components/features/folder/folder-page-client"
 import { StorageItemGridSkeleton } from "@/components/features/dashboard/storage-item-grid-skeleton"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -32,13 +32,13 @@ async function FolderStream({ folderId }: { folderId: string }) {
         queryKey: folderDetailsQueryKey(folderId),
         queryFn: () => getFolderDetails(folderId),
       })
-      .catch(() => {}),
+      .catch(noop),
     queryClient
       .query({
         queryKey: storageItemsByParentQueryKey(folderId),
         queryFn: () => getDriveItems(folderId),
       })
-      .catch(() => {}),
+      .catch(noop),
   ])
 
   return (

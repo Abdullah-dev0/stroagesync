@@ -1,4 +1,4 @@
-import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query"
+import { dehydrate, HydrationBoundary, noop, QueryClient } from "@tanstack/react-query"
 import { StorageItemGridClient } from "@/components/features/dashboard/storage-item-grid-client"
 import { StorageItemGridSkeleton } from "@/components/features/dashboard/storage-item-grid-skeleton"
 import { getDriveItems } from "@/lib/services/storage"
@@ -31,7 +31,7 @@ async function DriveItemsStream() {
       queryKey: storageItemsQueryKey,
       queryFn: () => getDriveItems(),
     })
-    .catch(() => {})
+    .catch(noop)
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>

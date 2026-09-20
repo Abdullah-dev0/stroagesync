@@ -1,5 +1,5 @@
 import { Clock3 } from "lucide-react"
-import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query"
+import { dehydrate, HydrationBoundary, noop, QueryClient } from "@tanstack/react-query"
 
 import { EmptyTrashAction } from "@/components/features/trash/empty-trash-action"
 import { TrashItemGridClient } from "@/components/features/trash/trash-item-grid-client"
@@ -53,7 +53,7 @@ async function TrashItemsStream() {
       queryKey: trashItemsQueryKey,
       queryFn: getTrashItems,
     })
-    .catch(() => {})
+    .catch(noop)
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
