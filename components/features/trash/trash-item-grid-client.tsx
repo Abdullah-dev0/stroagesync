@@ -2,10 +2,11 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { LoaderCircle, RotateCcw, Trash2 } from "lucide-react"
-import { use, useState } from "react"
+import { useState } from "react"
 
 import { fetchTrashItems } from "@/lib/api/storage"
 import { StorageItemCard } from "@/components/features/dashboard/storage-item-card"
+import { StorageItemGridSkeleton } from "@/components/features/dashboard/storage-item-grid-skeleton"
 import { TrashEmptyState } from "@/components/features/trash/trash-empty-state"
 import {
   updateStorageItemTrashAction,
@@ -37,20 +38,12 @@ import {
   type UpdateStorageItemTrashInput,
 } from "@/lib/validations/storage"
 
-type TrashItemGridClientProps = {
-  itemsPromise: Promise<StorageItem[]>
-}
-
-export function TrashItemGridClient({
-  itemsPromise,
-}: TrashItemGridClientProps) {
-  const initialItems = use(itemsPromise)
+export function TrashItemGridClient() {
   const [deleteItem, setDeleteItem] = useState<StorageItem | null>(null)
   const queryClient = useQueryClient()
-  const { data: items } = useQuery({
+  const { data: items, isPending: isQueryPending } = useQuery({
     queryKey: trashItemsQueryKey,
     queryFn: fetchTrashItems,
-    initialData: initialItems,
   })
 
   const restoreItem = useMutation({
@@ -140,9 +133,13 @@ export function TrashItemGridClient({
     },
   })
 
+  if (isQueryPending) {
+    return <StorageItemGridSkeleton />
+  }
+
   return (
     <>
-      {items.length === 0 ? (
+      {!items || items.length === 0 ? (
         <TrashEmptyState />
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

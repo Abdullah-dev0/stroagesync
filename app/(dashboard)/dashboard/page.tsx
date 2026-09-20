@@ -1,12 +1,11 @@
-import { Suspense } from "react"
-
+import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query"
 import { StorageItemGridClient } from "@/components/features/dashboard/storage-item-grid-client"
 import { StorageItemGridSkeleton } from "@/components/features/dashboard/storage-item-grid-skeleton"
-import { getDriveItems } from "@/lib/db/queries/storage"
+import { getDriveItems } from "@/lib/services/storage"
+import { storageItemsQueryKey } from "@/lib/query-keys"
+import { Suspense } from "react"
 
 export default function Page() {
-  const itemsPromise = getDriveItems()
-
   return (
     <div className="w-full">
       <div className="w-full p-4 sm:p-7">
@@ -16,10 +15,27 @@ export default function Page() {
 
         <div className="mt-6">
           <Suspense fallback={<StorageItemGridSkeleton />}>
-            <StorageItemGridClient itemsPromise={itemsPromise} />
+            <DriveItemsStream />
           </Suspense>
         </div>
       </div>
     </div>
+  )
+}
+
+async function DriveItemsStream() {
+  const queryClient = new QueryClient()
+
+  await queryClient
+    .query({
+      queryKey: storageItemsQueryKey,
+      queryFn: () => getDriveItems(),
+    })
+    .catch(() => {})
+
+  return (
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <StorageItemGridClient />
+    </HydrationBoundary>
   )
 }

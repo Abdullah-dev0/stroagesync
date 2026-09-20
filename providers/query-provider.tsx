@@ -19,7 +19,7 @@ function makeQueryClient(onUnauthorized: () => void) {
     }),
     defaultOptions: {
       queries: {
-        staleTime: 30_000,
+        staleTime: 5 * 60 * 1000,
         retry: false,
       },
       mutations: { retry: false },

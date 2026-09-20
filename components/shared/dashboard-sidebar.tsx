@@ -5,9 +5,7 @@ import { Suspense } from "react"
 import { DashboardNavigation } from "@/components/shared/dashboard-navigation"
 import { StorageCreateMenu } from "@/components/features/dashboard/storage-create-menu"
 import { StorageUsageFooter } from "@/components/shared/storage-usage-footer"
-import { StorageUsageFooterSkeleton } from "@/components/shared/storage-usage-footer-skeleton"
 import { Skeleton } from "@/components/ui/skeleton"
-import { getStorageUsage } from "@/lib/db/queries/storage"
 import {
   Sidebar,
   SidebarHeader,
@@ -21,8 +19,6 @@ import {
 } from "@/components/ui/sidebar"
 
 export function DashboardSidebar() {
-  const usagePromise = getStorageUsage()
-
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
@@ -63,9 +59,7 @@ export function DashboardSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <Suspense fallback={<StorageUsageFooterSkeleton />}>
-        <StorageUsageFooter usagePromise={usagePromise} />
-      </Suspense>
+      <StorageUsageFooter />
       <SidebarRail />
     </Sidebar>
   )

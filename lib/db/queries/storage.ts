@@ -7,7 +7,6 @@ import {
   PutObjectCommand,
 } from "@aws-sdk/client-s3"
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner"
-import { cacheLife } from "next/cache"
 import {
   type CreateFolderInput,
   type CreateUploadUrlsInput,
@@ -27,9 +26,7 @@ import { env } from "@/lib/env"
 import { getDbAsync } from "@/lib/db/client"
 import { storageItem } from "@/lib/db/schema"
 import { r2Client } from "@/lib/db/r2"
-import { requireSession } from "@/lib/auth/session"
 import { ok, err } from "@/lib/utils/result"
-import z from "zod"
 
 const UPLOAD_URL_EXPIRES_IN_SECONDS = 5 * 60
 const PREVIEW_URL_EXPIRES_IN_SECONDS = 60
@@ -78,7 +75,10 @@ export const createFolder = async (
   return ok(newFolder)
 }
 
-export const listStorageItemsByOwnerId = async (ownerId: string) => {
+export const listStorageItemsByOwnerId = async (
+  ownerId: string,
+  parentId?: string | null
+) => {
   const db = await getDbAsync()
   return db
     .select({
@@ -95,7 +95,9 @@ export const listStorageItemsByOwnerId = async (ownerId: string) => {
     .where(
       and(
         eq(storageItem.ownerId, ownerId),
-        isNull(storageItem.parentId),
+        parentId
+          ? eq(storageItem.parentId, parentId)
+          : isNull(storageItem.parentId),
         eq(storageItem.status, "ready"),
         isNull(storageItem.deletedAt)
       )
@@ -468,30 +470,6 @@ export const deleteTrashedStorageItemById = async (
 export const deleteAllTrashedStorageItems = async (ownerId: string) =>
   deleteTrashedStorageItems(ownerId)
 
-export async function getDriveItems() {
-  "use cache: private"
-  cacheLife({ stale: 300 })
-
-  const session = await requireSession()
-  return listStorageItemsByOwnerId(session.user.id)
-}
-
-export async function getTrashItems() {
-  "use cache: private"
-  cacheLife({ stale: 300 })
-
-  const session = await requireSession()
-  return listTrashStorageItemsByOwnerId(session.user.id)
-}
-
-export async function getStorageUsage() {
-  "use cache: private"
-  cacheLife({ stale: 300 })
-
-  const session = await requireSession()
-  return getStorageUsageByOwnerId(session.user.id)
-}
-
 export async function getFolderContentItems(id: string, ownerId: string) {
   const db = await getDbAsync()
 
@@ -543,39 +521,15 @@ export async function getFolderContentItems(id: string, ownerId: string) {
   return ok(data)
 }
 
-export async function getFolderContent(id: string) {
-  "use cache: private"
-  cacheLife({ stale: 300 })
-
-  const session = await requireSession()
-
-  const parsedId = z.uuid().safeParse(id)
-
-  if (!parsedId.success) {
-    return err("Invalid item ID.")
-  }
-
-  const result = await getFolderContentItems(id, session.user.id)
-
-  if (!result.success) {
-    return err(result.error)
-  }
-
-  return ok(result.data)
-}
-
 /**
  * Returns the ordered list of ancestor folders for a given folder id,
  * from the root down to the immediate parent (excluding the folder itself).
  * Uses a recursive CTE so it works at any depth in a single round-trip.
  */
 export async function getFolderAncestors(
-  id: string
+  id: string,
+  ownerId: string
 ): Promise<Array<{ id: string; name: string }>> {
-  "use cache: private"
-  cacheLife({ stale: 300 })
-
-  const session = await requireSession()
   const db = await getDbAsync()
 
   // Walk parentId upward with a recursive CTE, collecting ancestors depth-first.
@@ -587,11 +541,11 @@ export async function getFolderAncestors(
       INNER JOIN storage_item child
         ON child.parent_id = si.id
        AND child.id        = ${id}
-       AND child.owner_id  = ${session.user.id}
+       AND child.owner_id  = ${ownerId}
       WHERE si.type       = 'folder'
         AND si.status     = 'ready'
         AND si.deleted_at IS NULL
-        AND si.owner_id   = ${session.user.id}
+        AND si.owner_id   = ${ownerId}
 
       UNION ALL
 
@@ -601,7 +555,7 @@ export async function getFolderAncestors(
       WHERE si.type       = 'folder'
         AND si.status     = 'ready'
         AND si.deleted_at IS NULL
-        AND si.owner_id   = ${session.user.id}
+        AND si.owner_id   = ${ownerId}
     )
     SELECT id, name
     FROM ancestors

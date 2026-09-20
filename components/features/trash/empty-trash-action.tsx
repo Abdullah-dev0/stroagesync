@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Trash2 } from "lucide-react"
-import { use, useState } from "react"
+import { useState } from "react"
 
 import { fetchTrashItems } from "@/lib/api/storage"
 import { emptyTrashAction } from "@/lib/actions/storage"
@@ -26,18 +26,12 @@ import { Spinner } from "@/components/ui/spinner"
 import { toast } from "@/components/ui/toast"
 import type { StorageItem } from "@/lib/validations/storage"
 
-type EmptyTrashActionProps = {
-  itemsPromise: Promise<StorageItem[]>
-}
-
-export function EmptyTrashAction({ itemsPromise }: EmptyTrashActionProps) {
-  const initialItems = use(itemsPromise)
+export function EmptyTrashAction() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const queryClient = useQueryClient()
-  const { data: items } = useQuery({
+  const { data: items = [] } = useQuery({
     queryKey: trashItemsQueryKey,
     queryFn: fetchTrashItems,
-    initialData: initialItems,
   })
 
   const emptyTrash = useMutation({

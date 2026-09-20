@@ -99,6 +99,11 @@ export const deleteStorageItemsResultSchema = z.object({
   deletedIds: z.array(z.uuid()),
 })
 
+export const folderDetailsResponseSchema = z.object({
+  folder: folderSchema,
+  ancestors: z.array(folderSchema),
+})
+
 export type CreateFolderInput = z.infer<typeof createFolderInputSchema>
 export type CreateUploadUrlsInput = z.infer<typeof createUploadUrlsInputSchema>
 export type DeleteStorageItemsResult = z.infer<
@@ -107,6 +112,7 @@ export type DeleteStorageItemsResult = z.infer<
 export type FileDownload = z.infer<typeof fileDownloadSchema>
 export type FilePreview = z.infer<typeof filePreviewSchema>
 export type Folder = z.infer<typeof folderSchema>
+export type FolderDetailsResponse = z.infer<typeof folderDetailsResponseSchema>
 export type PresignedUpload = z.infer<typeof presignedUploadSchema>
 export type RenameStorageItemInput = z.infer<
   typeof renameStorageItemInputSchema

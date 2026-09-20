@@ -1,61 +1,56 @@
-import { notFound } from "next/navigation"
 import { Suspense } from "react"
-
-import { StorageItemGridClient } from "@/components/features/dashboard/storage-item-grid-client"
+import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query"
+import { FolderPageClient } from "@/components/features/folder/folder-page-client"
 import { StorageItemGridSkeleton } from "@/components/features/dashboard/storage-item-grid-skeleton"
-import { FolderBreadcrumbs } from "@/components/features/folder/folder-breadcrumbs"
-import { FolderEmptyState } from "@/components/features/folder/folder-empty-state"
 import { Skeleton } from "@/components/ui/skeleton"
-import { getFolderAncestors, getFolderContent } from "@/lib/db/queries/storage"
+import { getDriveItems, getFolderDetails } from "@/lib/services/storage"
+import {
+  folderDetailsQueryKey,
+  storageItemsByParentQueryKey,
+} from "@/lib/query-keys"
 
 type FolderPageProps = {
   params: Promise<{ id: string }>
 }
 
-export default function Page({ params }: FolderPageProps) {
+export default async function Page({ params }: FolderPageProps) {
+  const { id } = await params
+
   return (
-    <div className="w-full">
-      <Suspense fallback={<FolderPageSkeleton />}>
-        <FolderPageContent params={params} />
-      </Suspense>
-    </div>
+    <Suspense fallback={<FolderPageSkeleton />}>
+      <FolderStream folderId={id} />
+    </Suspense>
   )
 }
 
-async function FolderPageContent({ params }: FolderPageProps) {
-  const { id } = await params
+async function FolderStream({ folderId }: { folderId: string }) {
+  const queryClient = new QueryClient()
 
-  // Fetch folder contents and its ancestor chain in parallel — no waterfall.
-  const [result, ancestors] = await Promise.all([
-    getFolderContent(id),
-    getFolderAncestors(id),
+  await Promise.all([
+    queryClient
+      .query({
+        queryKey: folderDetailsQueryKey(folderId),
+        queryFn: () => getFolderDetails(folderId),
+      })
+      .catch(() => {}),
+    queryClient
+      .query({
+        queryKey: storageItemsByParentQueryKey(folderId),
+        queryFn: () => getDriveItems(folderId),
+      })
+      .catch(() => {}),
   ])
 
-  if (!result.success) {
-    notFound()
-  }
-
-  const folder = result.data
-  const itemsPromise = Promise.resolve(folder.children)
-
   return (
-    <div className="w-full p-4 sm:p-7">
-      <FolderBreadcrumbs ancestors={ancestors} currentFolder={folder} />
-      <div className="mt-6">
-        <StorageItemGridClient
-          folderId={id}
-          itemsPromise={itemsPromise}
-          emptyState={<FolderEmptyState />}
-        />
-      </div>
-    </div>
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <FolderPageClient folderId={folderId} />
+    </HydrationBoundary>
   )
 }
 
 function FolderPageSkeleton() {
   return (
     <div className="w-full p-4 sm:p-7">
-      {/* Breadcrumb skeleton — matches the nav shape */}
       <div className="flex items-center gap-2">
         <Skeleton className="h-7 w-20 rounded-md" />
         <Skeleton className="size-3.5 rounded-sm" />

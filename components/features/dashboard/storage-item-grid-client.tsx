@@ -2,13 +2,14 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Eye, Pencil, Share2, Trash2 } from "lucide-react"
-import { use, useState, type ReactNode } from "react"
+import { useState, type ReactNode } from "react"
 
 import { fetchDriveItems } from "@/lib/api/storage"
 import { PreviewFile } from "@/components/features/dashboard/preview-storage-item-dialog"
 import { RenameStorageItemDialog } from "@/components/features/dashboard/rename-storage-item-dialog"
 import { StorageEmptyState } from "@/components/features/dashboard/storage-empty-state"
 import { StorageItemCard } from "@/components/features/dashboard/storage-item-card"
+import { StorageItemGridSkeleton } from "@/components/features/dashboard/storage-item-grid-skeleton"
 import { updateStorageItemTrashAction } from "@/lib/actions/storage"
 import {
   storageItemsByParentQueryKey,
@@ -30,15 +31,12 @@ import { useRouter } from "next/navigation"
 type StorageItemGridClientProps = {
   emptyState?: ReactNode
   folderId?: string
-  itemsPromise: Promise<StorageItem[]>
 }
 
 export function StorageItemGridClient({
   emptyState,
   folderId,
-  itemsPromise,
 }: StorageItemGridClientProps) {
-  const initialItems = use(itemsPromise)
   const [previewItem, setPreviewItem] = useState<StorageItem | null>(null)
   const [renameItem, setRenameItem] = useState<StorageItem | null>(null)
   const router = useRouter()
@@ -46,10 +44,9 @@ export function StorageItemGridClient({
   const queryClient = useQueryClient()
   const queryKey = storageItemsByParentQueryKey(folderId ?? null)
 
-  const { data: items } = useQuery({
+  const { data: items, isPending: isQueryPending } = useQuery({
     queryKey,
-    queryFn: folderId ? () => Promise.resolve(initialItems) : fetchDriveItems,
-    initialData: initialItems,
+    queryFn: () => fetchDriveItems(folderId ?? null),
   })
 
   const { mutate, isPending, variables } = useMutation({
@@ -61,10 +58,8 @@ export function StorageItemGridClient({
       return result.data
     },
     onSuccess: (trashedItem, item) => {
-      queryClient.setQueryData<StorageItem[]>(
-        queryKey,
-        (currentItems = []) =>
-          currentItems.filter((currentItem) => currentItem.id !== item.id)
+      queryClient.setQueryData<StorageItem[]>(queryKey, (currentItems = []) =>
+        currentItems.filter((currentItem) => currentItem.id !== item.id)
       )
       queryClient.setQueryData<StorageItem[]>(
         trashItemsQueryKey,
@@ -96,7 +91,11 @@ export function StorageItemGridClient({
     },
   })
 
-  if (items.length === 0) {
+  if (isQueryPending) {
+    return <StorageItemGridSkeleton />
+  }
+
+  if (!items || items.length === 0) {
     return emptyState ?? <StorageEmptyState />
   }
 
@@ -118,9 +117,7 @@ export function StorageItemGridClient({
                 {item.type === "folder" && (
                   <DropdownMenuItem
                     className="cursor-pointer gap-2 px-2 py-2"
-                    onClick={() =>
-                      router.push(`/dashboard/folder/${item.id}`)
-                    }
+                    onClick={() => router.push(`/dashboard/folder/${item.id}`)}
                   >
                     <Eye />
                     Open

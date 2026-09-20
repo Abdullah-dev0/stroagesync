@@ -1,16 +1,14 @@
 import { Clock3 } from "lucide-react"
-import { Suspense } from "react"
+import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query"
 
-import { StorageItemGridSkeleton } from "@/components/features/dashboard/storage-item-grid-skeleton"
 import { EmptyTrashAction } from "@/components/features/trash/empty-trash-action"
 import { TrashItemGridClient } from "@/components/features/trash/trash-item-grid-client"
-import { Button } from "@/components/ui/button"
-import { Spinner } from "@/components/ui/spinner"
-import { getTrashItems } from "@/lib/db/queries/storage"
+import { Suspense } from "react"
+import { StorageItemGridSkeleton } from "@/components/features/dashboard/storage-item-grid-skeleton"
+import { getTrashItems } from "@/lib/services/storage"
+import { trashItemsQueryKey } from "@/lib/query-keys"
 
 export default function Page() {
-  const itemsPromise = getTrashItems()
-
   return (
     <div className="w-full">
       <div className="w-full p-4 sm:p-7">
@@ -24,16 +22,7 @@ export default function Page() {
             </p>
           </div>
 
-          <Suspense
-            fallback={
-              <Button variant="destructive" className="self-start" disabled>
-                <Spinner />
-                Empty trash
-              </Button>
-            }
-          >
-            <EmptyTrashAction itemsPromise={itemsPromise} />
-          </Suspense>
+          <EmptyTrashAction />
         </div>
 
         <div className="mt-6 flex items-start gap-3 rounded-lg border border-border bg-card p-4">
@@ -48,10 +37,27 @@ export default function Page() {
 
         <div className="mt-6">
           <Suspense fallback={<StorageItemGridSkeleton />}>
-            <TrashItemGridClient itemsPromise={itemsPromise} />
+            <TrashItemsStream />
           </Suspense>
         </div>
       </div>
     </div>
+  )
+}
+
+async function TrashItemsStream() {
+  const queryClient = new QueryClient()
+
+  await queryClient
+    .query({
+      queryKey: trashItemsQueryKey,
+      queryFn: getTrashItems,
+    })
+    .catch(() => {})
+
+  return (
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <TrashItemGridClient />
+    </HydrationBoundary>
   )
 }

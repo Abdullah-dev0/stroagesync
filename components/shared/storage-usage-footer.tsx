@@ -3,7 +3,6 @@
 import { useQuery } from "@tanstack/react-query"
 import Link from "next/link"
 import { HardDrive } from "lucide-react"
-import { use } from "react"
 
 import { STORAGE_LIMIT_BYTES } from "@/lib/constants"
 import { fetchStorageUsage } from "@/lib/api/storage"
@@ -17,20 +16,17 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import type { StorageUsage } from "@/lib/validations/storage"
+import { StorageUsageFooterSkeleton } from "@/components/shared/storage-usage-footer-skeleton"
 
-type StorageUsageFooterProps = {
-  usagePromise: Promise<StorageUsage>
-}
-
-export function StorageUsageFooter({ usagePromise }: StorageUsageFooterProps) {
-  const initialUsage = use(usagePromise)
-
-  const { data: usage } = useQuery({
+export function StorageUsageFooter() {
+  const { data: usage, isPending } = useQuery({
     queryKey: storageUsageQueryKey,
     queryFn: fetchStorageUsage,
-    initialData: initialUsage,
   })
+
+  if (isPending || !usage) {
+    return <StorageUsageFooterSkeleton />
+  }
 
   const { usedBytes } = usage
   const usedStorage = formatFileSize(usedBytes)

@@ -2,6 +2,7 @@ import type { ZodType } from "zod"
 
 import {
   filePreviewSchema,
+  folderDetailsResponseSchema,
   storageItemsResponseSchema,
   storageUsageSchema,
 } from "@/lib/validations/storage"
@@ -22,8 +23,12 @@ async function fetchJson<T>(url: string, schema: ZodType<T>): Promise<T> {
   return schema.parse(data)
 }
 
-export const fetchDriveItems = () =>
-  fetchJson("/api/storage/items", storageItemsResponseSchema)
+export const fetchDriveItems = (parentId?: string | null) => {
+  const url = parentId
+    ? `/api/storage/items?parentId=${encodeURIComponent(parentId)}`
+    : "/api/storage/items"
+  return fetchJson(url, storageItemsResponseSchema)
+}
 
 export const fetchTrashItems = () =>
   fetchJson("/api/storage/trash", storageItemsResponseSchema)
@@ -33,3 +38,6 @@ export const fetchStorageUsage = () =>
 
 export const fetchFilePreview = (itemId: string) =>
   fetchJson(`/api/storage/items/${itemId}/preview`, filePreviewSchema)
+
+export const fetchFolderDetails = (folderId: string) =>
+  fetchJson(`/api/storage/folders/${folderId}`, folderDetailsResponseSchema)
