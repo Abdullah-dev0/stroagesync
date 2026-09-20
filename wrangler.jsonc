@@ -3,12 +3,17 @@
   "name": "storumi",
   "account_id": "a297e27fb27925ffff4c46066e784455",
   "compatibility_date": "2026-09-19",
-
+  "keep_vars": true,
   "main": "vinext/server/fetch-handler",
-
   "assets": {
     "directory": "dist/client",
     "not_found_handling": "none",
     "binding": "ASSETS",
   },
+  "hyperdrive": [
+    {
+      "binding": "HIPERDRIVE",
+      "id": "9ca597c9857c4a73bdc398183ace0578",
+    },
+  ],
 }
