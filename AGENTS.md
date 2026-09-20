@@ -25,7 +25,6 @@ Follow the established folder structure for all new features and modifications:
 - `lib/utils/` — Pure utility functions (`cn.ts`, `format.ts`, `site.ts`).
 - `lib/constants.ts` — Application-wide constants.
 
-
 ## React and Next.js Performance
 
 - When writing, reviewing, or refactoring React components or Next.js pages,
@@ -131,7 +130,7 @@ Follow the established folder structure for all new features and modifications:
   unless verification is important because the change is high-risk or cannot be
   checked meaningfully another way.
 
-## Important Rule 
+## Important Rule
 
 - If you are unsure about a rule, ask for clarification before writing code.
-- Do not write business logic; I will write it myself. This is the reason why i am Making this application you are allow to make design decisions also this is production Grade  Application so tell me hwo people add any feacture in production.
+- Do not write business logic; I will write it myself. This is the reason why i am Making this application you are allow to make design decisions also this is production Grade Application so tell me hwo people add any feacture in production.

@@ -38,7 +38,7 @@ export function LogoutMenuItem() {
 
   return (
     <DropdownMenuItem
-      className="px-2 py-2 cursor-pointer"
+      className="cursor-pointer px-2 py-2"
       disabled={isSigningOut}
       closeOnClick={false}
       onClick={handleLogout}

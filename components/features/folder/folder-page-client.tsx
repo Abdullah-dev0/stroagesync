@@ -43,4 +43,3 @@ export function FolderPageClient({ folderId }: FolderPageClientProps) {
     </div>
   )
 }
-

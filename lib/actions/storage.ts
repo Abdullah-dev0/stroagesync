@@ -9,7 +9,7 @@ import {
   deleteAllTrashedStorageItems,
   deleteTrashedStorageItemById,
   renameStorageItemById,
-  updateStorageItemTrashById
+  updateStorageItemTrashById,
 } from "@/lib/db/queries/storage"
 import { err, ok } from "@/lib/utils/result"
 import {

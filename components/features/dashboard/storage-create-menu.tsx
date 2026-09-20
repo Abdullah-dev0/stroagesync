@@ -62,9 +62,10 @@ export function StorageCreateMenu() {
       return result.data
     },
     onSuccess: (folder) => {
-      queryClient.setQueryData<StorageItem[]>(itemsQueryKey, (items = []) =>
-        [folder, ...items.filter((item) => item.id !== folder.id)]
-      )
+      queryClient.setQueryData<StorageItem[]>(itemsQueryKey, (items = []) => [
+        folder,
+        ...items.filter((item) => item.id !== folder.id),
+      ])
       setFolderName("")
       setErrorMessage(null)
       setIsFolderDialogOpen(false)
@@ -143,12 +144,10 @@ export function StorageCreateMenu() {
     onSuccess: async (uploadedFiles, _variables, mutationContext) => {
       const uploadedFileIds = new Set(uploadedFiles.map(({ id }) => id))
 
-      queryClient.setQueryData<StorageItem[]>(itemsQueryKey, (items = []) =>
-        [
-          ...uploadedFiles,
-          ...items.filter(({ id }) => !uploadedFileIds.has(id)),
-        ]
-      )
+      queryClient.setQueryData<StorageItem[]>(itemsQueryKey, (items = []) => [
+        ...uploadedFiles,
+        ...items.filter(({ id }) => !uploadedFileIds.has(id)),
+      ])
       await queryClient.invalidateQueries({ queryKey: storageUsageQueryKey })
 
       toast.update(mutationContext.toastId, {
