@@ -18,7 +18,7 @@
     "build:vinext": "vinext build",
     "start:vinext": "wrangler dev --config dist/server/wrangler.json",
     "deploy:vinext": "vinext-cloudflare deploy --config dist/server/wrangler.json",
-    "deploy:response-store": "wrangler deploy --config wrangler.response-store.jsonc"
+    "log:vinext": " wrangler tail storumi --format pretty "
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.56.0",
