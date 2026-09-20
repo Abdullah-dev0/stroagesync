@@ -1,7 +1,6 @@
 "use client"
 
 import { EllipsisVertical, File, Folder } from "lucide-react"
-import Link from "next/link"
 import type { MouseEvent, ReactNode } from "react"
 
 import { formatFileSize } from "@/lib/utils/format"
@@ -18,18 +17,18 @@ import type { StorageItem } from "@/lib/validations/storage"
 type StorageItemCardProps = {
   item: StorageItem
   actions: ReactNode
-  href?: string
   muted?: boolean
   onOpen?: () => void
+  onPrefetch?: () => void
   pending?: boolean
 }
 
 export function StorageItemCard({
   item,
   actions,
-  href,
   muted = false,
   onOpen,
+  onPrefetch,
   pending,
 }: StorageItemCardProps) {
   const Icon = item.type === "folder" ? Folder : File
@@ -45,8 +44,16 @@ export function StorageItemCard({
     onOpen()
   }
 
-  const itemContent = (
-    <>
+  return (
+    <article
+      className={cn(
+        "flex items-center gap-3 rounded-lg border border-border bg-card p-4",
+        onOpen && "cursor-pointer"
+      )}
+      onDoubleClick={handleDoubleClick}
+      onMouseEnter={onPrefetch}
+      onFocus={onPrefetch}
+    >
       <Icon
         className={cn(
           "size-5 shrink-0",
@@ -65,27 +72,6 @@ export function StorageItemCard({
             : `${item.mimeType ?? "File"} · ${formatFileSize(item.size ?? 0)}`}
         </p>
       </div>
-    </>
-  )
-
-  return (
-    <article
-      className={cn(
-        "flex items-center gap-3 rounded-lg border border-border bg-card p-4",
-        (href || onOpen) && "cursor-pointer"
-      )}
-      onDoubleClick={onOpen ? handleDoubleClick : undefined}
-    >
-      {href ? (
-        <Link
-          href={href}
-          className="flex min-w-0 flex-1 items-center gap-3 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          {itemContent}
-        </Link>
-      ) : (
-        itemContent
-      )}
 
       <DropdownMenu>
         <DropdownMenuTrigger
