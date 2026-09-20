@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Eye, Pencil, Share2, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { useState, type ReactNode } from "react"
+import { useRouter } from "next/navigation"
 
 import { fetchDriveItems } from "@/lib/api/storage"
 import { PreviewFile } from "@/components/features/dashboard/preview-storage-item-dialog"
@@ -39,6 +40,7 @@ export function StorageItemGridClient({
 }: StorageItemGridClientProps) {
   const [previewItem, setPreviewItem] = useState<StorageItem | null>(null)
   const [renameItem, setRenameItem] = useState<StorageItem | null>(null)
+  const router = useRouter()
   const queryClient = useQueryClient()
   const queryKey = storageItemsByParentQueryKey(folderId ?? null)
 
@@ -105,13 +107,10 @@ export function StorageItemGridClient({
             key={item.id}
             item={item}
             pending={isPending && variables?.id === item.id}
-            href={
-              item.type === "folder"
-                ? `/dashboard/folder/${item.id}`
-                : undefined
-            }
             onOpen={
-              item.type === "file" ? () => setPreviewItem(item) : undefined
+              item.type === "file"
+                ? () => setPreviewItem(item)
+                : () => router.push(`/dashboard/folder/${item.id}`)
             }
             actions={
               <>
