@@ -470,7 +470,7 @@ export const deleteTrashedStorageItemById = async (
 export const deleteAllTrashedStorageItems = async (ownerId: string) =>
   deleteTrashedStorageItems(ownerId)
 
-export async function getFolderContentItems(id: string, ownerId: string) {
+export async function getFolderById(id: string, ownerId: string) {
   const db = await getDbAsync()
 
   const data = await db.query.storageItem.findFirst({
@@ -479,7 +479,6 @@ export async function getFolderContentItems(id: string, ownerId: string) {
       name: true,
       parentId: true,
     },
-
     where: (folder, { and, eq, isNull }) =>
       and(
         eq(folder.id, id),
@@ -488,30 +487,6 @@ export async function getFolderContentItems(id: string, ownerId: string) {
         eq(folder.status, "ready"),
         isNull(folder.deletedAt)
       ),
-
-    with: {
-      children: {
-        columns: {
-          id: true,
-          name: true,
-          type: true,
-          parentId: true,
-          mimeType: true,
-          size: true,
-          createdAt: true,
-          updatedAt: true,
-        },
-
-        where: (child, { and, eq, isNull }) =>
-          and(
-            eq(child.ownerId, ownerId),
-            eq(child.status, "ready"),
-            isNull(child.deletedAt)
-          ),
-
-        orderBy: (child, { desc }) => [desc(child.updatedAt)],
-      },
-    },
   })
 
   if (!data) {
