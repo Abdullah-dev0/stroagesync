@@ -19,6 +19,7 @@ type StorageItemCardProps = {
   actions: ReactNode
   muted?: boolean
   onOpen?: () => void
+  onPrefetch?: () => void
   pending?: boolean
 }
 
@@ -27,6 +28,7 @@ export function StorageItemCard({
   actions,
   muted = false,
   onOpen,
+  onPrefetch,
   pending,
 }: StorageItemCardProps) {
   const Icon = item.type === "folder" ? Folder : File
@@ -49,6 +51,8 @@ export function StorageItemCard({
         onOpen && "cursor-pointer"
       )}
       onDoubleClick={handleDoubleClick}
+      onMouseEnter={onPrefetch}
+      onFocus={onPrefetch}
     >
       <Icon
         className={cn(
