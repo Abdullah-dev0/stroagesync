@@ -470,6 +470,31 @@ export const deleteTrashedStorageItemById = async (
 export const deleteAllTrashedStorageItems = async (ownerId: string) =>
   deleteTrashedStorageItems(ownerId)
 
+export async function getFolderById(id: string, ownerId: string) {
+  const db = await getDbAsync()
+
+  const folder = await db.query.storageItem.findFirst({
+    columns: {
+      id: true,
+      name: true,
+    },
+    where: (item, { and, eq, isNull }) =>
+      and(
+        eq(item.id, id),
+        eq(item.ownerId, ownerId),
+        eq(item.type, "folder"),
+        eq(item.status, "ready"),
+        isNull(item.deletedAt)
+      ),
+  })
+
+  if (!folder) {
+    return err("Folder not found.")
+  }
+
+  return ok(folder)
+}
+
 export async function getFolderContentItems(id: string, ownerId: string) {
   const db = await getDbAsync()
 

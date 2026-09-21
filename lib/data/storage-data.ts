@@ -5,7 +5,7 @@ import { cache } from "react"
 import { requireSession } from "@/lib/auth/session"
 import {
   getFolderAncestors,
-  getFolderContentItems,
+  getFolderById,
   listStorageItemsByOwnerId,
   listTrashStorageItemsByOwnerId,
 } from "@/lib/db/queries/storage"
@@ -45,7 +45,7 @@ export const getFolderDetails = cache(
     const session = await requireSession()
 
     const [result, ancestors] = await Promise.all([
-      getFolderContentItems(id, session.user.id),
+      getFolderById(id, session.user.id),
       getFolderAncestors(id, session.user.id),
     ])
 
@@ -54,10 +54,7 @@ export const getFolderDetails = cache(
     }
 
     return {
-      folder: {
-        id: result.data.id,
-        name: result.data.name,
-      },
+      folder: result.data,
       ancestors,
     }
   }

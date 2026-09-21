@@ -1,7 +1,7 @@
 import { getSession } from "@/lib/auth/session"
 import {
   getFolderAncestors,
-  getFolderContentItems,
+  getFolderById,
 } from "@/lib/db/queries/storage"
 import { z } from "zod"
 
@@ -24,7 +24,7 @@ export async function GET(_request: Request, { params }: RouteProps) {
   }
 
   const [result, ancestors] = await Promise.all([
-    getFolderContentItems(parsedId.data, session.user.id),
+    getFolderById(parsedId.data, session.user.id),
     getFolderAncestors(parsedId.data, session.user.id),
   ])
 
