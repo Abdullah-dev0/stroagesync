@@ -4,10 +4,16 @@ import { cache } from "react"
 
 import { requireSession } from "@/lib/auth/session"
 import {
+  getFolderAncestors,
+  getFolderContentItems,
   listStorageItemsByOwnerId,
   listTrashStorageItemsByOwnerId,
 } from "@/lib/db/queries/storage"
-import type { StorageItem } from "@/lib/validations/storage"
+import type {
+  FolderDetailsResponse,
+  StorageItem,
+} from "@/lib/validations/storage"
+import { z } from "zod"
 
 /**
  * Server function to fetch drive items for the authenticated user.
@@ -28,3 +34,31 @@ export const getTrashItems = cache(async (): Promise<StorageItem[]> => {
   const session = await requireSession()
   return listTrashStorageItemsByOwnerId(session.user.id)
 })
+
+/**
+ * Server function to fetch folder details and ancestors for the authenticated user.
+ * Wrapped with React.cache() for per-request deduplication across the component tree.
+ */
+export const getFolderDetails = cache(
+  async (folderId: string): Promise<FolderDetailsResponse | null> => {
+    const id = z.uuid().parse(folderId)
+    const session = await requireSession()
+
+    const [result, ancestors] = await Promise.all([
+      getFolderContentItems(id, session.user.id),
+      getFolderAncestors(id, session.user.id),
+    ])
+
+    if (!result.success) {
+      return null
+    }
+
+    return {
+      folder: {
+        id: result.data.id,
+        name: result.data.name,
+      },
+      ancestors,
+    }
+  }
+)

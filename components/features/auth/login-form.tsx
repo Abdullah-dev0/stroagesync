@@ -83,6 +83,10 @@ export function LoginForm() {
     }
 
     router.push("/dashboard")
+    toast.add({
+      title: "Login successful",
+      type: "success",
+    })
   }
 
   if (
