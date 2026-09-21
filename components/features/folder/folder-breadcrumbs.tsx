@@ -22,7 +22,7 @@ export function FolderBreadcrumbs({
             className="flex items-center gap-1.5 rounded-md px-1.5 py-1 text-muted-foreground transition-colors duration-150 hover:bg-accent hover:text-foreground"
           >
             <HardDrive className="size-3.5 shrink-0" aria-hidden="true" />
-            <span className="max-sm:sr-only">My Drive</span>
+            <span>My Drive</span>
           </Link>
         </li>
 
