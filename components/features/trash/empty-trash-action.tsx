@@ -44,8 +44,8 @@ export function EmptyTrashAction() {
       const deletedIdSet = new Set(deletedIds)
 
       queryClient.setQueryData<StorageItem[]>(trashItemsQueryKey, [])
-      queryClient.setQueryData<StorageItem[]>(
-        storageItemsQueryKey,
+      queryClient.setQueriesData<StorageItem[]>(
+        { queryKey: storageItemsQueryKey },
         (currentItems) =>
           currentItems?.filter((item) => !deletedIdSet.has(item.id))
       )

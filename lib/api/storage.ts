@@ -2,7 +2,6 @@ import type { ZodType } from "zod"
 
 import {
   filePreviewSchema,
-  folderDetailsResponseSchema,
   storageItemsResponseSchema,
   storageUsageSchema,
 } from "@/lib/validations/storage"
@@ -38,6 +37,3 @@ export const fetchStorageUsage = () =>
 
 export const fetchFilePreview = (itemId: string) =>
   fetchJson(`/api/storage/items/${itemId}/preview`, filePreviewSchema)
-
-export const fetchFolderDetails = (folderId: string) =>
-  fetchJson(`/api/storage/folders/${folderId}`, folderDetailsResponseSchema)

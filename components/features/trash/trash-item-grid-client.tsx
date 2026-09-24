@@ -13,6 +13,7 @@ import {
   deleteTrashedItemAction,
 } from "@/lib/actions/storage"
 import {
+  storageItemsByParentQueryKey,
   storageItemsQueryKey,
   storageUsageQueryKey,
   trashItemsQueryKey,
@@ -61,7 +62,7 @@ export function TrashItemGridClient() {
           currentItems.filter((currentItem) => currentItem.id !== item.id)
       )
       queryClient.setQueryData<StorageItem[]>(
-        storageItemsQueryKey,
+        storageItemsByParentQueryKey(restoredItem.parentId),
         (currentItems) =>
           currentItems
             ? [
@@ -106,8 +107,8 @@ export function TrashItemGridClient() {
             (currentItem) => !deletedIdSet.has(currentItem.id)
           )
       )
-      queryClient.setQueryData<StorageItem[]>(
-        storageItemsQueryKey,
+      queryClient.setQueriesData<StorageItem[]>(
+        { queryKey: storageItemsQueryKey },
         (currentItems) =>
           currentItems?.filter(
             (currentItem) => !deletedIdSet.has(currentItem.id)

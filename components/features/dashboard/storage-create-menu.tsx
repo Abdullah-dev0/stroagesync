@@ -42,7 +42,7 @@ import {
   type CreateUploadUrlsInput,
   type StorageItem,
 } from "@/lib/validations/storage"
-import { cn } from "cn"
+import { cn } from "@/lib/utils/cn"
 import { useParams } from "next/navigation"
 
 export function StorageCreateMenu() {
@@ -141,7 +141,7 @@ export function StorageCreateMenu() {
 
       return { toastId }
     },
-    onSuccess: async (uploadedFiles, _variables, mutationContext) => {
+    onSuccess: async (uploadedFiles) => {
       const uploadedFileIds = new Set(uploadedFiles.map(({ id }) => id))
 
       queryClient.setQueryData<StorageItem[]>(itemsQueryKey, (items = []) => [
@@ -149,13 +149,6 @@ export function StorageCreateMenu() {
         ...items.filter(({ id }) => !uploadedFileIds.has(id)),
       ])
       await queryClient.invalidateQueries({ queryKey: storageUsageQueryKey })
-
-      toast.update(mutationContext.toastId, {
-        type: "success",
-        title: "Files uploaded",
-        description: "Your files have been uploaded successfully.",
-        timeout: 5000,
-      })
     },
     onSettled: (_data, error, _variables, mutationContext) => {
       if (!mutationContext) return
@@ -308,7 +301,7 @@ export function StorageCreateMenu() {
                 className={cn(
                   "focus:ring-0 focus-visible:ring-0",
                   errorMessage &&
-                    "border-red-500! focus:border-red-500! focus-visible:border-red-500!"
+                    "border-destructive! focus:border-destructive! focus-visible:border-destructive!"
                 )}
                 aria-describedby={
                   errorMessage ? "folder-name-error" : undefined
@@ -317,7 +310,7 @@ export function StorageCreateMenu() {
                 autoFocus
               />
               {errorMessage && (
-                <p id="folder-name-error" className="text-sm text-red-500">
+                <p id="folder-name-error" className="text-sm text-destructive">
                   {errorMessage}
                 </p>
               )}

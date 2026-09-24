@@ -1,21 +1,12 @@
-import { z } from "zod"
-
-import { getSession } from "@/lib/auth/session"
+import { withAuth } from "@/lib/auth/with-auth"
 import { createFilePreview } from "@/lib/db/queries/storage"
+import { storageItemIdSchema } from "@/lib/validations/storage"
 
-type PreviewRouteContext = {
-  params: Promise<{ itemId: string }>
-}
-
-export async function GET(_request: Request, context: PreviewRouteContext) {
-  const session = await getSession()
-
-  if (!session) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 })
-  }
-
+export const GET = withAuth<
+  RouteContext<"/api/storage/items/[itemId]/preview">
+>(async (_request, session, context) => {
   const { itemId } = await context.params
-  const parsedId = z.uuid().safeParse(itemId)
+  const parsedId = storageItemIdSchema.safeParse(itemId)
 
   if (!parsedId.success) {
     return Response.json({ error: "Invalid item ID." }, { status: 400 })
@@ -28,4 +19,4 @@ export async function GET(_request: Request, context: PreviewRouteContext) {
   }
 
   return Response.json(result.data)
-}
+})

@@ -9,11 +9,11 @@ import {
   listStorageItemsByOwnerId,
   listTrashStorageItemsByOwnerId,
 } from "@/lib/db/queries/storage"
-import type {
-  FolderDetailsResponse,
-  StorageItem,
+import {
+  storageItemIdSchema,
+  type FolderDetailsResponse,
+  type StorageItem,
 } from "@/lib/validations/storage"
-import { z } from "zod"
 
 /**
  * Server function to fetch drive items for the authenticated user.
@@ -41,7 +41,7 @@ export const getTrashItems = cache(async (): Promise<StorageItem[]> => {
  */
 export const getFolderDetails = cache(
   async (folderId: string): Promise<FolderDetailsResponse | null> => {
-    const id = z.uuid().parse(folderId)
+    const id = storageItemIdSchema.parse(folderId)
     const session = await requireSession()
 
     const [result, ancestors] = await Promise.all([

@@ -41,6 +41,43 @@ const previewableMimeTypes = new Set([
   "image/webp",
 ])
 
+// Public shape of a storage item returned to callers. Mirrors storageItemSchema.
+const storageItemColumns = {
+  id: storageItem.id,
+  name: storageItem.name,
+  type: storageItem.type,
+  parentId: storageItem.parentId,
+  mimeType: storageItem.mimeType,
+  size: storageItem.size,
+  createdAt: storageItem.createdAt,
+  updatedAt: storageItem.updatedAt,
+}
+
+// Every read/write must be scoped to the owner; pending uploads stay hidden.
+const isOwnedReadyItem = (ownerId: string) =>
+  and(eq(storageItem.ownerId, ownerId), eq(storageItem.status, "ready"))
+
+const findOwnedReadyFile = async (itemId: string, ownerId: string) => {
+  const db = await getDbAsync()
+  const [file] = await db
+    .select({
+      name: storageItem.name,
+      storageKey: storageItem.storageKey,
+      mimeType: storageItem.mimeType,
+    })
+    .from(storageItem)
+    .where(
+      and(
+        eq(storageItem.id, itemId),
+        eq(storageItem.type, "file"),
+        isOwnedReadyItem(ownerId)
+      )
+    )
+    .limit(1)
+
+  return file
+}
+
 // --- Query functions ---
 
 // The caller must validate the input with createFolderInputSchema first.
@@ -57,16 +94,7 @@ export const createFolder = async (
       ownerId,
       parentId: input.parentId,
     })
-    .returning({
-      id: storageItem.id,
-      name: storageItem.name,
-      type: storageItem.type,
-      parentId: storageItem.parentId,
-      mimeType: storageItem.mimeType,
-      size: storageItem.size,
-      createdAt: storageItem.createdAt,
-      updatedAt: storageItem.updatedAt,
-    })
+    .returning(storageItemColumns)
 
   if (!newFolder) {
     throw new Error("Folder insert unexpectedly returned no row.")
@@ -81,24 +109,14 @@ export const listStorageItemsByOwnerId = async (
 ) => {
   const db = await getDbAsync()
   return db
-    .select({
-      id: storageItem.id,
-      name: storageItem.name,
-      type: storageItem.type,
-      parentId: storageItem.parentId,
-      mimeType: storageItem.mimeType,
-      size: storageItem.size,
-      createdAt: storageItem.createdAt,
-      updatedAt: storageItem.updatedAt,
-    })
+    .select(storageItemColumns)
     .from(storageItem)
     .where(
       and(
-        eq(storageItem.ownerId, ownerId),
+        isOwnedReadyItem(ownerId),
         parentId
           ? eq(storageItem.parentId, parentId)
           : isNull(storageItem.parentId),
-        eq(storageItem.status, "ready"),
         isNull(storageItem.deletedAt)
       )
     )
@@ -110,13 +128,7 @@ export const getStorageUsageByOwnerId = async (ownerId: string) => {
   const [usage] = await db
     .select({ usedBytes: sum(storageItem.size) })
     .from(storageItem)
-    .where(
-      and(
-        eq(storageItem.ownerId, ownerId),
-        eq(storageItem.type, "file"),
-        eq(storageItem.status, "ready")
-      )
-    )
+    .where(and(isOwnedReadyItem(ownerId), eq(storageItem.type, "file")))
 
   return { usedBytes: Number(usage?.usedBytes ?? 0) }
 }
@@ -133,23 +145,8 @@ export const updateStorageItemTrashById = async (
       deletedAt: trashed ? new Date() : null,
       updatedAt: new Date(),
     })
-    .where(
-      and(
-        eq(storageItem.id, itemId),
-        eq(storageItem.ownerId, ownerId),
-        eq(storageItem.status, "ready")
-      )
-    )
-    .returning({
-      id: storageItem.id,
-      name: storageItem.name,
-      type: storageItem.type,
-      parentId: storageItem.parentId,
-      mimeType: storageItem.mimeType,
-      size: storageItem.size,
-      createdAt: storageItem.createdAt,
-      updatedAt: storageItem.updatedAt,
-    })
+    .where(and(eq(storageItem.id, itemId), isOwnedReadyItem(ownerId)))
+    .returning(storageItemColumns)
 
   if (!updatedItem) {
     return err("Storage item not found.")
@@ -266,16 +263,7 @@ export const completePendingUploads = async (
         inArray(storageItem.status, ["pending", "ready"])
       )
     )
-    .returning({
-      id: storageItem.id,
-      name: storageItem.name,
-      type: storageItem.type,
-      parentId: storageItem.parentId,
-      mimeType: storageItem.mimeType,
-      size: storageItem.size,
-      createdAt: storageItem.createdAt,
-      updatedAt: storageItem.updatedAt,
-    })
+    .returning(storageItemColumns)
 
   if (completedFiles.length !== fileIds.length) {
     return err("Upload expired before completion.")
@@ -285,22 +273,7 @@ export const completePendingUploads = async (
 }
 
 export const createFilePreview = async (itemId: string, ownerId: string) => {
-  const db = await getDbAsync()
-  const [file] = await db
-    .select({
-      storageKey: storageItem.storageKey,
-      mimeType: storageItem.mimeType,
-    })
-    .from(storageItem)
-    .where(
-      and(
-        eq(storageItem.id, itemId),
-        eq(storageItem.ownerId, ownerId),
-        eq(storageItem.type, "file"),
-        eq(storageItem.status, "ready")
-      )
-    )
-    .limit(1)
+  const file = await findOwnedReadyFile(itemId, ownerId)
 
   if (!file?.storageKey || !file.mimeType) {
     return err("File not found.")
@@ -328,22 +301,7 @@ export const createFilePreview = async (itemId: string, ownerId: string) => {
 }
 
 export const createFileDownload = async (itemId: string, ownerId: string) => {
-  const db = await getDbAsync()
-  const [file] = await db
-    .select({
-      name: storageItem.name,
-      storageKey: storageItem.storageKey,
-    })
-    .from(storageItem)
-    .where(
-      and(
-        eq(storageItem.id, itemId),
-        eq(storageItem.ownerId, ownerId),
-        eq(storageItem.type, "file"),
-        eq(storageItem.status, "ready")
-      )
-    )
-    .limit(1)
+  const file = await findOwnedReadyFile(itemId, ownerId)
 
   if (!file?.storageKey) {
     return err("File not found.")
@@ -371,23 +329,8 @@ export const renameStorageItemById = async (
   const [renamedItem] = await db
     .update(storageItem)
     .set({ name, updatedAt: new Date() })
-    .where(
-      and(
-        eq(storageItem.id, itemId),
-        eq(storageItem.ownerId, ownerId),
-        eq(storageItem.status, "ready")
-      )
-    )
-    .returning({
-      id: storageItem.id,
-      name: storageItem.name,
-      type: storageItem.type,
-      parentId: storageItem.parentId,
-      mimeType: storageItem.mimeType,
-      size: storageItem.size,
-      createdAt: storageItem.createdAt,
-      updatedAt: storageItem.updatedAt,
-    })
+    .where(and(eq(storageItem.id, itemId), isOwnedReadyItem(ownerId)))
+    .returning(storageItemColumns)
 
   if (!renamedItem) {
     return err("Storage item not found.")
@@ -399,32 +342,16 @@ export const renameStorageItemById = async (
 export const listTrashStorageItemsByOwnerId = async (ownerId: string) => {
   const db = await getDbAsync()
   return await db
-    .select({
-      id: storageItem.id,
-      name: storageItem.name,
-      type: storageItem.type,
-      parentId: storageItem.parentId,
-      mimeType: storageItem.mimeType,
-      size: storageItem.size,
-      createdAt: storageItem.createdAt,
-      updatedAt: storageItem.updatedAt,
-    })
+    .select(storageItemColumns)
     .from(storageItem)
-    .where(
-      and(
-        eq(storageItem.ownerId, ownerId),
-        eq(storageItem.status, "ready"),
-        isNotNull(storageItem.deletedAt)
-      )
-    )
+    .where(and(isOwnedReadyItem(ownerId), isNotNull(storageItem.deletedAt)))
     .orderBy(desc(storageItem.updatedAt))
 }
 
 const deleteTrashedStorageItems = async (ownerId: string, itemId?: string) => {
   const db = await getDbAsync()
   const conditions = and(
-    eq(storageItem.ownerId, ownerId),
-    eq(storageItem.status, "ready"),
+    isOwnedReadyItem(ownerId),
     isNotNull(storageItem.deletedAt),
     itemId ? eq(storageItem.id, itemId) : undefined
   )
@@ -493,57 +420,6 @@ export async function getFolderById(id: string, ownerId: string) {
   }
 
   return ok(folder)
-}
-
-export async function getFolderContentItems(id: string, ownerId: string) {
-  const db = await getDbAsync()
-
-  const data = await db.query.storageItem.findFirst({
-    columns: {
-      id: true,
-      name: true,
-      parentId: true,
-    },
-
-    where: (folder, { and, eq, isNull }) =>
-      and(
-        eq(folder.id, id),
-        eq(folder.ownerId, ownerId),
-        eq(folder.type, "folder"),
-        eq(folder.status, "ready"),
-        isNull(folder.deletedAt)
-      ),
-
-    with: {
-      children: {
-        columns: {
-          id: true,
-          name: true,
-          type: true,
-          parentId: true,
-          mimeType: true,
-          size: true,
-          createdAt: true,
-          updatedAt: true,
-        },
-
-        where: (child, { and, eq, isNull }) =>
-          and(
-            eq(child.ownerId, ownerId),
-            eq(child.status, "ready"),
-            isNull(child.deletedAt)
-          ),
-
-        orderBy: (child, { desc }) => [desc(child.updatedAt)],
-      },
-    },
-  })
-
-  if (!data) {
-    return err("Folder not found.")
-  }
-
-  return ok(data)
 }
 
 /**

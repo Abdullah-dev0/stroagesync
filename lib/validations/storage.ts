@@ -14,6 +14,8 @@ export const createFolderInputSchema = z.object({
   parentId: z.uuid().nullable(),
 })
 
+export const storageItemIdSchema = z.uuid()
+
 export const renameStorageItemInputSchema = createFolderInputSchema.pick({
   name: true,
 })
@@ -44,14 +46,6 @@ export const createUploadUrlsInputSchema = z.object({
     .max(MAX_UPLOAD_FILES, `You can upload up to ${MAX_UPLOAD_FILES} files.`),
 })
 
-export const presignedUploadSchema = z.object({
-  id: z.uuid(),
-  uploadUrl: z.url(),
-  mimeType: z.string().min(1),
-})
-
-export const presignedUploadsSchema = z.array(presignedUploadSchema)
-
 export const completeUploadsInputSchema = z.object({
   fileIds: z
     .array(z.uuid())
@@ -73,8 +67,6 @@ export const storageItemSchema = z.object({
   updatedAt: z.date(),
 })
 
-export const storageItemsSchema = z.array(storageItemSchema)
-
 export const storageItemsResponseSchema = z.array(
   storageItemSchema.extend({
     createdAt: z.coerce.date(),
@@ -91,14 +83,6 @@ export const filePreviewSchema = z.object({
   mimeType: z.string().min(1),
 })
 
-export const fileDownloadSchema = z.object({
-  url: z.url(),
-})
-
-export const deleteStorageItemsResultSchema = z.object({
-  deletedIds: z.array(z.uuid()),
-})
-
 export const folderDetailsResponseSchema = z.object({
   folder: folderSchema,
   ancestors: z.array(folderSchema),
@@ -106,14 +90,9 @@ export const folderDetailsResponseSchema = z.object({
 
 export type CreateFolderInput = z.infer<typeof createFolderInputSchema>
 export type CreateUploadUrlsInput = z.infer<typeof createUploadUrlsInputSchema>
-export type DeleteStorageItemsResult = z.infer<
-  typeof deleteStorageItemsResultSchema
->
-export type FileDownload = z.infer<typeof fileDownloadSchema>
 export type FilePreview = z.infer<typeof filePreviewSchema>
 export type Folder = z.infer<typeof folderSchema>
 export type FolderDetailsResponse = z.infer<typeof folderDetailsResponseSchema>
-export type PresignedUpload = z.infer<typeof presignedUploadSchema>
 export type RenameStorageItemInput = z.infer<
   typeof renameStorageItemInputSchema
 >
