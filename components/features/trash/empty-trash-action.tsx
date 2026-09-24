@@ -1,6 +1,10 @@
 "use client"
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query"
 import { Trash2 } from "lucide-react"
 import { useState } from "react"
 
@@ -29,7 +33,7 @@ import type { StorageItem } from "@/lib/validations/storage"
 export function EmptyTrashAction() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const queryClient = useQueryClient()
-  const { data: items = [] } = useQuery({
+  const { data: items } = useSuspenseQuery({
     queryKey: trashItemsQueryKey,
     queryFn: fetchTrashItems,
   })

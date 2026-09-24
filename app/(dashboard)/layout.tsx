@@ -24,7 +24,7 @@ export default async function Layout({
         <DashboardSidebar />
         <main className="flex min-h-screen w-full flex-col bg-background">
           <DashboardHeader />
-          {children}
+          <div className="w-full p-4 sm:p-7">{children}</div>
         </main>
       </SidebarProvider>
     </QueryProvider>

@@ -1,12 +1,15 @@
 "use client"
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query"
 import { LoaderCircle, RotateCcw, Trash2 } from "lucide-react"
 import { useState } from "react"
 
 import { fetchTrashItems } from "@/lib/api/storage"
 import { StorageItemCard } from "@/components/features/dashboard/storage-item-card"
-import { StorageItemGridSkeleton } from "@/components/features/dashboard/storage-item-grid-skeleton"
 import { TrashEmptyState } from "@/components/features/trash/trash-empty-state"
 import {
   updateStorageItemTrashAction,
@@ -42,7 +45,7 @@ import {
 export function TrashItemGridClient() {
   const [deleteItem, setDeleteItem] = useState<StorageItem | null>(null)
   const queryClient = useQueryClient()
-  const { data: items, isPending: isQueryPending } = useQuery({
+  const { data: items } = useSuspenseQuery({
     queryKey: trashItemsQueryKey,
     queryFn: fetchTrashItems,
   })
@@ -134,13 +137,9 @@ export function TrashItemGridClient() {
     },
   })
 
-  if (isQueryPending) {
-    return <StorageItemGridSkeleton />
-  }
-
   return (
     <>
-      {!items || items.length === 0 ? (
+      {items.length === 0 ? (
         <TrashEmptyState />
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

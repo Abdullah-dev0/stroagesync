@@ -3,10 +3,10 @@ import { notFound } from "next/navigation"
 import { Suspense } from "react"
 
 import { StorageItemGridClient } from "@/components/features/dashboard/storage-item-grid-client"
+import { StorageItemGridSkeleton } from "@/components/features/dashboard/storage-item-grid-skeleton"
 import { FolderBreadcrumbs } from "@/components/features/folder/folder-breadcrumbs"
 import { FolderEmptyState } from "@/components/features/folder/folder-empty-state"
 import { FolderBreadcrumbsSkeleton } from "@/components/features/folder/folder-page-skeleton"
-import { PageShell } from "@/components/shared/page-shell"
 import { getDriveItems, getFolderDetails } from "@/lib/data/storage-data"
 import { getQueryClient } from "@/lib/get-query-client"
 import { storageItemsByParentQueryKey } from "@/lib/query-keys"
@@ -49,19 +49,21 @@ export default async function Page({ params }: FolderPageProps) {
     .catch(() => {})
 
   return (
-    <PageShell>
+    <>
       <Suspense fallback={<FolderBreadcrumbsSkeleton />}>
         <FolderBreadcrumbsSection folderId={parsedId.data} />
       </Suspense>
 
       <div className="mt-6">
         <HydrationBoundary state={dehydrate(queryClient)}>
-          <StorageItemGridClient
-            folderId={parsedId.data}
-            emptyState={<FolderEmptyState />}
-          />
+          <Suspense fallback={<StorageItemGridSkeleton />}>
+            <StorageItemGridClient
+              folderId={parsedId.data}
+              emptyState={<FolderEmptyState />}
+            />
+          </Suspense>
         </HydrationBoundary>
       </div>
-    </PageShell>
+    </>
   )
 }

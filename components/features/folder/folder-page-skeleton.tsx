@@ -3,7 +3,6 @@ import {
   BreadcrumbSeparator,
   DriveBreadcrumbItem,
 } from "@/components/features/folder/folder-breadcrumbs"
-import { PageShell } from "@/components/shared/page-shell"
 import { Skeleton } from "@/components/ui/skeleton"
 
 export function FolderBreadcrumbsSkeleton() {
@@ -22,11 +21,11 @@ export function FolderBreadcrumbsSkeleton() {
 
 export function FolderPageSkeleton() {
   return (
-    <PageShell>
+    <>
       <FolderBreadcrumbsSkeleton />
       <div className="mt-6">
         <StorageItemGridSkeleton />
       </div>
-    </PageShell>
+    </>
   )
 }

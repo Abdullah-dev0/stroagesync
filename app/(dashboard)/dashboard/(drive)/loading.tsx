@@ -1,14 +1,15 @@
 import { StorageItemGridSkeleton } from "@/components/features/dashboard/storage-item-grid-skeleton"
-import { PageHeader, PageShell } from "@/components/shared/page-shell"
 
 export default function Loading() {
   return (
-    <PageShell>
-      <PageHeader title="My Drive" />
+    <>
+      <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+        My Drive
+      </h1>
 
       <div className="mt-6">
         <StorageItemGridSkeleton />
       </div>
-    </PageShell>
+    </>
   )
 }
