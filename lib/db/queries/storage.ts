@@ -31,6 +31,9 @@ import { ok, err } from "@/lib/utils/result"
 
 const UPLOAD_URL_EXPIRES_IN_SECONDS = 5 * 60
 const PREVIEW_URL_EXPIRES_IN_SECONDS = 60
+// Video players re-request the same URL (Range requests) while playing and seeking,
+// so the URL must stay valid for the whole viewing session.
+const VIDEO_PREVIEW_URL_EXPIRES_IN_SECONDS = 60 * 60
 const DOWNLOAD_URL_EXPIRES_IN_SECONDS = 60
 
 const previewableMimeTypes = new Set([
@@ -40,6 +43,9 @@ const previewableMimeTypes = new Set([
   "image/jpeg",
   "image/png",
   "image/webp",
+  "video/mp4",
+  "video/ogg",
+  "video/webm",
 ])
 
 // Public shape of a storage item returned to callers. Mirrors storageItemSchema.
@@ -299,7 +305,11 @@ export const createFilePreview = async (itemId: string, ownerId: string) => {
       ResponseContentType: file.mimeType,
       ResponseContentDisposition: "inline",
     }),
-    { expiresIn: PREVIEW_URL_EXPIRES_IN_SECONDS }
+    {
+      expiresIn: file.mimeType.startsWith("video/")
+        ? VIDEO_PREVIEW_URL_EXPIRES_IN_SECONDS
+        : PREVIEW_URL_EXPIRES_IN_SECONDS,
+    }
   )
 
   return ok({

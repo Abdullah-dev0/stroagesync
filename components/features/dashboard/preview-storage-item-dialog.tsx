@@ -36,6 +36,9 @@ export function PreviewFile({
     enabled: isPreviewOpen && item.type === "file",
     staleTime: PREVIEW_URL_CACHE_MS,
     gcTime: PREVIEW_URL_CACHE_MS,
+    // A refetch returns a new signed URL, which would reload the media mid-view.
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   })
 
   const downloadFile = useMutation({
@@ -138,8 +141,24 @@ export function PreviewFile({
             </div>
           )}
 
+          {previewFile.data?.mimeType.startsWith("video/") && (
+            <video
+              key={previewFile.data.url}
+              src={previewFile.data.url}
+              controls
+              autoPlay
+              playsInline
+              preload="metadata"
+              aria-label={`Preview of ${item.name}`}
+              className="max-h-full max-w-full rounded-md bg-muted"
+            >
+              Your browser does not support video playback.
+            </video>
+          )}
+
           {previewFile.data &&
             !previewFile.data.mimeType.startsWith("image/") &&
+            !previewFile.data.mimeType.startsWith("video/") &&
             previewFile.data.mimeType !== "application/pdf" && (
               <div className="grid max-w-sm gap-1 p-6 text-center">
                 <p className="font-medium text-foreground">
