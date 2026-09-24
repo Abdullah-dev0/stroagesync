@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query"
 import Link from "next/link"
 import { HardDrive } from "lucide-react"
 
-import { STORAGE_LIMIT_BYTES } from "@/lib/constants"
+import { FREE_STORAGE_BYTES } from "@/lib/constants"
 import { fetchStorageUsage } from "@/lib/api/storage"
 import { storageUsageQueryKey } from "@/lib/query-keys"
 import { formatFileSize } from "@/lib/utils/format"
@@ -30,8 +30,8 @@ export function StorageUsageFooter() {
 
   const { usedBytes } = usage
   const usedStorage = formatFileSize(usedBytes)
-  const totalStorage = formatFileSize(STORAGE_LIMIT_BYTES)
-  const percentage = Math.min((usedBytes / STORAGE_LIMIT_BYTES) * 100, 100)
+  const totalStorage = formatFileSize(FREE_STORAGE_BYTES)
+  const percentage = Math.min((usedBytes / FREE_STORAGE_BYTES) * 100, 100)
   const storageLabel = `Storage: ${usedStorage} of ${totalStorage}`
 
   return (

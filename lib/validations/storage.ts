@@ -1,7 +1,7 @@
 import { z } from "zod"
 
 export const MAX_UPLOAD_FILES = 3
-export const MAX_UPLOAD_FILE_SIZE = 16 * 1024 * 1024
+export const MAX_UPLOAD_FILE_SIZE = 1024 ** 3
 
 const storageItemNameSchema = z
   .string()
@@ -36,7 +36,7 @@ const uploadFileMetadataSchema = z.object({
     .number()
     .int()
     .nonnegative()
-    .max(MAX_UPLOAD_FILE_SIZE, "Each file must be 16 MB or smaller."),
+    .max(MAX_UPLOAD_FILE_SIZE, "Each file must be 1 GB or smaller."),
 })
 
 export const createUploadUrlsInputSchema = z.object({

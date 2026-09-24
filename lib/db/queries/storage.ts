@@ -22,6 +22,7 @@ import {
   sql,
   sum,
 } from "drizzle-orm"
+import { FREE_STORAGE_BYTES } from "@/lib/constants"
 import { env } from "@/lib/env"
 import { getDbAsync } from "@/lib/db/client"
 import { storageItem } from "@/lib/db/schema"
@@ -159,6 +160,13 @@ export const createPresignedUploads = async (
   files: CreateUploadUrlsInput["files"],
   ownerId: string
 ) => {
+  const { usedBytes } = await getStorageUsageByOwnerId(ownerId)
+  const requestedBytes = files.reduce((total, file) => total + file.size, 0)
+
+  if (usedBytes + requestedBytes > FREE_STORAGE_BYTES) {
+    return err("Storage full. Free up space or upgrade your plan.")
+  }
+
   const db = await getDbAsync()
   const uploads = await Promise.all(
     files.map(async (file) => {
@@ -198,7 +206,7 @@ export const createPresignedUploads = async (
 
   await db.insert(storageItem).values(uploads.map(({ record }) => record))
 
-  return uploads.map(({ response }) => response)
+  return ok(uploads.map(({ response }) => response))
 }
 
 export const completePendingUploads = async (

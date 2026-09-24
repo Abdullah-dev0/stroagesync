@@ -1,1 +1,1 @@
-export const STORAGE_LIMIT_BYTES = 15 * 1024 ** 3
+export const FREE_STORAGE_BYTES = 1024 ** 3

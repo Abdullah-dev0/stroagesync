@@ -68,7 +68,11 @@ export async function createUploadUrlsAction(input: unknown) {
     parsed.data.files,
     session.user.id
   )
-  return ok(result)
+  if (!result.success) {
+    return err(result.error)
+  }
+
+  return ok(result.data)
 }
 
 export async function completeUploadsAction(input: unknown) {
