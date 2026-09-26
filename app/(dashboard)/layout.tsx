@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 
+import { UploadPanel } from "@/components/features/uploads/upload-panel"
 import { DashboardHeader } from "@/components/shared/dashboard-header"
 import { DashboardSidebar } from "@/components/shared/dashboard-sidebar"
 import { SidebarProvider } from "@/components/ui/sidebar"
@@ -26,6 +27,7 @@ export default async function Layout({
           <DashboardHeader />
           <div className="w-full p-4 sm:p-7">{children}</div>
         </main>
+        <UploadPanel />
       </SidebarProvider>
     </QueryProvider>
   )

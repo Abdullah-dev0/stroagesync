@@ -7,6 +7,7 @@ import { useRef, useState, type ChangeEvent, type SubmitEvent } from "react"
 import {
   createFolderAction,
   createUploadUrlsAction,
+  cancelUploadsAction,
   completeUploadsAction,
 } from "@/lib/actions/storage"
 import {
@@ -35,7 +36,6 @@ import { Label } from "@/components/ui/label"
 import { SidebarMenuButton } from "@/components/ui/sidebar"
 import { toast } from "@/components/ui/toast"
 import {
-  completeUploadsInputSchema,
   createFolderInputSchema,
   createUploadUrlsInputSchema,
   type CreateFolderInput,
@@ -44,6 +44,8 @@ import {
 } from "@/lib/validations/storage"
 import { cn } from "@/lib/utils/cn"
 import { useParams } from "next/navigation"
+import { putFileWithProgress } from "@/components/features/uploads/put-file-with-progress"
+import { uploadStore } from "@/components/features/uploads/upload-store"
 
 export function StorageCreateMenu() {
   const [isFolderDialogOpen, setIsFolderDialogOpen] = useState(false)
@@ -84,98 +86,76 @@ export function StorageCreateMenu() {
     },
   })
 
-  const handleUploadFiles = useMutation({
-    mutationFn: async ({
-      files,
-      uploadInput,
-    }: {
-      files: File[]
-      uploadInput: CreateUploadUrlsInput
-    }) => {
-      const presign = await createUploadUrlsAction(uploadInput)
-      if (!presign.success) throw new ExpectedResultError(presign.error)
-      const uploads = presign.data
+  async function uploadFiles(
+    files: File[],
+    uploadInput: CreateUploadUrlsInput
+  ) {
+    // 1. Show every file in the upload panel.
+    const uploads = files.map((file) => uploadStore.add(file))
 
-      if (uploads.length !== files.length) {
-        throw new Error("Received an unexpected number of upload URLs.")
-      }
-
-      await Promise.all(
-        uploads.map(async (upload, index) => {
-          const file = files[index]
-
-          if (!file) {
-            throw new Error("Missing file for upload.")
-          }
-
-          const response = await fetch(upload.uploadUrl, {
-            method: "PUT",
-            headers: { "Content-Type": upload.mimeType },
-            body: file,
-          })
-
-          if (!response.ok) {
-            throw new Error("R2 upload failed.")
-          }
-        })
-      )
-
-      const completionInput = completeUploadsInputSchema.parse({
-        fileIds: uploads.map(({ id }) => id),
-      })
-
-      const result = await completeUploadsAction(completionInput)
-      if (!result.success) throw new ExpectedResultError(result.error)
-      return result.data
-    },
-    onMutate: ({ files }) => {
-      const toastId = toast.add({
-        type: "loading",
-        title: "Uploading files",
-        description:
-          files.length === 1
-            ? `${files[0]?.name ?? "File"} is uploading.`
-            : `${files.length} files are uploading.`,
-        timeout: 0,
-      })
-
-      return { toastId }
-    },
-    onSuccess: async (uploadedFiles) => {
-      const uploadedFileIds = new Set(uploadedFiles.map(({ id }) => id))
-
-      queryClient.setQueryData<StorageItem[]>(itemsQueryKey, (items = []) => [
-        ...uploadedFiles,
-        ...items.filter(({ id }) => !uploadedFileIds.has(id)),
-      ])
-      await queryClient.invalidateQueries({ queryKey: storageUsageQueryKey })
-    },
-    onSettled: (_data, error, _variables, mutationContext) => {
-      if (!mutationContext) return
-
-      if (!error) {
-        toast.update(mutationContext.toastId, {
-          type: "success",
-          title: "Files uploaded",
-          description: "Your files have been uploaded successfully.",
-          timeout: 5000,
-        })
-
-        return
-      }
-
-      toast.update(mutationContext.toastId, {
+    // 2. Ask the server for one upload URL per file.
+    const presign = await createUploadUrlsAction(uploadInput)
+    if (!presign.success) {
+      uploads.forEach(({ id }) => uploadStore.update(id, { status: "error" }))
+      toast.add({
         type: "error",
         title: "Upload failed",
-        description:
-          error instanceof ExpectedResultError
-            ? error.message
-            : "We couldn't upload your files. Please try again.",
-        timeout: 5000,
-        priority: "high",
+        description: presign.error,
       })
-    },
-  })
+      return
+    }
+
+    // 3. Send each file to R2. Canceled or failed files are cleaned up on the server.
+    const finished: { fileId: string; uploadId: string }[] = []
+    const unfinishedIds: string[] = []
+
+    await Promise.all(
+      presign.data.map(async ({ id: fileId, uploadUrl }, index) => {
+        const file = files[index]
+        const upload = uploads[index]
+        if (!file || !upload) return
+
+        try {
+          await putFileWithProgress(
+            uploadUrl,
+            file,
+            upload.controller.signal,
+            (loadedBytes) => uploadStore.update(upload.id, { loadedBytes })
+          )
+          uploadStore.update(upload.id, { status: "finishing" })
+          finished.push({ fileId, uploadId: upload.id })
+        } catch {
+          const canceled = upload.controller.signal.aborted
+          uploadStore.update(upload.id, {
+            status: canceled ? "canceled" : "error",
+          })
+          unfinishedIds.push(fileId)
+        }
+      })
+    )
+
+    if (unfinishedIds.length > 0) {
+      void cancelUploadsAction({ fileIds: unfinishedIds })
+    }
+    if (finished.length === 0) return
+
+    // 4. Tell the server which files finished so it marks them as ready.
+    const finishedIds = finished.map(({ fileId }) => fileId)
+    const result = await completeUploadsAction({ fileIds: finishedIds })
+    finished.forEach(({ uploadId }) =>
+      uploadStore.update(uploadId, {
+        status: result.success ? "done" : "error",
+      })
+    )
+    if (!result.success) return
+
+    // 5. Show the new files in the grid and refresh the storage usage bar.
+    queryClient.setQueryData<StorageItem[]>(itemsQueryKey, (items = []) => [
+      ...result.data,
+      ...items.filter((item) => !finishedIds.includes(item.id)),
+    ])
+    await queryClient.invalidateQueries({ queryKey: storageUsageQueryKey })
+  }
 
   function handleCreateFolder(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -221,10 +201,9 @@ export function StorageCreateMenu() {
       return
     }
 
-    handleUploadFiles.mutate({
-      files,
-      uploadInput: uploadInput.data,
-    })
+    // Reset so selecting the same file again still fires onChange.
+    event.currentTarget.value = ""
+    void uploadFiles(files, uploadInput.data)
   }
   return (
     <>

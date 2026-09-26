@@ -16,6 +16,7 @@ import {
   and,
   desc,
   eq,
+  gt,
   inArray,
   isNotNull,
   isNull,
@@ -140,6 +141,31 @@ export const getStorageUsageByOwnerId = async (ownerId: string) => {
   return { usedBytes: Number(usage?.usedBytes ?? 0) }
 }
 
+// Unfinished uploads reserve quota so parallel requests (e.g. several tabs)
+// can't exceed the limit. Only recent ones count, so abandoned uploads stop
+// holding space even before a cleanup job removes them.
+const PENDING_UPLOAD_RESERVATION_MS = 24 * 60 * 60 * 1000
+
+const getPendingUploadBytesByOwnerId = async (ownerId: string) => {
+  const db = await getDbAsync()
+  const [pending] = await db
+    .select({ pendingBytes: sum(storageItem.size) })
+    .from(storageItem)
+    .where(
+      and(
+        eq(storageItem.ownerId, ownerId),
+        eq(storageItem.type, "file"),
+        eq(storageItem.status, "pending"),
+        gt(
+          storageItem.createdAt,
+          new Date(Date.now() - PENDING_UPLOAD_RESERVATION_MS)
+        )
+      )
+    )
+
+  return Number(pending?.pendingBytes ?? 0)
+}
+
 export const updateStorageItemTrashById = async (
   itemId: string,
   ownerId: string,
@@ -166,10 +192,13 @@ export const createPresignedUploads = async (
   files: CreateUploadUrlsInput["files"],
   ownerId: string
 ) => {
-  const { usedBytes } = await getStorageUsageByOwnerId(ownerId)
+  const [{ usedBytes }, pendingBytes] = await Promise.all([
+    getStorageUsageByOwnerId(ownerId),
+    getPendingUploadBytesByOwnerId(ownerId),
+  ])
   const requestedBytes = files.reduce((total, file) => total + file.size, 0)
 
-  if (usedBytes + requestedBytes > FREE_STORAGE_BYTES) {
+  if (usedBytes + pendingBytes + requestedBytes > FREE_STORAGE_BYTES) {
     return err("Storage full. Free up space or upgrade your plan.")
   }
 
@@ -405,6 +434,47 @@ const deleteTrashedStorageItems = async (ownerId: string, itemId?: string) => {
     .returning({ id: storageItem.id })
 
   return ok(deletedItems.map((item) => item.id))
+}
+
+// Deletes uploads the user canceled. Only touches the user's own "pending"
+// files, so finished files can never be removed through this path.
+export const cancelPendingUploads = async (
+  fileIds: string[],
+  ownerId: string
+) => {
+  const db = await getDbAsync()
+  const conditions = and(
+    eq(storageItem.ownerId, ownerId),
+    eq(storageItem.status, "pending"),
+    inArray(storageItem.id, fileIds)
+  )
+
+  const pendingFiles = await db
+    .select({ storageKey: storageItem.storageKey })
+    .from(storageItem)
+    .where(conditions)
+
+  // The upload may have finished right before the cancel arrived,
+  // so remove the object too. Deleting a missing key is a no-op in R2.
+  await Promise.all(
+    pendingFiles.map((file) => {
+      if (!file.storageKey) return
+
+      return r2Client.send(
+        new DeleteObjectCommand({
+          Bucket: env.r2BucketName,
+          Key: file.storageKey,
+        })
+      )
+    })
+  )
+
+  const canceledFiles = await db
+    .delete(storageItem)
+    .where(conditions)
+    .returning({ id: storageItem.id })
+
+  return ok(canceledFiles.map((file) => file.id))
 }
 
 export const deleteTrashedStorageItemById = async (

@@ -56,6 +56,8 @@ export const completeUploadsInputSchema = z.object({
     }),
 })
 
+export const cancelUploadsInputSchema = completeUploadsInputSchema
+
 export const storageItemSchema = z.object({
   id: z.uuid(),
   name: z.string(),

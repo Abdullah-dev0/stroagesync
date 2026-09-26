@@ -2,6 +2,7 @@
 
 import { requireSession } from "@/lib/auth/session"
 import {
+  cancelPendingUploads,
   completePendingUploads,
   createFileDownload,
   createFolder,
@@ -13,6 +14,7 @@ import {
 } from "@/lib/db/queries/storage"
 import { err, ok } from "@/lib/utils/result"
 import {
+  cancelUploadsInputSchema,
   completeUploadsInputSchema,
   createFolderInputSchema,
   createUploadUrlsInputSchema,
@@ -91,6 +93,16 @@ export async function completeUploadsAction(input: unknown) {
   }
 
   return ok(result.data)
+}
+
+export async function cancelUploadsAction(input: unknown) {
+  const session = await requireSession()
+  const parsed = cancelUploadsInputSchema.safeParse(input)
+  if (!parsed.success) {
+    return err(parsed.error.issues[0]?.message ?? "Invalid input.")
+  }
+
+  return cancelPendingUploads(parsed.data.fileIds, session.user.id)
 }
 
 export async function renameStorageItemAction(itemId: unknown, input: unknown) {
